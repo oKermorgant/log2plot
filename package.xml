@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>log2plot</name>
+  <version>1.0.0</version>
+  <description>Writes YAML-data files from C++ and plot them from Python</description>
+
+  <license>MIT</license>
+
+  <author email="olivier.kermorgant@ec-nantes.fr">Olivier Kermorgant</author>
+  <maintainer email="olivier.kermorgant@ec-nantes.fr">Olivier Kermorgant</maintainer>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+
+</package>

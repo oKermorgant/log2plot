@@ -1,0 +1,650 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+
+import sys, os, shutil
+from pylab import *
+from matplotlib import rc, animation, rcParams
+from mpl_toolkits.axes_grid1 import host_subplot
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.font_manager import FontProperties
+import argparse
+import yaml
+import time
+
+
+'''
+A module to visualize YAML data files
+
+author : Olivier Kermorgant
+'''
+
+try:
+    sys.argv.remove('--pylab')
+except:
+    pass
+
+# in-script tuning
+videoFreeze = 10
+# LateX
+rc('text', usetex = True)
+rc('font', family='serif')
+rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+# plot colors
+plot_colors = ['b','g','r','c','m','y']
+plot_markers = ['', 'o', 's', 'x', 'D', 'p', '+']
+nbmark = 10.
+# margin around actual values
+plotMargin = 0.05
+
+
+# build parser
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.description = 'A module to draw plots from YAML-formatted data'
+
+# files
+argFiles = parser.add_argument_group('Files')
+argFiles.add_argument('files', metavar='file', type=str, nargs='+', help='Files to be plotted')
+
+# general args
+argGal = parser.add_argument_group('General options')
+argGal.add_argument('-g', '--group', action='store_true', help='Draws the files in the same plot',default=False)
+argGal.add_argument('-L', '--Lines', metavar='lines', type=int, help='Number of subplot lines',default=1)
+argGal.add_argument('--delete', action='store_true', help='Erase the datafile and does not save the figure (ie just displays)', default=False)
+argGal.add_argument('--nodisplay', action='store_true', help='Does not display',default=False)
+argGal.add_argument('--white', action='store_true', help='White border around figure',default=False)
+argGal.add_argument('--xy', type=int, nargs=2, help='Plot x vs y according to given indices.',default=[0,0])
+argGal.add_argument('--XY', metavar='sort', type=int, help='Plot all data as X vs Y. If 1 assume [x1,y1,x2,y2,..], if 2 assume [x1,x2,..,y1,y2,..]',default=0)
+argGal.add_argument('--index', type=int, help='Only plots from 0 to given x-index', default=0)
+argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve indices', default=())
+argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
+argGal.add_argument('--steps', type=int, nargs='+', help='Will plot vertical lines at given steps', default=())
+
+# Value-related
+argValues = parser.add_argument_group('Value-related options')
+argValues.add_argument('--norm', type=str, help='Plots the norm of the value with the given legend',default='')
+argValues.add_argument('-d', '--diff', action='store_true', help='Plots the difference between the two files',default=False)
+argValues.add_argument('--diffpc', action='store_true', help='Plots the difference in percent between the two files',default=False)
+argValues.add_argument('--scale', metavar='x', type=float, help='Rescale all the values',default=1.)
+argValues.add_argument('--rescale', metavar=['label', 'min', 'max'], nargs=3, help='Rescale given label between min and max',default=[])
+argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for Y',default=[])
+
+# font and line args
+argFontLine = parser.add_argument_group('Font and line options')
+argFontLine.add_argument('-s', '--fontSize', metavar='size', type=int, help='Global font size',default=22)
+argFontLine.add_argument('--fontAxes', metavar='size', type=int, help='Size adjustment for axes fonts', default=0)
+argFontLine.add_argument('--fontLabel', metavar='size', type=int, help='Size adjustment for label fonts',default=0)
+argFontLine.add_argument('--fontLegend', metavar='size', type=int, help='Size adjustment for legend fonts',default=1)
+argFontLine.add_argument('-l', '--lineWidth', metavar='width', type=int, help='Line width',default=2)
+
+# legend and label args
+argLegendLabel = parser.add_argument_group('Legend and label options')
+argLegendLabel.add_argument('--legendLoc', metavar='location', type=int, help='Legend position (-1 for no legend)',default=0)
+argLegendLabel.add_argument('--legendCol', metavar='columns', type=int, help='Legend columns',default=1)
+argLegendLabel.add_argument('--legendMax', metavar='max legends', type=int, help='Max number of lines to display legend',default=6)
+argLegendLabel.add_argument('--noY', action='store_true', help='Does not display Y label',default=False)
+argLegendLabel.add_argument('--noYa', action='store_true', help='Does not display Y values',default=False)
+argLegendLabel.add_argument('--noX', action='store_true', help='Does not display X label',default=False)
+argLegendLabel.add_argument('--no0', action='store_true', help='Does not display 0-x axis',default=False)
+argLegendLabel.add_argument('--twin', metavar='index',  type=int, help='Separate y-axis after index', default=-1)
+
+# 3D plot args
+arg3Dplot = parser.add_argument_group('3D plot options')
+arg3Dplot.add_argument('--afmacMf', action='store_true', help='Pose comes from Afma6 cMf()',default=False)
+arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert the pose for 3D plot (otherwise consider that cMo has been saved)',default=True)
+arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
+arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
+arg3Dplot.add_argument('--legend3d', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several 3D curves',default='')
+arg3Dplot.add_argument('--nbcam', type=int, help='Number of cameras to be plotted',default=10)
+
+# video args
+argVid = parser.add_argument_group('Video options')
+argVid.add_argument('-v', dest='video', type=int, help='Creates a video with given subsampling',default=0)
+argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to create videos',default=0.04)
+
+
+# function to and check consistency and links between arguments 
+def checkArgs(parsed):
+    if parsed.noYa:
+        parsed.noY = True;
+    if parsed.twin != -1:
+        parsed.group = True
+    if  parsed.white:
+        rc('axes', edgecolor='white')
+    else:
+        rc('axes', edgecolor='black')
+    if parsed.video > 0:
+        #parsed.legendLoc = -1
+        parsed.lineWidth = 4
+    if parsed.afmacMf:
+        parsed.invertPose = True
+        parsed.gMo = (0,0,0,0,pi,0)
+    if parsed.group:
+        parsed.Lines = 1
+    return parsed
+
+# parse and check
+global args
+args = checkArgs(parser.parse_args())
+
+# rotation from theta-u
+def Rot(tU):
+    th = norm(tU)
+    u = array([1,0,0])
+    if(th != 0):
+        u = tU.copy()/th
+    u.shape = (3,1)
+    R = cos(th)*identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*dot(u,u.transpose())
+    return matrix(R)
+
+# compute gMo and gRo
+m01 = matrix([[0.,0.,0.,1.]])
+gRo = Rot(args.gMo[3:])
+gMo = matrix(concatenate((concatenate((gRo,matrix(args.gMo[:3]).reshape(3,1)),1),m01),0))
+
+# change pose (t,theta u) to Fg (3d plot frame)
+def poseToPlotFrame(p):
+    if args.invertPose:
+        oRc = Rot(p[3:]).transpose()
+        oTc = -oRc*matrix(p[:3].reshape(3,1))
+    else:
+        oRc = Rot(p[3:])
+        oTc = matrix(p[:3].reshape(3,1))
+    return gMo * matrix(concatenate((concatenate((oRc,oTc),1),m01),0))
+
+legendSize = FontProperties(size=args.fontSize+args.fontLegend)
+
+# function to change dictionary to namespace
+class dictToNamespace(object):
+  def __init__(self, adict):
+    self.__dict__.update(adict)
+
+
+
+# -- 2D plots ------------------------
+
+def init2D():
+    global F, lines, all_ax
+    L = args.Lines
+    if len(dataList) < L:
+        L = len(dataList) 
+    C = int(float(len(dataList))/L)
+    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
+
+    # get axes number and limits
+    lines = []
+    all_ax = []
+    for i,dataSt in enumerate(dataList):
+        # get bounds
+        xMin = amin(dataSt.xVec)
+        xMax = amax(dataSt.xVec)
+        if args.twin != -1:
+            # ony one plot, store limits for both axes
+            yMin = amin(dataSt.data[:,:args.twin])
+            yMax = amax(dataSt.data[:,:args.twin])
+            yMin2 = amin(dataSt.data[:,args.twin+1:])
+            yMax2 = amax(dataSt.data[:,args.twin+1:])
+        else:
+            # several plots, use all data with the same ylabel for y limits (valid if ylabel != '')
+            yMin = amin(dataSt.data)
+            yMax = amax(dataSt.data)
+            if dataSt.ylabel != '':
+                yMin = min([amin(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
+                yMax = max([amax(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
+        if len(args.yLim) == 2:
+            (yMin,yMax) = args.yLim
+
+        # add first axis
+        ax = subplot2grid((L,C),(i/C,i-i/C), xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
+        #ax = F.add_subplot(100*L + 10*C + i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
+        all_ax.append(ax)
+        # add lines
+        sublines = []
+        for j in xrange(dataSt.data.shape[1]):
+            if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
+                plot(dataSt.xVec, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
+            else:
+                sublines += plot([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+            if j == args.twin:
+                # change axe
+                ax = ax.twinx()
+                all_ax.append(ax)
+                ax.set_xlim(xMin,xMax)
+                ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
+        # add 0-axis if needed
+        if args.no0 == False:
+            plot(dataSt.xVec[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
+        # set x label
+        if i/C == L-1 and args.noX == False:
+            xlabel(dataSt.xlabel, size = args.fontSize)
+        # set y label
+        if args.noY == False:
+            ylabel(dataSt.ylabel, size = args.fontSize+2)
+        # store lines
+        lines += sublines
+        
+    # add vertical lines
+    for step in args.steps:
+            plot([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
+
+    # correct font / display legend on all found axes
+    for ax in all_ax:
+        for ti in ax.get_xticklabels():
+            ti.set_fontsize(args.fontSize-1+args.fontAxes)
+        if args.noYa:
+            ax.set_yticks([])
+        else:
+            for ti in ax.get_yticklabels():
+                ti.set_fontsize(args.fontSize+args.fontAxes)
+
+    # resize fig
+    F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+
+    return F
+
+
+# refresh 2D figure
+def refresh2D(ind = -1):
+    global F, lines, all_ax
+    if ind == -1:
+        ind = dataList[0].rows
+    iline = 0    
+    for i,dataSt in enumerate(dataList):
+        for j in xrange(dataSt.data.shape[1]):
+            if 'k-' not in dataSt.lineType[j]: # is a line to be refreshed
+                lines[iline].set_data(dataSt.xVec[:ind], dataSt.data[:ind,j])
+                iline += 1
+    # display legends if needed
+    #draw()
+    for ax in all_ax:
+        if(args.legendLoc != -1):
+            ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
+
+    return lines
+
+# -- end 2D plots ------------------------------
+
+
+# -- Begin 3D plot -----------------------------
+
+# 3D axes limits and object scaling (I)
+lim3D = zeros(6)
+I = matrix(identity(4))
+
+def plot3Dobject(ax, objectGraph, objectNodes, objectPose, lineType, objectDesiredPose = None):
+    # plot intermediary poses with lineType[1], first pose with lineType[2] and desired pose (if any) with lineType[3]
+    col = lineType[1]
+    for M in objectPose:
+        gP = array(M * I * objectNodes)
+        for i in objectGraph:
+            ax.plot(gP[0,i], gP[1,i], gP[2,i], col, linewidth=max(2,args.lineWidth-1))
+        col = lineType[2]
+    if objectDesiredPose != None:
+        gP = array(objectDesiredPose * I * objectNodes)
+        for i in objectGraph:
+            ax.plot(gP[0,i], gP[1,i], gP[2,i], lineType[3], linewidth=max(2,args.lineWidth-1))
+
+
+def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
+    # plot intermediary poses with lineType[1], first pose with lineType[2] and desired pose (if any) with lineType[3]
+    gP = array(objectPose * I * objectNodes)
+    objLines = []
+    for i in objectGraph:
+        objLines += ax.plot(gP[0,i], gP[1,i], gP[2,i], lineType, linewidth=max(2,args.lineWidth-1))
+
+    return objLines
+
+
+p = 2
+
+def init3D():
+    global F, lines, ax, indMoving
+
+    F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]))
+    sp = subplot(1,1,1)
+    sp.set_xticks(array([]))
+    sp.set_yticks(array([]))
+    F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+    ax = Axes3D(F, rect=sp.get_position())
+    ax.view_init(args.ae[1],args.ae[0])
+    objectPoses = []
+
+    # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
+    indMoving = [[int(round((len(dataSt.data)-1)*v**p)) for v in linspace(0,1,args.nbcam)][1:] for dataSt in dataList]
+
+    # first run to get the figure dimensions
+    lines = []
+
+    for dataSt in dataList:
+        # 3D trajectory
+        xyz = array(dataSt.data)[:,:,3]
+        lines += ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
+
+        # plot fixed observed object if any - won't move
+        if 'fixedObject' in dataSt.keys:
+            for i in dataSt.fixedObject.graph:
+                ax.plot(dataSt.fixedObject.nodes[0,i], dataSt.fixedObject.nodes[1,i], dataSt.fixedObject.nodes[2,i], dataSt.fixedObject.color, linewidth=max(2,args.lineWidth-1))
+
+    # get axes limits
+    lim3D = array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()]).reshape(6)
+    dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in xrange(3)]) # max range
+    # build limits and scaling matrix I
+    
+    for i in xrange(3):
+        x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
+        for j in xrange(2):
+            lim3D[2*i+j] = x0 - (-1)**j * dX
+        I[i,i] = 0.02*(lim3D[2*i+1] - lim3D[2*i])    
+    
+    # set limits and ratio            
+    '''
+    ax.set_xlim3d([lim3D[0],lim3D[1]])
+    ax.set_ylim3d([lim3D[2],lim3D[3]])
+    ax.set_zlim3d([lim3D[4],lim3D[5]])
+    '''
+    #
+    #ax.set_aspect('equal')
+    # another run to plot first / desired positions of objects
+    for dataSt in dataList:
+        if 'movingObject' in dataSt.keys:
+            # initial
+            line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[0], dataSt.lineType[2])
+            # desired
+            if 'desiredPose' in dataSt.movingObject.keys:
+                line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.movingObject.desiredPose, dataSt.lineType[3])
+            # if video, prepare lines for moving
+            if args.video:
+                lines += line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[1], dataSt.lineType[2])
+
+    return F
+
+
+def refresh3D(ind = -1):
+    global lines, ax, indMoving
+
+    if ind == -1:
+        ind = dataList[0].rows
+
+    iline = 0
+    for dataSt in dataList:
+        # 3D trajectory
+        if ind > 0:
+            xyz = array(dataSt.data[:ind])[:,:,3]
+            lines[iline].set_data(xyz[:,0], xyz[:,1])
+            lines[iline].set_3d_properties(xyz[:,2])
+        else:
+            lines[iline].set_data([],[])
+            lines[iline].set_3d_properties([])
+        iline += 1
+
+    # deal with moving object
+    if ind == dataList[0].rows:
+        # fixed picture: plot all
+        for k,dataSt in enumerate(dataList):
+            if 'movingObject' in dataSt.keys:
+                for i in indMoving[k]:
+                    line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[i], dataSt.lineType[(i==indMoving[k][-1]) and 2 or 1])
+    else:
+        # moving: plot (refresh) only current
+        for dataSt in dataList:
+            if 'movingObject' in dataSt.keys:
+                gP = array(dataSt.data[ind] * I * dataSt.movingObject.nodes)
+                for i in dataSt.movingObject.graph:
+                    lines[iline].set_data(gP[0,i], gP[1,i])
+                    lines[iline].set_3d_properties(gP[2,i])
+                    iline += 1
+    return lines
+
+
+def readFileList(filenames, n=0):
+    '''
+    Returns list of data contained in filenames
+    Recursive for metafiles
+    '''
+    global args
+    if n > 5:
+        print 'readFileList too recursive, check files'
+        sys.exit(1)
+    dataList = []
+    dataListd = []
+    k = 0
+    for filename in filenames:
+        with open(filename) as f:
+            try:
+                d = yaml.load(f)
+            except:
+                print 'Could not read', filename
+                sys.exit(0)
+                
+        if d['dataType'] == 'metafile':
+            if 'args' in d:    # get args used when creating metafile
+                args = checkArgs(parser.parse_args(sys.argv[1:] + d['args']))
+            dataList += readFileList(d['files'],n+1)
+        else:
+            # read data partially or totally
+            if args.index == 0:
+                args.index = len(d['data'])
+            d['data'] = array([[float(v) for v in line] for line in d['data'][:args.index]])
+            if args.only != ():
+                d['data'] = d['data'][:,args.only]                
+            # scale if needed
+            if args.scale != 1:
+                d['data'] *= args.scale
+            # rescale particular variable
+            if len(args.rescale) != 0 and args.rescale[0] in d['legend']:
+                args.rescale[1] = float(args.rescale[1])
+                args.rescale[2] = float(args.rescale[2])
+                i = d['legend'].index(args.rescale[0])
+                dMin = amin(d['data'][:,i])
+                dMax = amax(d['data'][:,i])
+                d['data'][:,i] = args.rescale[1] + (d['data'][:,i] - dMin)/(dMax - dMin) * (args.rescale[2] - args.rescale[1]) 
+            # create x-axis depending on iteration or time-based
+            if d['dataType'] == 'time-based':
+                d['xVec'] = d['data'][:,0]
+                d['data'] = d['data'][:,1:]
+            elif d['dataType'] == 'iteration-based':
+                d['xVec'] = arange(d['data'].shape[0])
+            # create legend and lineType keys if not present and fill up to data dimension 
+            for key in ('units', 'legend', 'lineType'):
+                # create key
+                if key not in d:
+                    d[key] = []       
+                if len(d[key]) > d['data'].shape[1]:
+                    # field too large
+                    d[key] = [d[key][ind] for ind in args.only]
+                else:
+                    # field too small
+                    d[key] += [''] * (d['data'].shape[1] - len(d[key]))
+            # set default values for 3D plot lineType
+            if d['dataType'] == '3D pose':
+                defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r--']
+                k+=1
+                for i in xrange(4):
+                    if d['lineType'][i] == '':
+                        d['lineType'][i] = defLine[i]
+            else:
+                # set default values for 2D plot lineType
+                for i in xrange(d['data'].shape[1]):
+                    if d['lineType'][i] == '':
+                        d['lineType'][i] = plot_colors[k%len(plot_colors)] + '-'+ plot_markers[k%len(plot_markers)]
+                        k+=1
+            if 'legend' in d:
+                # empty legends if legend is not displayed
+                if args.legendLoc == -1:
+                    d['legend'] = [''] * d['data'].shape[1]
+                # set non-empty legends to Latex-style (2D only)
+                if d['dataType'] != '3D pose':
+                    for i in xrange(len(d['legend'])):
+                        if d['legend'][i] != '':
+                            d['legend'][i] = '$\\boldsymbol{' + d['legend'][i].replace('<', '}\\textnormal{ ').replace('>','}\\boldsymbol{') + '}$'
+                            if len(d['units']) > i:
+                                if d['units'][i] != '':
+                                    d['legend'][i] += ' [%s]' % d['units'][i]
+            # create xlabel and ylabel keys
+            for label in ('xlabel', 'ylabel'):
+                if label not in d:
+                    d[label] = ''
+            # set ylabel to Latex-style if needed
+            if '<' in d['ylabel']:
+                d['ylabel'] = '$\\boldsymbol{' + d['ylabel'].replace('<', '}\\textnormal{ ').replace('>','}\\boldsymbol{') + '}$'
+                
+            # store data dimension
+            d['rows'],d['cols'] = d['data'].shape
+            
+            # 3D plot: check for moving or fixed object, change relative pose to absolute plot frame (do it once when reading the file)
+            if d['dataType'] == '3D pose':
+                d['data'] = [poseToPlotFrame(p) for p in d['data']]
+                if 'movingObject' in d:
+                    obj = d['movingObject']
+                    obj['nodes'] = concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0)
+                    if 'desiredPose' in obj:
+                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]))
+                    obj['keys'] = obj.keys()
+                    d['movingObject'] = dictToNamespace(obj)
+                if 'fixedObject' in d:
+                    obj = d['fixedObject']
+                    obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0))[:3,:]
+                    if 'color'not in obj:
+                        obj['color'] = 'b'
+                    d['fixedObject'] = dictToNamespace(obj)                
+                                  
+            # store existing keys
+            d['keys'] = d.keys()
+
+            # store d as namespace instead of dict
+            dataList.append(dictToNamespace(d))
+
+    return dataList
+ 
+# begin of main code, when calling from command line
+if __name__ == "__main__":
+    close('all')
+
+    # check files
+    ext_try = ['.yml', '.yaml', '.txt']
+    for i,f in enumerate(args.files):
+        if os.path.lexists(f) == False:
+            found = False
+            for ext in ext_try:
+                if os.path.lexists(f.replace('.', '') + ext):
+                    found = True
+                    print 'Assuming', f, 'is for', f.replace('.', '') + ext
+                    args.files[i] = f.replace('.', '') + ext
+            if not found:
+                print f, 'could not be found'
+                sys.exit(0)
+
+    #  if directory was given, then process all inner .txt files with the same arguments (= replot all files)
+    if os.path.isdir(args.files[0]):
+        for filename in os.listdir(args.files[0]):
+            if filename[-4:] == '.txt':
+                print 'Reading', filename
+                os.system('python ' + sys.argv[0] + ' ' + args.files[0] + '/' + filename + ' --nodisplay ' + ' '.join(sys.argv[2:]))
+        sys.exit(0)
+
+    basePath = '/'.join(os.path.abspath(args.files[0]).split('/')[:-1])
+
+    # read content of files
+    dataList = readFileList(args.files)
+
+    # build baseName
+    baseNames = [filename.split('/')[-1].split('.')[-2] for filename in args.files]
+    baseName = baseNames[0]
+    if len(args.files) > 1:
+        #baseNames = baseNames[1:]
+        nameLen = min([len(b) for b in baseNames])
+        i = 0
+        while i < nameLen and [b[i] for b in baseNames] == [baseName[i]]*len(args.files):
+            i += 1
+        baseName += '_' + '_'.join([b[i:] for b in baseNames[1:]])
+    fullName = basePath + '/' + baseName
+
+    # create metafile if several files, same extension as 1st file
+    if len(args.files) > 1:
+        print 'Writing metafile', fullName + '.' + args.files[0].split('.')[-1]
+        with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
+            yaml.dump({'dataType': 'metafile', 'files': args.files}, f, default_flow_style=False)
+            yaml.dump({'args': sys.argv[len(args.files)+1:]}, f, default_flow_style=False)
+
+    # ---- Rearrange data depending on the options -----------------
+    # if 3D data, then group but do not concatenate matrices
+    if dataList[0].dataType == '3D pose':
+        args.group = True
+        if len(args.legend3d) == len(dataList):
+            for i in xrange(len(dataList)):
+                dataList[i].legend[0] = args.legend3d[i]
+    elif args.group:
+        # if 2D and group, then concatenate 2D data into a single structure
+        dataMain = dataList[0]
+        for dataSt in dataList[1:]:
+            if dataSt.dataType != dataMain.dataType:
+                print 'Warning, trying to group', dataMain.dataType, 'and', dataSt.dataType
+            if dataSt.ylabel != dataMain.ylabel:
+                print 'Warning, trying to group with different ylabels:', dataMain.ylabel, 'vs', dataSt.ylabel
+                dataMain.ylabel = ''
+            if shape(dataSt.data)[0] != shape(dataMain.data)[0]:
+                print 'Trying to group data with different lengths:', shape(dataMain.data)[0], 'vs', shape(dataSt.data)[0], '- aborting'
+                sys.exit(0)
+                
+            # ok, concatenate data, legends, lineTypes and units
+            dataMain.data = concatenate((dataMain.data, dataSt.data),1)
+            dataMain.legend += dataSt.legend
+            dataMain.lineType += dataSt.lineType
+        dataList = [dataMain]
+    elif args.diff:
+        # compute the difference
+        if len(dataList) != 2:
+            print 'Error, 2 files needed to plot diff'
+            sys.exit(0)
+        if dataList[0].data.shape == dataList[1].data.shape:
+            dataList[0].data -= dataList[1].data
+            dataList = [dataList[0]]
+    elif args.diffpc:
+        # compute the difference in percent
+        if len(dataList) != 2:
+            print 'Error, 2 files needed to plot diffpc'
+            sys.exit(0)
+        if dataList[0].data.shape == dataList[1].data.shape:
+            dataList[1].data = dataList[0].data - dataList[1].data
+            for i in xrange(dataList[0].data.shape[0]):
+                for j in xrange(dataList[0].data.shape[1]):
+                    if dataList[0].data[i,j] != 0:
+                        dataList[0].data[i,j] = dataList[1].data[i,j]/dataList[0].data[i,j]
+            dataList = [dataList[0]]
+
+    # if compute norm, reduce the vector
+    if args.norm != '':
+        for dataSt in dataList:
+            for i in xrange(dataSt.data.shape[0]):
+                dataSt.data[i][0] = norm(dataSt.data[i])
+            dataSt.data = dataSt.data[:,[0]]
+            dataSt.legend = [args.norm]
+    # -- Data ready to be plotted ----------
+
+    # init plot and define refresh function
+    if dataList[0].dataType == '3D pose':
+        init3D()
+        fun_refresh = refresh3D
+    else:
+        init2D()
+        fun_refresh = refresh2D
+
+    # video or not
+    if(args.video):
+        t = time.time()
+        frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1.)/args.video)]
+        ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
+        print('Saving video...')
+        for wrt in ('avconv', 'ffmpeg'):
+            if wrt in animation.writers.avail:
+                Writer = animation.writers[wrt]
+        writer = Writer(fps=1./(args.video*args.dt), bitrate=1800)
+        ani.save(filename= fullName + '.mp4', writer=writer)                
+        print('time taken: %f' % (time.time() - t))
+        #ani.close()
+    else:
+        fun_refresh()
+        fullName += '.pdf'
+        F.savefig(fullName)
+        if not args.nodisplay:
+            show()
