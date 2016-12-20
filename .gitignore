@@ -67,6 +67,6 @@ Thumbs.db
 *.tex.backup
 
 !.gitignore
-*.txt
+*.yaml
 *.pdf
 *.mp4

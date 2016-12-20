@@ -19,7 +19,7 @@ void Logger::writeInitialInfo(const LogType &log_type, const std::string &name, 
 
     // corresponding file name
     if(keep_file && file_path !="")
-        last->setFile(file_path + name + ".txt");
+        last->setFile(file_path + name + ".yaml");
     else
     {
         char ctpl[] = "XXXXXX";
