@@ -84,3 +84,11 @@ The Python module used to plot the files is in the `src` folder and requires `ma
 Many options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
 
 Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will be used to create a mp4 file showing the plot evolution. 
+
+## Examples
+
+In the `examples` folder are shipped 4 use cases:
+* `std_container` uses std::vectors and shows iteration-based, time-based and 3D pose plots
+* `std_publisher` shows how to publish data to ROS topics when logging
+* `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
+* `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
