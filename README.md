@@ -4,7 +4,7 @@ A Python script is then used to plot the files with various options.
 
 ## Compilation and installation
 
-The module can be compiled as a ROS package or standalone. When compiled as a ROS package, numeric logged data can also be published to provide online analysis through rqt_plot or other tools.
+The module can be compiled as a ROS package or standalone. When compiled as a ROS package, numerical logged data can also be published to provide online analysis through rqt_plot or other tools.
 
 ### As a ROS package
 Just clone the repository in your ROS workspace and build it with catkin:  `catkin build log2plot`
@@ -28,6 +28,8 @@ The logged variables have be containers of some sort, as long as the following m
 * operator[] to get the value at a given index
 * size() to get the length of the logged container
 
+Besides these two points, all kind of data can be saved, but of course they be not be plottable if not numerical.
+
 Three types of data may be logged:
 * Iteration-based data will use the index as the X-axis for the plots.
   * `logger.save(v, name, legend, ylabel)`
@@ -42,6 +44,8 @@ Three types of data may be logged:
   * `invert_pose` (default false) allows to log a pose whom inverse will be actually plotted. This can be useful typically when working with a world-to-camera pose but we still want to display the camera-to-world pose afterwards.
 
 This will log data into the file: `fileprefix + name + .yaml`
+
+ROS users may use the `log2plot::LogPublisher` class with the exact same syntax. It will also publish the logged data as `Float32MultiArray`'s on the `log2plot/<name>` topics. Trying to publish data that cannot be cast to double will lead to undefined behavior. In this case a `Logger` can be instanciated to log particular data while a `LogPublisher` will log and publish numerical data.
 
 ### Common options
 
