@@ -84,7 +84,7 @@ public:
         // add this to logged variables
         logged_vars.push_back(std::shared_ptr<GenericContainer>(new Container<T>(v)));
         // and write initial info
-        writeInitialInfo(log2plot::ITERATION, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
+        writeInitialInfo(log2plot::TIME, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
     }
 
     // Save 3D pose or position

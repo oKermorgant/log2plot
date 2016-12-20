@@ -91,7 +91,7 @@ argLegendLabel.add_argument('--twin', metavar='index',  type=int, help='Separate
 # 3D plot args
 arg3Dplot = parser.add_argument_group('3D plot options')
 arg3Dplot.add_argument('--afmacMf', action='store_true', help='Pose comes from Afma6 cMf()',default=False)
-arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert the pose for 3D plot (otherwise consider that cMo has been saved)',default=True)
+arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert the pose for 3D plot)',default=False)
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
 arg3Dplot.add_argument('--legend3d', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several 3D curves',default='')
@@ -295,7 +295,6 @@ def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
     return objLines
 
 
-p = 2
 
 def init3D():
     global F, lines, ax, indMoving
@@ -310,6 +309,7 @@ def init3D():
     objectPoses = []
 
     # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
+    p = 2
     indMoving = [[int(round((len(dataSt.data)-1)*v**p)) for v in linspace(0,1,args.nbcam)][1:] for dataSt in dataList]
 
     # first run to get the figure dimensions
@@ -328,13 +328,12 @@ def init3D():
     # get axes limits
     lim3D = array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()]).reshape(6)
     dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in xrange(3)]) # max range
-    # build limits and scaling matrix I
-    
+    # build limits and scaling matrix I    
     for i in xrange(3):
         x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
-        for j in xrange(2):
-            lim3D[2*i+j] = x0 - (-1)**j * dX
-        I[i,i] = 0.02*(lim3D[2*i+1] - lim3D[2*i])    
+        #for j in xrange(2):
+        #    lim3D[2*i+j] = x0 - (-1)**j * dX
+        I[i,i] = 0.02*(lim3D[2*i+1] - lim3D[2*i])
     
     # set limits and ratio            
     '''
@@ -343,7 +342,7 @@ def init3D():
     ax.set_zlim3d([lim3D[4],lim3D[5]])
     '''
     #
-    #ax.set_aspect('equal')
+    ax.set_aspect('equal')
     # another run to plot first / desired positions of objects
     for dataSt in dataList:
         if 'movingObject' in dataSt.keys:
@@ -521,15 +520,18 @@ if __name__ == "__main__":
     close('all')
 
     # check files
-    ext_try = ['.yml', '.yaml', '.txt']
+    ext_try = ['yml', 'yaml', 'txt']
     for i,f in enumerate(args.files):
         if os.path.lexists(f) == False:
             found = False
+            if f[-1] != '.':
+                f += '.'
             for ext in ext_try:
-                if os.path.lexists(f.replace('.', '') + ext):
+                if os.path.lexists(f + ext):
                     found = True
-                    print 'Assuming', f, 'is for', f.replace('.', '') + ext
-                    args.files[i] = f.replace('.', '') + ext
+                    print 'Assuming', f, 'is for', f + ext
+                    args.files[i] = f + ext
+                    break
             if not found:
                 print f, 'could not be found'
                 sys.exit(0)

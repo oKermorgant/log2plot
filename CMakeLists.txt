@@ -7,29 +7,27 @@ option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 
 find_package(catkin COMPONENTS REQUIRED
     roscpp
-    roslib
     )
     
 # build as a ROS package
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES log2plot
-    CATKIN_DEPENDS roscpp roslib
+    CATKIN_DEPENDS roscpp
     )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 
 # main library
-add_library(log2plot include/log2plot/container.h
+add_library(log2plot SHARED include/log2plot/container.h
     include/log2plot/logger.h src/logger.cpp
     include/log2plot/log_publisher.h include/log2plot/container_publisher.h
     )
 target_link_libraries(log2plot ${catkin_LIBRARIES})
 
 # get compile directory for default script path
-get_filename_component(COMPILE_PATH . ABSOLUTE)
-add_definitions(-DLOG2PLOT_SCRIPT_PATH="${COMPILE_PATH}/src/plot")
+add_definitions(-DLOG2PLOT_SCRIPT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/plot")
 
 if(BUILD_EXAMPLES)
 
@@ -59,7 +57,6 @@ if(BUILD_EXAMPLES)
         add_executable(visp_containers examples/src/visp_containers.cpp)
         target_link_libraries(visp_containers log2plot ${VISP_LIBRARIES})
     endif()
-
 endif()
 
 
