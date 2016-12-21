@@ -143,8 +143,8 @@ gRo = Rot(args.gMo[3:])
 gMo = matrix(concatenate((concatenate((gRo,matrix(args.gMo[:3]).reshape(3,1)),1),m01),0))
 
 # change pose (t,theta u) to Fg (3d plot frame)
-def poseToPlotFrame(p):
-    if args.invertPose:
+def poseToPlotFrame(p, invertPose):
+    if args.invertPose or invertPose:
         oRc = Rot(p[3:]).transpose()
         oTc = -oRc*matrix(p[:3].reshape(3,1))
     else:
@@ -295,7 +295,6 @@ def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
     return objLines
 
 
-
 def init3D():
     global F, lines, ax, indMoving
 
@@ -341,8 +340,7 @@ def init3D():
     ax.set_ylim3d([lim3D[2],lim3D[3]])
     ax.set_zlim3d([lim3D[4],lim3D[5]])
     '''
-    #
-    ax.set_aspect('equal')
+    #    ax.set_aspect('equal')
     # another run to plot first / desired positions of objects
     for dataSt in dataList:
         if 'movingObject' in dataSt.keys:
@@ -492,12 +490,12 @@ def readFileList(filenames, n=0):
             
             # 3D plot: check for moving or fixed object, change relative pose to absolute plot frame (do it once when reading the file)
             if d['dataType'] == '3D pose':
-                d['data'] = [poseToPlotFrame(p) for p in d['data']]
+                d['data'] = [poseToPlotFrame(p,'invertPose' in d) for p in d['data']]
                 if 'movingObject' in d:
                     obj = d['movingObject']
                     obj['nodes'] = concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0)
                     if 'desiredPose' in obj:
-                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]))
+                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),'invertPose' in d)
                     obj['keys'] = obj.keys()
                     d['movingObject'] = dictToNamespace(obj)
                 if 'fixedObject' in d:
