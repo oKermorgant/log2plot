@@ -95,7 +95,7 @@ arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert 
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
 arg3Dplot.add_argument('--legend3d', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several 3D curves',default='')
-arg3Dplot.add_argument('--nbcam', type=int, help='Number of cameras to be plotted',default=10)
+arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
 
 # video args
 argVid = parser.add_argument_group('Video options')
