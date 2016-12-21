@@ -19,7 +19,7 @@ add_definitions(-DLOG2PLOT_SCRIPT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../src/plot"
 if(BUILD_EXAMPLES)
 
     # default file path
-    add_definitions(-DLOG2PLOT_EXAMPLE_PATH="${COMPILE_PATH}/../examples/")
+    add_definitions(-DLOG2PLOT_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../examples/")
     
     # build std containers examples
     add_executable(std_containers ../examples/src/std_containers.cpp)

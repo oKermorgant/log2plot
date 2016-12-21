@@ -10,7 +10,6 @@
 namespace log2plot
 {
 
-
 class GenericMessage;
 
 // legend for a number of points (x_i,y_i)
@@ -89,12 +88,14 @@ public:
 
     // Save 3D pose or position
     template<class T>
-    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool keep_file = true)
+    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool &invert = false, const bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::shared_ptr<GenericContainer>(new Container<T>(v)));
         // and write initial info
         writeInitialInfo(log2plot::POSE, name, "["+legend+"]", "", "", keep_file);
+        if(invert)
+            last->writeInfo("invertPose", "True");
     }
 
 

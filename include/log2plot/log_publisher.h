@@ -45,12 +45,14 @@ public:
 
     // Save 3D pose or position
     template<class T>
-    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool keep_file = true)
+    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool &invert = false, const bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::shared_ptr<GenericContainer>(new ContainerPublisher<T>(v, nh, name)));
         // and write initial info
         writeInitialInfo(log2plot::POSE, name, "["+legend+"]", "", "", keep_file);
+        if(invert)
+            last->writeInfo("invertPose", "True");
     }
 
 };
