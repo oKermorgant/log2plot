@@ -201,7 +201,7 @@ string Logger::toYAMLVector(const std::vector<std::vector<double> > &M)
 // ***** Plotting functions
 
 // Plot a file
-void Logger::plot(std::string script_path)
+void Logger::plot(std::string script_path, bool verbose)
 {
     if(script_path == "")
         script_path = LOG2PLOT_SCRIPT_PATH;
@@ -210,7 +210,8 @@ void Logger::plot(std::string script_path)
     {
         // close the corresponding file and call Python to plot it
         string cmdline = "python " + script_path + " " + g->close() + " &";
-        cout << "executing "<< cmdline << endl;
+        if(verbose)
+            cout << "executing "<< cmdline << endl;
         system(cmdline.c_str()) == 0;
     }
 

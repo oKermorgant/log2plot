@@ -10,7 +10,6 @@
 namespace log2plot
 {
 
-class GenericMessage;
 
 // legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
@@ -133,7 +132,7 @@ public:
     static std::string toYAMLVector(const std::vector<std::vector<double> > &M);
 
     // Close all files and call the Python interpreter on the given script path
-    void plot(std::string script_path = "");
+    void plot(std::string script_path = "", bool verbose = false);
 
 };
 }

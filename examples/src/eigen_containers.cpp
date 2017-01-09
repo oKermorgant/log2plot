@@ -21,6 +21,7 @@ int main()
         logger.update();
     }
 
-    logger.plot();
+    // default script path + verbose
+    logger.plot("", true);
 
 }

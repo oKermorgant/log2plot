@@ -42,5 +42,6 @@ int main(int argc, char**argv)
         loop.sleep();
     }
 
-    logger.plot();
+    // default script path + verbose
+   logger.plot("", true);
 }
