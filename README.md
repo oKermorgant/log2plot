@@ -24,7 +24,7 @@ The library can then be found through CMake find_package.
 
 Examples can be found in the `examples` folder. The main class is `log2plot::Logger` and should be instanciated with the desired data file path and prefix:  `log2plot::Logger logger(fileprefix)`. If no fileprefix is given then the files will be created in the `/tmp` folder. Shipped examples use the `examples` path at compile time. 
 
-The logged variables have be containers of some sort, as long as the following member functions are available:
+The logged variables have to be containers of some sort, as long as the following member functions are available:
 * operator[] to get the value at a given index
 * size() to get the length of the logged container
 
