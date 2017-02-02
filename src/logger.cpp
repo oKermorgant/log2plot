@@ -67,7 +67,7 @@ std::string Logger::buildLegend(const std::string legend, const unsigned int len
 // **** Functions to specify metadata for the last registered variable ****
 
 // 3D plot: show moving camera
-void Logger::showMovingCamera(const double &x, const double &y, const double &z, const std::vector<double> &desired_pose)
+void Logger::showMovingCamera(const std::vector<double> &desired_pose, const double &x, const double &y, const double &z)
 {
     // init 5x3 matrix
     vector< vector<double> > M(5, vector<double>(3,0));

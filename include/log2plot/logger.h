@@ -108,7 +108,7 @@ public:
     void setLineType(const std::string lineType) {last->writeInfo("lineType", lineType);}
 
     // 3D plot: show camera
-    void showMovingCamera(const double &x = 1.5, const double &y = 1, const double &z = 4, const std::vector<double> &desired_pose = std::vector<double>());
+    void showMovingCamera(const std::vector<double> &desired_pose = std::vector<double>(),const double &x = 1.5, const double &y = 1, const double &z = 4);
     // 3D plot: show box
     void showMovingBox(const double &x = 10, const double &y = 5, const double &z = 3, const std::vector<double> &desired_pose = std::vector<double>());
     // 3D plot: custom object with a (nx3) matrix

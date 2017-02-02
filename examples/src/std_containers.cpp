@@ -35,8 +35,8 @@ int main()
     // add a fixed box from (-1,-2,-3) to (1,2,3) in cyan
     logger.showFixedBox(-1,-2,-3,1,2,3, "c");
 
-    // add a moving camera
-    logger.showMovingCamera(1.5,1,4,{0,0,20,0,M_PI/2,0});
+    // add a moving camera with its desired pose
+    logger.showMovingCamera({0,0,20,0,M_PI/2,0});
 
     /* for moving objects, lineType define:
         - trajectory color

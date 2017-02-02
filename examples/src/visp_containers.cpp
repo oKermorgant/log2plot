@@ -25,7 +25,7 @@ int main()
     // the saved variable is the world pose in camera frame, we want to plot the invert
     logger.save3Dpose(pose, "visp_pose3D", "Camera pose", true);
     // add a camera along the trajectory
-    logger.showMovingCamera(1.5,40,0.1);
+    logger.showMovingCamera();
     // add a green rectangle from (-.1,-.2,0) to (.1,.2,0) in world frame
     logger.showFixedRectangle(-0.1,-0.2,0.1,0.2,"g");
 

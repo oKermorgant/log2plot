@@ -137,10 +137,14 @@ def Rot(tU):
     R = cos(th)*identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*dot(u,u.transpose())
     return matrix(R)
 
-# compute gMo and gRo
+# homogeneous transform matrix
 m01 = matrix([[0.,0.,0.,1.]])
+def Homogeneous(t, R):
+    return matrix(concatenate((concatenate((R,t),1),m01),0))
+
+# compute gMo and gRo
 gRo = Rot(args.gMo[3:])
-gMo = matrix(concatenate((concatenate((gRo,matrix(args.gMo[:3]).reshape(3,1)),1),m01),0))
+gMo = Homogeneous(matrix(args.gMo[:3]).reshape(3,1), gRo)
 
 # change pose (t,theta u) to Fg (3d plot frame)
 def poseToPlotFrame(p, invertPose):
@@ -269,31 +273,17 @@ def refresh2D(ind = -1):
 
 # 3D axes limits and object scaling (I)
 lim3D = zeros(6)
-I = matrix(identity(4))
-
-def plot3Dobject(ax, objectGraph, objectNodes, objectPose, lineType, objectDesiredPose = None):
-    # plot intermediary poses with lineType[1], first pose with lineType[2] and desired pose (if any) with lineType[3]
-    col = lineType[1]
-    for M in objectPose:
-        gP = array(M * I * objectNodes)
-        for i in objectGraph:
-            ax.plot(gP[0,i], gP[1,i], gP[2,i], col, linewidth=max(2,args.lineWidth-1))
-        col = lineType[2]
-    if objectDesiredPose != None:
-        gP = array(objectDesiredPose * I * objectNodes)
-        for i in objectGraph:
-            ax.plot(gP[0,i], gP[1,i], gP[2,i], lineType[3], linewidth=max(2,args.lineWidth-1))
-
+I = matrix(identity(3))
 
 def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
-    # plot intermediary poses with lineType[1], first pose with lineType[2] and desired pose (if any) with lineType[3]
-    gP = array(objectPose * I * objectNodes)
+    '''
+    Draws new lines for a 3D object (wireframe) at a given pose. Returns the lines for the case of videos 
+    '''
+    gP = array(Homogeneous(objectPose[:3,3], I*objectPose[:3,:3]) * objectNodes)
     objLines = []
     for i in objectGraph:
         objLines += ax.plot(gP[0,i], gP[1,i], gP[2,i], lineType, linewidth=max(2,args.lineWidth-1))
-
     return objLines
-
 
 def init3D():
     global F, lines, ax, indMoving

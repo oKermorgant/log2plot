@@ -47,7 +47,7 @@ This will log data into the file: `fileprefix + name + .yaml`
 
 ROS users may use the `log2plot::LogPublisher` class with the exact same syntax. It will also publish the logged data as `Float32MultiArray`'s on the `log2plot/<name>` topics. Trying to publish data that cannot be cast to double will lead to undefined behavior. In this case a `Logger` can be instanciated to log particular data while a `LogPublisher` will log and publish numerical data.
 
-### Common options
+### General options
 
 Log is actually done when calling `logger.update();`, typically from inside a loop. Two parameters can be changed:
 * Subsampling to log only once every n updates: `logger.setSubSampling(n)` (default 1)
