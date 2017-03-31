@@ -28,7 +28,7 @@ protected:
     std::vector<double> time_buff;
 
     // logger variables and pointer to the last entered
-    std::vector<std::shared_ptr<GenericContainer> > logged_vars;
+    std::vector<std::unique_ptr<GenericContainer> > logged_vars;
     GenericContainer* last;
 
     bool first_update;
@@ -70,7 +70,7 @@ public:
     inline void save(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
     {
         // add this to logged variables
-        logged_vars.push_back(std::shared_ptr<GenericContainer>(new Container<T>(v)));
+        logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
         // and write initial info
         writeInitialInfo(log2plot::ITERATION, name, buildLegend(legend, v.size()), "iterations", ylabel, keep_file);
     }
@@ -80,7 +80,7 @@ public:
     inline void saveTimed(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
     {
         // add this to logged variables
-        logged_vars.push_back(std::shared_ptr<GenericContainer>(new Container<T>(v)));
+        logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
         // and write initial info
         writeInitialInfo(log2plot::TIME, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
     }
@@ -90,7 +90,7 @@ public:
     inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool &invert = false, const bool keep_file = true)
     {
         // add this to logged variables
-        logged_vars.push_back(std::shared_ptr<GenericContainer>(new Container<T>(v)));
+        logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
         // and write initial info
         writeInitialInfo(log2plot::POSE, name, "["+legend+"]", "", "", keep_file);
         if(invert)

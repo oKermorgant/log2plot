@@ -18,7 +18,6 @@ int main()
     // also set custome line types in matplotlib style
     logger.setLineType("[k-, r., b--, gD]");
 
-
     // save some doubles
     std::vector<double> v_double(6,0);
     // saved with timed X-axis with explicit legend in Latex math

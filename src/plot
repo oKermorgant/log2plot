@@ -375,7 +375,11 @@ def refresh3D(ind = -1):
         # moving: plot (refresh) only current
         for dataSt in dataList:
             if 'movingObject' in dataSt.keys:
-                gP = array(dataSt.data[ind] * I * dataSt.movingObject.nodes)
+                print dataSt.data[ind]
+                print I
+                print dataSt.movingObject.nodes
+                gP = array(Homogeneous(dataSt.data[ind][:3,3], I*dataSt.data[:3,:3])* dataSt.movingObject.nodes)
+
                 for i in dataSt.movingObject.graph:
                     lines[iline].set_data(gP[0,i], gP[1,i])
                     lines[iline].set_3d_properties(gP[2,i])

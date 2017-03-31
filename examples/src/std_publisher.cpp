@@ -14,7 +14,7 @@ int main(int argc, char**argv)
 
 
     // i has implicit legend and is saved with iteration X-axis
-    std::vector<int> v_int(10,0);
+    std::vector<int> v_int(4,0);
     logger.save(v_int, "std_i", "i_", "Value of I");
 
     // v has explicit legend in Latex math and is saved with timed X-axis
@@ -24,10 +24,11 @@ int main(int argc, char**argv)
 
     double T = 0.1;
     ros::Rate loop(1/T);
+    double t0 = ros::Time::now().toSec();
     while(ros::ok())
     {
         // current time
-        t = ros::Time::now().toSec();
+        t = ros::Time::now().toSec() - t0;
 
         // some cosines
         for(int i=0;i<v_double.size();++i)
