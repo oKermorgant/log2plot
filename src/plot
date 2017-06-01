@@ -53,7 +53,7 @@ argGal.add_argument('-L', '--Lines', metavar='lines', type=int, help='Number of 
 argGal.add_argument('--delete', action='store_true', help='Erase the datafile and does not save the figure (ie just displays)', default=False)
 argGal.add_argument('--nodisplay', action='store_true', help='Does not display',default=False)
 argGal.add_argument('--white', action='store_true', help='White border around figure',default=False)
-argGal.add_argument('--xy', type=int, nargs=2, help='Plot x vs y according to given indices.',default=[0,0])
+argGal.add_argument('--xy', type=int, nargs=2, help='Plot x vs y according to given indices.',default=())
 argGal.add_argument('--XY', metavar='sort', type=int, help='Plot all data as X vs Y. If 1 assume [x1,y1,x2,y2,..], if 2 assume [x1,x2,..,y1,y2,..]',default=0)
 argGal.add_argument('--index', type=int, help='Only plots from 0 to given x-index', default=0)
 argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve indices', default=())
@@ -82,6 +82,7 @@ argLegendLabel = parser.add_argument_group('Legend and label options')
 argLegendLabel.add_argument('--legendLoc', metavar='location', type=int, help='Legend position (-1 for no legend)',default=0)
 argLegendLabel.add_argument('--legendCol', metavar='columns', type=int, help='Legend columns',default=1)
 argLegendLabel.add_argument('--legendMax', metavar='max legends', type=int, help='Max number of lines to display legend',default=6)
+argLegendLabel.add_argument('--legend', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several curves, works for XY and 3D plots',default=())
 argLegendLabel.add_argument('--noY', action='store_true', help='Does not display Y label',default=False)
 argLegendLabel.add_argument('--noYa', action='store_true', help='Does not display Y values',default=False)
 argLegendLabel.add_argument('--noX', action='store_true', help='Does not display X label',default=False)
@@ -94,7 +95,6 @@ arg3Dplot.add_argument('--afmacMf', action='store_true', help='Pose comes from A
 arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert the pose for 3D plot)',default=False)
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
-arg3Dplot.add_argument('--legend3d', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several 3D curves',default='')
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
 
 # video args
@@ -317,6 +317,7 @@ def init3D():
     # get axes limits
     lim3D = array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()]).reshape(6)
     dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in xrange(3)]) # max range
+    
     # build limits and scaling matrix I    
     for i in xrange(3):
         x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
@@ -375,10 +376,7 @@ def refresh3D(ind = -1):
         # moving: plot (refresh) only current
         for dataSt in dataList:
             if 'movingObject' in dataSt.keys:
-                print dataSt.data[ind]
-                print I
-                print dataSt.movingObject.nodes
-                gP = array(Homogeneous(dataSt.data[ind][:3,3], I*dataSt.data[:3,:3])* dataSt.movingObject.nodes)
+                gP = array(Homogeneous(dataSt.data[ind][:3,3], I*dataSt.data[ind][:3,:3])* dataSt.movingObject.nodes)
 
                 for i in dataSt.movingObject.graph:
                     lines[iline].set_data(gP[0,i], gP[1,i])
@@ -399,7 +397,7 @@ def readFileList(filenames, n=0):
     dataList = []
     dataListd = []
     k = 0
-    for filename in filenames:
+    for file_idx,filename in enumerate(filenames):
         with open(filename) as f:
             try:
                 d = yaml.load(f)
@@ -429,8 +427,26 @@ def readFileList(filenames, n=0):
                 dMin = amin(d['data'][:,i])
                 dMax = amax(d['data'][:,i])
                 d['data'][:,i] = args.rescale[1] + (d['data'][:,i] - dMin)/(dMax - dMin) * (args.rescale[2] - args.rescale[1]) 
-            # create x-axis depending on iteration or time-based
-            if d['dataType'] == 'time-based':
+
+            # create custom /y axis if xy plot
+            if len(args.xy) == 2:
+                idx,idy = args.xy
+                if idx in range(d['data'].shape[1]) and idy in range(d['data'].shape[1]):
+                    d['xVec'] = d['data'][:,idx]
+                    d['data'] = d['data'][:,[idy]]
+                    # also copy legends to x/y labels
+                    if 'legend' in d:
+                        if idx < len(d['legend']):
+                            d['xlabel'] = d['legend'][idx]
+                        if idy < len(d['legend']):
+                            d['ylabel'] = d['legend'][idy]
+                        # rename or remove legend
+                        if len(args.legend):
+                            d['legend'] = [args.legend[file_idx]]
+                        else:
+                            d.pop('legend')
+            # otherwise create x-axis depending on iteration or time-based                    
+            elif d['dataType'] == 'time-based':
                 d['xVec'] = d['data'][:,0]
                 d['data'] = d['data'][:,1:]
             elif d['dataType'] == 'iteration-based':
@@ -439,7 +455,7 @@ def readFileList(filenames, n=0):
             for key in ('units', 'legend', 'lineType'):
                 # create key
                 if key not in d:
-                    d[key] = []       
+                    d[key] = []    
                 if len(d[key]) > d['data'].shape[1]:
                     # field too large
                     d[key] = [d[key][ind] for ind in args.only]
@@ -564,9 +580,9 @@ if __name__ == "__main__":
     # if 3D data, then group but do not concatenate matrices
     if dataList[0].dataType == '3D pose':
         args.group = True
-        if len(args.legend3d) == len(dataList):
+        if len(args.legend) == len(dataList):
             for i in xrange(len(dataList)):
-                dataList[i].legend[0] = args.legend3d[i]
+                dataList[i].legend[0] = args.legend[i]
     elif args.group:
         # if 2D and group, then concatenate 2D data into a single structure
         dataMain = dataList[0]
