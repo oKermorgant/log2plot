@@ -28,7 +28,7 @@ The logged variables have to be containers of some sort, as long as the followin
 * operator[] to get the value at a given index
 * size() to get the length of the logged container
 
-Besides these two points, all kind of data can be saved, but of course they be not be plottable if not numerical.
+Besides these two points, all kind of data can be saved, but of course they will not be plottable if not numerical.
 
 Three types of data may be logged:
 * Iteration-based data will use the index as the X-axis for the plots.
