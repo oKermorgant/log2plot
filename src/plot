@@ -12,7 +12,6 @@ import argparse
 import yaml
 import time
 
-
 '''
 A module to visualize YAML data files
 
