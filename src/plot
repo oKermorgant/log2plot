@@ -199,8 +199,7 @@ def init2D():
             (yMin,yMax) = args.yLim
 
         # add first axis
-        ax = subplot2grid((L,C),(i/C,i-i/C), xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
-        #ax = F.add_subplot(100*L + 10*C + i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
+        ax = F.add_subplot(L, C, i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
         all_ax.append(ax)
         # add lines
         sublines = []
