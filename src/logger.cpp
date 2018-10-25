@@ -59,8 +59,8 @@ std::string Logger::buildLegend(const std::string legend, const unsigned int len
     std::stringstream ss;
     ss << "[";
     for(unsigned int i=0;i<len-1;++i)
-        ss << legend << i << ", ";
-    ss << legend << len-1 << "]";
+        ss << "'" << legend << "{" << i << "}', ";
+    ss << "'" << legend << "{" << len-1 << "}']";
     return ss.str();
 }
 

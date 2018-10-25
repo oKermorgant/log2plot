@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 #
 
-import sys, os, shutil
+import sys, os
 from pylab import *
 from matplotlib import rc, animation, rcParams
-from mpl_toolkits.axes_grid1 import host_subplot
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.font_manager import FontProperties
 import argparse
@@ -247,7 +246,7 @@ def init2D():
 
 # refresh 2D figure
 def refresh2D(ind = -1):
-    global F, lines, all_ax
+    global F, lines, all_ax, lgd
     if ind == -1:
         ind = dataList[0].rows
     iline = 0    
@@ -260,7 +259,11 @@ def refresh2D(ind = -1):
     #draw()
     for ax in all_ax:
         if(args.legendLoc != -1):
-            ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
+            if args.legendLoc < 11:
+                lgd = ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
+            else:
+            # out of box
+                lgd = legend(loc="upper left", bbox_to_anchor=(1,1), ncol = args.legendCol, prop=legendSize, numpoints=1)
 
     return lines
 
@@ -393,7 +396,6 @@ def readFileList(filenames, n=0):
         print 'readFileList too recursive, check files'
         sys.exit(1)
     dataList = []
-    dataListd = []
     k = 0
     for file_idx,filename in enumerate(filenames):
         with open(filename) as f:
@@ -653,6 +655,9 @@ if __name__ == "__main__":
     else:
         fun_refresh()
         fullName += '.pdf'
-        F.savefig(fullName)
+        if args.legendLoc == 11:
+            F.savefig(fullName, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        else:
+            F.savefig(fullName)
         if not args.nodisplay:
             show()
