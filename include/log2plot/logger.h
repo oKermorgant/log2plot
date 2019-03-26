@@ -10,7 +10,6 @@
 namespace log2plot
 {
 
-
 // legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
 
@@ -22,34 +21,29 @@ protected:
     std::string file_path;
 
     // related to high-level functions
-    unsigned int buff, subsamp, buff_count, iter_count;
-    double * time;
-    std::string time_unit;
+    unsigned int buff, subsamp, buff_count = 0, iter_count = 0;
+    double * time = nullptr;
+    std::string time_unit = "s";
     std::vector<double> time_buff;
 
     // logger variables and pointer to the last entered
     std::vector<std::unique_ptr<GenericContainer> > logged_vars;
     GenericContainer* last;
 
-    bool first_update;
+    bool first_update = true;
 
     // write initial information in latest saved variable
     void writeInitialInfo(const LogType &log_type, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file);
 
     // build explicit legend from implicit
-    std::string buildLegend(const std::string legend, const unsigned int len);
+    static std::string buildLegend(const std::string legend, const unsigned int len);
 
 public:
     // constructor with default values
     Logger(std::string _file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1)
+      :  file_path(_file_path), buff(_buffer), subsamp(_subsampling)
     {
         logged_vars.clear();
-        first_update = true;
-        buff = _buffer;
-        subsamp = _subsampling;
-        buff_count = iter_count = 0;
-        file_path = _file_path;
-        time_unit = "s";
     }
 
     // **** Parameter methods ****
@@ -67,7 +61,7 @@ public:
 
     // Save iteration-based vector
     template<class T>
-    inline void save(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
+    inline void save(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, const bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
@@ -77,7 +71,7 @@ public:
 
     // Save time-based vector
     template<class T>
-    inline void saveTimed(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
+    inline void saveTimed(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, const bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
@@ -87,7 +81,7 @@ public:
 
     // Save 3D pose or position
     template<class T>
-    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool &invert = false, const bool keep_file = true)
+    inline void save3Dpose(T &v, const std::string &name, const std::string &legend, const bool &invert = false, const bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));

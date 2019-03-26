@@ -7,11 +7,14 @@ A Python script is then used to plot the files with various options.
 The module can be compiled as a ROS package or standalone. When compiled as a ROS package, numerical logged data can also be published to provide online analysis through rqt_plot or other tools.
 
 ### As a ROS package
-Just clone the repository in your ROS workspace and build it with catkin:  `catkin build log2plot`
+
+Just clone the repository in your ROS workspace and build it with catkin:  `catkin build log2plot`.
+
+In this case a new logger, namely `LogPublisher` can be used instead of `Logger`.
 
 ### As a standalone library
 
-Go to the `non_ros` folder and perform a classical CMake build:
+If you do not have ROS on the computer then the package will compile standalone:
 
 * `mkdir build`
 * `cd build`
@@ -19,6 +22,16 @@ Go to the `non_ros` folder and perform a classical CMake build:
 * `make` or `make install`
 
 The library can then be found through CMake find_package.
+
+If you do have ROS installed but prefer compiling this library as standalone, just pass `-DUSE_CATKIN=OFF` when calling CMake.
+
+### Matplotlib-cpp option
+
+The logger can also plot 2D graphs at runtime, by using [matplotlib-cpp](https://github.com/lava/matplotlib-cpp). Just update the git submodule `git submodule init && git submodule update` before compiling.
+
+In this case a new logger, namely `LogPlotter` can be used instead of `Logger`.
+
+If matplotlib-cpp is installed but you do not want the corresponding features, pass `-DUSE_MATPLOTLIBCPP=OFF` when calling CMake.
 
 ## Use from C++ code
 
@@ -96,3 +109,4 @@ In the `examples` folder are shipped 4 use cases:
 * `std_publisher` shows how to publish data to ROS topics when logging
 * `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
+* `animation` shows how to perform a plot during runtime

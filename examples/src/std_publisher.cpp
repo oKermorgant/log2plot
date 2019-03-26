@@ -5,13 +5,10 @@ int main(int argc, char**argv)
 {
     ros::init(argc, argv, "iteration_publisher");
 
-
-
     // to be published, logged variables have to be able to be cast to double
     log2plot::LogPublisher logger(LOG2PLOT_EXAMPLE_PATH);
     double t = 0;
     logger.setTime(t, "s");
-
 
     // i has implicit legend and is saved with iteration X-axis
     std::vector<int> v_int(4,0);
@@ -20,7 +17,6 @@ int main(int argc, char**argv)
     // v has explicit legend in Latex math and is saved with timed X-axis
     std::vector<double> v_double(6,0);
     logger.saveTimed(v_double, "std_v", "[v_x,v_y,v_z,\\omega_x,\\omega_y,\\omega_z]", "Value of V");
-
 
     double T = 0.1;
     ros::Rate loop(1/T);

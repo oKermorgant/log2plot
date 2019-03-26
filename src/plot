@@ -240,7 +240,6 @@ def init2D():
 
     # resize fig
     F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
-
     return F
 
 

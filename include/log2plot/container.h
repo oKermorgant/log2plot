@@ -19,15 +19,13 @@ class GenericContainer
 {
 public:
     GenericContainer() {}
-    // final flush and close file
-    ~GenericContainer() {ofs_.close();}
 
     void setType(LogType _type) {log_type = _type;}
 
     // opens file stream
     inline void setFile(std::string s) {filename = s; ofs_.open(s, std::ios_base::trunc);}
     // begin actual data and flush header to file
-    virtual void init() {ofs_ << "data:" << std::endl;}
+    virtual void init() = 0;
     // append the stream with current data from actual container
     virtual void update(double *t) = 0;
 
@@ -37,7 +35,7 @@ public:
     inline std::string close() {ofs_.close();return filename;}
 
     // write additionnal info
-    inline void writeInfo(const std::string &_label, const std::string &_info)
+    inline virtual void writeInfo(const std::string &_label, const std::string &_info)
     {ofs_ << _label << ": " << _info << '\n';}
 
 protected:
@@ -51,7 +49,9 @@ protected:
 template<class T> class Container : public GenericContainer
 {
 public:
-    Container(T &original) {actual=&original;}
+    Container(T &original) : actual(&original) {}
+
+    void init() {ofs_ << "data:" << std::endl;}
 
     void update(double *t)
     {
@@ -70,6 +70,8 @@ public:
 protected:
     T* actual;
 };
+
+//GenericContainer::~GenericContainer() {}
 
 }
 

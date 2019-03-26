@@ -12,50 +12,43 @@ namespace log2plot
 template<class T> class ContainerPublisher : public GenericContainer
 {
 public:
-    // constructor also takes nodehandle and variable ame, used for the published topic
-    ContainerPublisher(T &original, ros::NodeHandle &nh, std::string name)
+  // constructor also takes nodehandle and variable name, used for the published topic
+  ContainerPublisher(T &original, ros::NodeHandle &nh, std::string name)
+    : actual(&original), pub(nh.advertise<std_msgs::Float32MultiArray>(name, 10))
+  {}
+
+  void init()
+  {
+    ofs_ << "data:" << std::endl;
+
+    // also resize message to be published
+    msg.data.resize(actual->size());
+  }
+
+
+  // log update + publish message
+  void update(double *t)
+  {
+    ofs_ << "    - [";
+    // write time if needed
+    if(log_type == LogType::TIME)
+      ofs_ << *t << ", ";
+
+    // write content
+    unsigned int i;
+    for(uint i=0;i<actual->size();++i)
     {
-        actual = &original;
-        // build publisher
-        pub = nh.advertise<std_msgs::Float32MultiArray>(name, 10);
+      const double v = actual->operator[](i);
+      msg.data[i] = v;
+      ofs_ << v << ((i == actual->size()-1) ? "]\n" : ", ");
     }
-
-    void init()
-    {
-        // init in file
-        ofs_ << "data:" << std::endl;
-
-        // also resize message to be published
-        msg.data.resize(actual->size());
-    }
-
-
-    // log update + publish message
-    void update(double *t)
-    {
-        ofs_ << "    - [";
-        // write time if needed
-        if(log_type == LogType::TIME)
-            ofs_ << *t << ", ";
-
-        // write content
-        unsigned int i;
-        for(i=0;i<actual->size()-1;++i)
-        {
-            ofs_ << actual->operator[](i) << ", ";
-            msg.data[i] = actual->operator[](i);
-        }
-
-        ofs_ << actual->operator[](i) << "]\n";
-        msg.data[i] = actual->operator[](i);
-
-        pub.publish(msg);
-    }
+    pub.publish(msg);
+  }
 
 protected:
-    T* actual;
-    ros::Publisher pub;
-    std_msgs::Float32MultiArray msg;
+  T* actual;
+  ros::Publisher pub;
+  std_msgs::Float32MultiArray msg;
 };
 
 
