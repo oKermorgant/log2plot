@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(log2plot)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" ON)

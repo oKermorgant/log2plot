@@ -57,9 +57,9 @@ std::string Logger::buildLegend(const std::string legend, const unsigned int len
         return legend;
     std::stringstream ss;
     ss << "[";
-    for(unsigned int i=0;i<len-1;++i)
+    for(unsigned int i=1;i<len;++i)
         ss << "'" << legend << "{" << i << "}', ";
-    ss << "'" << legend << "{" << len-1 << "}']";
+    ss << "'" << legend << "{" << len << "}']";
     return ss.str();
 }
 
@@ -213,7 +213,6 @@ void Logger::plot(std::string script_path, bool verbose)
             cout << "executing "<< cmdline << endl;
         system(cmdline.c_str()) == 0;
     }
-
 }
 
 // **** end plotting functions
