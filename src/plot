@@ -557,7 +557,7 @@ if __name__ == "__main__":
     dataList = readFileList(args.files)
 
     # build baseName
-    baseNames = [filename.split('/')[-1].split('.')[-2] for filename in args.files]
+    baseNames = [os.path.splitext(filename.split('/')[-1])[0] for filename in args.files]
     baseName = baseNames[0]
     if len(args.files) > 1:
         #baseNames = baseNames[1:]
