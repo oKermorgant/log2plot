@@ -19,6 +19,9 @@ int main()
 
         // log
         logger.update();
+
+        if(i % 20 == 0)
+          logger.writeStep();
     }
 
     // default script path + verbose

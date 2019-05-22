@@ -56,7 +56,7 @@ argGal.add_argument('--XY', metavar='sort', type=int, help='Plot all data as X v
 argGal.add_argument('--index', type=int, help='Only plots from 0 to given x-index', default=0)
 argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve indices', default=())
 argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
-argGal.add_argument('--steps', type=int, nargs='+', help='Will plot vertical lines at given steps', default=())
+argGal.add_argument('--steps', type=float, nargs='+', help='Will plot vertical lines at given steps', default=())
 
 # Value-related
 argValues = parser.add_argument_group('Value-related options')
@@ -225,7 +225,7 @@ def init2D():
         lines += sublines
         
     # add vertical lines
-    for step in args.steps:
+    for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):
             plot([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
 
     # correct font / display legend on all found axes

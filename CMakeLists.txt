@@ -11,9 +11,10 @@ option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
 
 # main files
 set(LOG2PLOT_HEADERS
+  include/log2plot/generic_container.h
   include/log2plot/container.h
   include/log2plot/logger.h)
-set(LOG2PLOT_SRC src/logger.cpp)
+set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
 set(INCLUDE_DEPENDS include)
 set(LIB_DEPENDS "")
 

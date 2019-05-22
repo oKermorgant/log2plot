@@ -74,6 +74,8 @@ Options should be given before calling the first `update()`.
 The following commands will be applied to the last added variable:
 * Units: `logger.setUnits("[unit1, unit2, unit2]");` will save the units for the 3 first components
 * Line styles: `logger.setLineType(["b, g, r--]");`, line styles have to be defined in Matplotlib styles (color + line style)
+* Important time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
+* Steps can also be added while recording with `logger.writeStep();` 
 
 ### 3D pose options
 

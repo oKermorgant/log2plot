@@ -16,7 +16,7 @@ int main()
     // saved with iteration X-axis with implicit legend
     logger.save(v_int, "std_i", "i_", "Value of I");
     // also set custome line types in matplotlib style
-    logger.setLineType("[k-, r., b--, gD]");
+    logger.setLineType("[k-, r., b--, gD]");    
 
     // save some doubles
     std::vector<double> v_double(6,0);
@@ -24,7 +24,8 @@ int main()
     logger.saveTimed(v_double, "std_v", "[v_x,v_y,v_z,\\omega_x,\\omega_y,\\omega_z]", "Value of V");
     // set some units
     logger.setUnits("[m/s,m/s,m/s,rad/s,rad/s,rad/s]");
-
+    // also add explicit steps to be plotted
+    logger.setSteps({0.5, 1.2, 4});
 
     // save a 3D pose
     std::vector<double> pose(6,0);

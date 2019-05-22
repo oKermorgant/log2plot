@@ -153,7 +153,8 @@ void Logger::update(const bool &flush)
     }
 
     // check subsampling
-    if(++iter_count == subsamp || flush)
+    iter_count++;
+    if(subsamp == 1 || !(iter_count % subsamp) || flush)
     {
         // buffer full, call update + flush
         if(++buff_count == buff || flush)
@@ -171,8 +172,6 @@ void Logger::update(const bool &flush)
             for(auto &c: logged_vars)
                 c->update(time);
         }
-        // reset counter for subsample
-        iter_count = 0;
     }
 }
 
@@ -205,10 +204,12 @@ void Logger::plot(std::string script_path, bool verbose)
     if(script_path == "")
         script_path = LOG2PLOT_SCRIPT_PATH;
 
-    for(auto &g: logged_vars)
-    {
+    for(auto &var: logged_vars)
+    {      
         // close the corresponding file and call Python to plot it
-        string cmdline = "python " + script_path + " " + g->close() + " &";
+        string cmdline = "python " +
+            script_path + " " +
+            var->close(steps, steps_timed) + " &";
         if(verbose)
             cout << "executing "<< cmdline << endl;
         system(cmdline.c_str()) == 0;

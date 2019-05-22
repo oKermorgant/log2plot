@@ -25,6 +25,7 @@ protected:
     double * time = nullptr;
     std::string time_unit = "s";
     std::vector<double> time_buff;
+    std::vector<double> steps, steps_timed;
 
     // logger variables and pointer to the last entered
     std::vector<std::unique_ptr<GenericContainer> > logged_vars;
@@ -44,6 +45,14 @@ public:
       :  file_path(_file_path), buff(_buffer), subsamp(_subsampling)
     {
         logged_vars.clear();
+        steps.clear();
+        steps_timed.clear();
+    }
+
+    ~Logger()
+    {
+      for(auto &var: logged_vars)
+        var->close(steps, steps_timed);
     }
 
     // **** Parameter methods ****
@@ -91,7 +100,6 @@ public:
             last->writeInfo("invertPose", "True");
     }
 
-
     // **** End functions for new variables ****
 
     // **** Functions to specify metadata for the last registered variable ****
@@ -100,6 +108,12 @@ public:
     void setUnits(const std::string units) {last->writeInfo("units", units);}
     // Line types
     void setLineType(const std::string lineType) {last->writeInfo("lineType", lineType);}
+
+    // Dashed steps
+    void setSteps(std::vector<double> _steps)
+    {
+      last->setSteps(_steps);
+    }
 
     // 3D plot: show camera
     void showMovingCamera(const std::vector<double> &desired_pose = std::vector<double>(),const double &x = 1.5, const double &y = 1, const double &z = 4);
@@ -115,6 +129,14 @@ public:
     // 3D plot: fixed 2D-rectangle on Z=0
     void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "");
     // **** End metadata functions ****
+
+    // Add a time-step
+    void writeStep()
+    {
+      steps.push_back(iter_count / subsamp);
+      if(time)
+        steps_timed.push_back(*time);
+    }
 
     // Updates all saved variables
     void update(const bool &flush = false);

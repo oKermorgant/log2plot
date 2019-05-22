@@ -1,50 +1,10 @@
 #ifndef LOG2PLOTCONTAINER_H
 #define LOG2PLOTCONTAINER_H
 
-#include <fstream>
-#include <vector>
-#include <memory>
+#include <log2plot/generic_container.h>
 
 namespace log2plot
 {
-
-enum LogType
-{
-    ITERATION,
-    TIME,
-    POSE
-};
-
-class GenericContainer
-{
-public:
-    GenericContainer() {}
-
-    void setType(LogType _type) {log_type = _type;}
-
-    // opens file stream
-    inline void setFile(std::string s) {filename = s; ofs_.open(s, std::ios_base::trunc);}
-    // begin actual data and flush header to file
-    virtual void init() = 0;
-    // append the stream with current data from actual container
-    virtual void update(double *t) = 0;
-
-    // flush buffer into file
-    inline void flush() {ofs_.flush();}
-    // close file
-    inline std::string close() {ofs_.close();return filename;}
-
-    // write additionnal info
-    inline virtual void writeInfo(const std::string &_label, const std::string &_info)
-    {ofs_ << _label << ": " << _info << '\n';}
-
-protected:
-    // stream to given file
-    std::ofstream ofs_;
-    LogType log_type;
-    std::string filename;
-};
-
 
 template<class T> class Container : public GenericContainer
 {
@@ -70,8 +30,6 @@ public:
 protected:
     T* actual;
 };
-
-//GenericContainer::~GenericContainer() {}
 
 }
 
