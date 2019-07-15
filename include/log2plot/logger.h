@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <log2plot/container.h>
+#include <cmath>
 
 namespace log2plot
 {
@@ -13,9 +14,20 @@ namespace log2plot
 // legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
 
-class Logger
+const double nan = std::nan("");
+
+template<class T>
+void setNaN(T& v, uint start = 0, uint end = 0)
 {
 
+  if(start == 0 && end == 0)
+    end = v.size();
+  for(uint i = start; i < end; ++i)
+    v.operator[](i) = nan;
+}
+
+class Logger
+{
 protected:
 
     std::string file_path;

@@ -178,21 +178,21 @@ def init2D():
     all_ax = []
     for i,dataSt in enumerate(dataList):
         # get bounds
-        xMin = amin(dataSt.xVec)
-        xMax = amax(dataSt.xVec)
+        xMin = nanmin(dataSt.xVec)
+        xMax = nanmax(dataSt.xVec)
         if args.twin != -1:
             # ony one plot, store limits for both axes
-            yMin = amin(dataSt.data[:,:args.twin])
-            yMax = amax(dataSt.data[:,:args.twin])
-            yMin2 = amin(dataSt.data[:,args.twin+1:])
-            yMax2 = amax(dataSt.data[:,args.twin+1:])
+            yMin = nanmin(dataSt.data[:,:args.twin])
+            yMax = nanmax(dataSt.data[:,:args.twin])
+            yMin2 = nanmin(dataSt.data[:,args.twin+1:])
+            yMax2 = nanmax(dataSt.data[:,args.twin+1:])
         else:
             # several plots, use all data with the same ylabel for y limits (valid if ylabel != '')
-            yMin = amin(dataSt.data)
-            yMax = amax(dataSt.data)
+            yMin = nanmin(dataSt.data)
+            yMax = nanmax(dataSt.data)
             if dataSt.ylabel != '':
-                yMin = min([amin(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
-                yMax = max([amax(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
+                yMin = min([nanmin(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
+                yMax = max([nanmax(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
         if len(args.yLim) == 2:
             (yMin,yMax) = args.yLim
 
@@ -423,8 +423,8 @@ def readFileList(filenames, n=0):
                 args.rescale[1] = float(args.rescale[1])
                 args.rescale[2] = float(args.rescale[2])
                 i = d['legend'].index(args.rescale[0])
-                dMin = amin(d['data'][:,i])
-                dMax = amax(d['data'][:,i])
+                dMin = nanmin(d['data'][:,i])
+                dMax = nanmax(d['data'][:,i])
                 d['data'][:,i] = args.rescale[1] + (d['data'][:,i] - dMin)/(dMax - dMin) * (args.rescale[2] - args.rescale[1]) 
 
             # create custom /y axis if xy plot

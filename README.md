@@ -94,6 +94,12 @@ The following commands will be applied to the last added variable:
   * Third one is for the initial and final poses (solid red)
   * Fourth one is for the desided pose (dashed black)
   
+### Not a Number 
+
+If some (double) logged data is non defined or irrelevant at some point, it is possible to keep logging but write Not a Number so that it will not be plotted. The syntax is:
+* `v[0] = log2plot::nan;` to erase only one component.
+* `log2plot::setNaN(v, 0, 2);` to erase components 0 and 1 from the v vector or array.
+  
 ## Python syntax
 
 The Python module used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line or with the `rosrun` syntax if compiled with ROS:
@@ -107,7 +113,7 @@ Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will
 ## Examples
 
 In the `examples` folder are shipped 4 use cases:
-* `std_container` uses std::vectors and shows iteration-based, time-based and 3D pose plots
+* `std_container` uses std::vectors and shows iteration-based, time-based and 3D pose plots. It also shows how to use Not a Number for iterations where some logged values are not defined.
 * `std_publisher` shows how to publish data to ROS topics when logging
 * `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
