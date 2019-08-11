@@ -124,6 +124,8 @@ def checkArgs(parsed):
 # parse and check
 global args
 args = checkArgs(parser.parse_args())
+if args.legendLoc >= 11:
+    args.legendLoc = 2
 
 # rotation from theta-u
 def Rot(tU):
@@ -382,6 +384,9 @@ def refresh3D(ind = -1):
                     lines[iline].set_data(gP[0,i], gP[1,i])
                     lines[iline].set_3d_properties(gP[2,i])
                     iline += 1
+    
+    if args.legendLoc != -1:
+        lgd = ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
     return lines
 
 
