@@ -35,7 +35,6 @@ public:
       ofs_ << *t << ", ";
 
     // write content
-    unsigned int i;
     for(uint i=0;i<actual->size();++i)
     {
       const double v = actual->operator[](i);

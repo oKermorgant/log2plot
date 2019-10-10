@@ -29,7 +29,7 @@ rc('text', usetex = True)
 rc('font', family='serif')
 rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
 # plot colors
-plot_colors = ['b','g','r','c','m','y']
+plot_colors = ['C' + str(i) for i in range(10)]
 plot_markers = ['', 'o', 's', 'x', 'D', 'p', '+']
 nbmark = 10.
 # margin around actual values
@@ -52,7 +52,6 @@ argGal.add_argument('--delete', action='store_true', help='Erase the datafile an
 argGal.add_argument('--nodisplay', action='store_true', help='Does not display',default=False)
 argGal.add_argument('--white', action='store_true', help='White border around figure',default=False)
 argGal.add_argument('--xy', type=int, nargs=2, help='Plot x vs y according to given indices.',default=())
-argGal.add_argument('--XY', metavar='sort', type=int, help='Plot all data as X vs Y. If 1 assume [x1,y1,x2,y2,..], if 2 assume [x1,x2,..,y1,y2,..]',default=0)
 argGal.add_argument('--index', type=int, help='Only plots from 0 to given x-index', default=0)
 argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve indices', default=())
 argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
@@ -65,7 +64,8 @@ argValues.add_argument('-d', '--diff', action='store_true', help='Plots the diff
 argValues.add_argument('--diffpc', action='store_true', help='Plots the difference in percent between the two files',default=False)
 argValues.add_argument('--scale', metavar='x', type=float, help='Rescale all the values',default=1.)
 argValues.add_argument('--rescale', metavar=['label', 'min', 'max'], nargs=3, help='Rescale given label between min and max',default=[])
-argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for Y',default=[])
+argValues.add_argument('--xLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for X axis',default=[])
+argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for Y axis',default=[])
 
 # font and line args
 argFontLine = parser.add_argument_group('Font and line options')
@@ -180,8 +180,14 @@ def init2D():
     all_ax = []
     for i,dataSt in enumerate(dataList):
         # get bounds
-        xMin = nanmin(dataSt.xVec)
-        xMax = nanmax(dataSt.xVec)
+        if len(args.xLim) == 2:
+            (xMin,xMax) = args.xLim
+        else:
+            xMin = nanmin(dataSt.x)
+            xMax = nanmax(dataSt.x)
+            if dataSt.dataType == 'XY':
+                xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
+                      
         if args.twin != -1:
             # ony one plot, store limits for both axes
             yMin = nanmin(dataSt.data[:,:args.twin])
@@ -205,7 +211,7 @@ def init2D():
         sublines = []
         for j in xrange(dataSt.data.shape[1]):
             if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
-                plot(dataSt.xVec, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
+                plot(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
                 sublines += plot([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
             if j == args.twin:
@@ -216,7 +222,7 @@ def init2D():
                 ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
         # add 0-axis if needed
         if args.no0 == False:
-            plot(dataSt.xVec[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
+            plot(dataSt.x[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
         # set x label
         if i/C == L-1 and args.noX == False:
             xlabel(dataSt.xlabel, size = args.fontSize)
@@ -254,7 +260,10 @@ def refresh2D(ind = -1):
     for i,dataSt in enumerate(dataList):
         for j in xrange(dataSt.data.shape[1]):
             if 'k-' not in dataSt.lineType[j]: # is a line to be refreshed
-                lines[iline].set_data(dataSt.xVec[:ind], dataSt.data[:ind,j])
+                if dataSt.dataType == 'XY':
+                    lines[iline].set_data(dataSt.x[:ind,j], dataSt.data[:ind,j])
+                else:
+                    lines[iline].set_data(dataSt.x[:ind], dataSt.data[:ind,j])
                 iline += 1
     # display legends if needed
     #draw()
@@ -435,8 +444,8 @@ def readFileList(filenames, n=0):
             # create custom /y axis if xy plot
             if len(args.xy) == 2:
                 idx,idy = args.xy
-                if idx in range(d['data'].shape[1]) and idy in range(d['data'].shape[1]):
-                    d['xVec'] = d['data'][:,idx]
+                if idx < d['data'].shape[1] and idy < d['data'].shape[1]:
+                    d['x'] = d['data'][:,[idx]]
                     d['data'] = d['data'][:,[idy]]
                     # also copy legends to x/y labels
                     if 'legend' in d:
@@ -449,12 +458,15 @@ def readFileList(filenames, n=0):
                             d['legend'] = [args.legend[file_idx]]
                         else:
                             d.pop('legend')
+            elif d['dataType'] == 'XY':
+                d['x'] = d['data'][:,::2]
+                d['data'] = d['data'][:,1::2]
             # otherwise create x-axis depending on iteration or time-based                    
             elif d['dataType'] == 'time-based':
-                d['xVec'] = d['data'][:,0]
+                d['x'] = d['data'][:,0]
                 d['data'] = d['data'][:,1:]
             elif d['dataType'] == 'iteration-based':
-                d['xVec'] = arange(d['data'].shape[0])
+                d['x'] = arange(d['data'].shape[0])
             # create legend and lineType keys if not present and fill up to data dimension 
             for key in ('units', 'legend', 'lineType'):
                 # create key
@@ -517,7 +529,7 @@ def readFileList(filenames, n=0):
                     obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0))[:3,:]
                     if 'color'not in obj:
                         obj['color'] = 'b'
-                    d['fixedObject'] = dictToNamespace(obj)                
+                    d['fixedObject'] = dictToNamespace(obj)
                                   
             # store existing keys
             d['keys'] = d.keys()

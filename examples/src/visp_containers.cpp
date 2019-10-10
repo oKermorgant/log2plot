@@ -49,6 +49,6 @@ int main()
     }
 
     // default script path + verbose
-   logger.plot("", true);
+   logger.plot(true);
 
 }

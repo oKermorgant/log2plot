@@ -12,6 +12,7 @@ enum LogType
 {
     ITERATION,
     TIME,
+    XY,
     POSE
 };
 

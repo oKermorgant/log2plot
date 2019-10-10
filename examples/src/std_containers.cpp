@@ -24,9 +24,12 @@ int main()
   logger.saveTimed(v_double, "std_v", "[v_x,v_y,v_z,\\omega_x,\\omega_y,\\omega_z]", "Value of V");
   // set some units
   logger.setUnits("[m/s,m/s,m/s,rad/s,rad/s,rad/s]");
-
   // also add explicit steps to be plotted
   logger.setSteps({0.5, 1.2, 4});
+
+  // plot some doubles as X-Y
+  std::vector<double> xy(4, 0);
+  logger.saveXY(xy, "std_xy", "[traj_1, traj_2]", "x-position", "y-position");
 
   // save a 3D pose
   std::vector<double> pose(6,0);
@@ -57,11 +60,11 @@ int main()
   {
     t += 0.05;
     // some cosines
-    for(int i=0;i<v_double.size();++i)
+    for(uint i=0;i<v_double.size();++i)
       v_double[i] = cos(t + i);
 
     // some saw teeth
-    for(int i=0;i<v_int.size();++i)
+    for(uint i=0;i<v_int.size();++i)
       v_int[i] = c % (20*i+2);
 
     // the pose is a spiral
@@ -81,6 +84,6 @@ int main()
   }
 
   // default script path + verbose
-  logger.plot("", true);
+  logger.plot(true);
 
 }

@@ -35,7 +35,7 @@ public:
       axis.addLine("$" + label(i) + "$", format(i));
   }
 
-  // log update + publish message
+  // log update + refresh plot
   void update(double *t)
   {
     ofs_ << "    - [";

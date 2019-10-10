@@ -27,11 +27,11 @@ int main(int argc, char**argv)
         t = ros::Time::now().toSec() - t0;
 
         // some cosines
-        for(int i=0;i<v_double.size();++i)
+        for(uint i=0;i<v_double.size();++i)
             v_double[i] = cos(t + i);
 
         // some saw teeth
-        for(int i=0;i<v_int.size();++i)
+        for(uint i=0;i<v_int.size();++i)
             v_int[i] = int(t/T) % (20*i+2);
 
         logger.update();
@@ -40,5 +40,5 @@ int main(int argc, char**argv)
     }
 
     // default script path + verbose
-   logger.plot("", true);
+   logger.plot(true);
 }

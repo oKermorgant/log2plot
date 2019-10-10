@@ -21,7 +21,7 @@ public:
 
     // Save iteration-based vector
     template<class T>
-    inline void save(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
+    inline void save(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
     {
         // add this to logged variables
         logged_vars.push_back(std::unique_ptr<ContainerPlotter<T>>
@@ -32,7 +32,7 @@ public:
 
     // Save time-based vector
     template<class T>
-    inline void saveTimed(T &v, const std::string name, const std::string legend, const std::string ylabel, const bool keep_file = true)
+    inline void saveTimed(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
     {
 
         // add this to logged variables
@@ -42,17 +42,6 @@ public:
         writeInitialInfo(log2plot::TIME, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
     }
 
-    // Save 3D pose or position
-    template<class T>
-    inline void save3Dpose(T &v, const std::string name, const std::string legend, const bool &invert = false, const bool keep_file = true)
-    {
-        // add this to logged variables - for now we do not plot 3D curves
-        logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
-        // and write initial info
-        writeInitialInfo(log2plot::POSE, name, "["+legend+"]", "", "", keep_file);
-        if(invert)
-            last->writeInfo("invertPose", "True");
-    }
 };
 
 }
