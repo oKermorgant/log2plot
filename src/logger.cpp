@@ -208,9 +208,6 @@ string Logger::toYAMLVector(const std::vector<std::vector<double> > &M)
 // Plot a file
 void Logger::plot(std::string script_path, bool verbose)
 {
-  if(script_path == "")
-    script_path = LOG2PLOT_SCRIPT_PATH;
-
   for(auto &var: logged_vars)
   {
     // close the corresponding file and call Python to plot it

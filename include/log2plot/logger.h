@@ -173,7 +173,7 @@ public:
     void plot(std::string script_path, bool verbose = false);
     void plot(bool verbose = false)
     {
-      plot("", verbose);
+      plot(LOG2PLOT_SCRIPT_PATH, verbose);
     }
 
 };
