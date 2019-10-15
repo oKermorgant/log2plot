@@ -63,6 +63,11 @@ int main()
     for(uint i=0;i<v_double.size();++i)
       v_double[i] = cos(t + i);
 
+    xy[0] = cos(t);
+    xy[1] = sin(2*t);
+    xy[2] = 2*sin(3*t);
+    xy[3] = 3*cos(3*t);
+
     // some saw teeth
     for(uint i=0;i<v_int.size();++i)
       v_int[i] = c % (20*i+2);

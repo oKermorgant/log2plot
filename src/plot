@@ -77,7 +77,7 @@ argFontLine.add_argument('-l', '--lineWidth', metavar='width', type=int, help='L
 
 # legend and label args
 argLegendLabel = parser.add_argument_group('Legend and label options')
-argLegendLabel.add_argument('--legendLoc', metavar='location', type=int, help='Legend position (-1 for no legend)',default=0)
+argLegendLabel.add_argument('--legendLoc', metavar='location', type=str, help='Legend position (-1 for no legend)',default='0')
 argLegendLabel.add_argument('--legendCol', metavar='columns', type=int, help='Legend columns',default=1)
 argLegendLabel.add_argument('--legendMax', metavar='max legends', type=int, help='Max number of lines to display legend',default=6)
 argLegendLabel.add_argument('--legend', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several curves, works for XY and 3D plots',default=())
@@ -124,8 +124,16 @@ def checkArgs(parsed):
 # parse and check
 global args
 args = checkArgs(parser.parse_args())
-if args.legendLoc >= 11:
-    args.legendLoc = 2
+
+if args.legendLoc.isdigit() or (args.legendLoc[0] == '-' and args.legendLoc[1:].isdigit()):
+    args.legendLoc = int(args.legendLoc)
+    if args.legendLoc > 11:
+        args.legendLoc = 2
+else:
+    l =  {'best': 0, 'upper right': 1, 'upper left': 2, 'lower left':3, 'lower right':4, 'right': 5,
+          'center left':6, 'center right':7, 'lower center': 8, 'upper center':9, 'center': 10, 
+          'out': 11}
+    args.legendLoc = l[args.legendLoc]
 
 # rotation from theta-u
 def Rot(tU):

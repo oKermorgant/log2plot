@@ -171,10 +171,7 @@ public:
 
     // Close all files and call the Python interpreter on the given script path
     void plot(std::string script_path, bool verbose = false);
-    void plot(bool verbose = false)
-    {
-      plot(LOG2PLOT_SCRIPT_PATH, verbose);
-    }
+    void plot(bool verbose = false);
 
 };
 }

@@ -205,6 +205,11 @@ string Logger::toYAMLVector(const std::vector<std::vector<double> > &M)
 
 // ***** Plotting functions
 
+void Logger::plot(bool verbose)
+{
+  plot(LOG2PLOT_SCRIPT_PATH, verbose);
+}
+
 // Plot a file
 void Logger::plot(std::string script_path, bool verbose)
 {
