@@ -225,7 +225,7 @@ string legend2DPoint(const unsigned int &n)
 // legend for a fully connected graph of n points
 std::string legendFullyConnected(const uint n)
 {
-  std::vector<std::vector<uint>> M(n-1);
+  std::vector<std::vector<uint>> M;
   for(uint i =  0; i < n-1; ++i)
   {
     for(uint j = i+1; j < n; ++j)
