@@ -19,7 +19,7 @@ std::string legend2DPoint(const unsigned int &n=4);
 std::string legendFullyConnected(const uint n);
 
 // legend for a fully disconnected graph of n points
-std::string legendFullyDisonnected(const uint n);
+std::string legendFullyDisconnected(const uint n);
 
 // Builds YAML-proof single-lined matrix
 template<class T>

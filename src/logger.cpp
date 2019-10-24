@@ -235,7 +235,7 @@ std::string legendFullyConnected(const uint n)
 }
 
 // legend for a fully disconnected graph of n points
-std::string legendFullyDisonnected(const uint n)
+std::string legendFullyDisconnected(const uint n)
 {
   std::vector<std::vector<uint>> M;
   for(uint i = 0; i < n; ++i)
