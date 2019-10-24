@@ -42,6 +42,17 @@ public:
         writeInitialInfo(log2plot::TIME, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
     }
 
+    // Save XY vector
+    template<class T>
+    inline void saveXY(T &v, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, bool keep_file = true)
+    {
+
+        // add this to logged variables
+        logged_vars.push_back(std::unique_ptr<ContainerPlotter<T> >
+                              (new ContainerPlotter<T>(v, buildLegend(legend, v.size()/2))));
+        // and write initial info
+        writeInitialInfo(log2plot::XY, name, buildLegend(legend, v.size()/2), xlabel, ylabel, keep_file);
+    }
 };
 
 }

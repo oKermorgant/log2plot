@@ -26,6 +26,10 @@ int main()
     // also set custome line types in matplotlib style
     logger.setLineType("[k-, r., b--, gD]");
 
+    // plot some doubles as X-Y
+    std::vector<double> xy(4, 0);
+    logger.saveXY(xy, "std_xy", "[traj_1, traj_2]", "x-position", "y-position");
+
     // save a 3D pose - will not be plotted during runtime
     std::vector<double> pose(6,0);
     // 3D pose is saved as translation + theta-u parametrization
@@ -56,6 +60,11 @@ int main()
         for(int i=0;i<v_int.size();++i)
             v_int[i] = c % (20*i+2);
 
+        xy[0] = cos(t);
+        xy[1] = sin(2*t);
+        xy[2] = 2*sin(3*t);
+        xy[3] = 3*cos(3*t);
+
         // some cosines
         for(int i=0;i<v_double.size();++i)
             v_double[i] = cos(t + i);
@@ -72,6 +81,6 @@ int main()
     }
 
     // default script path + verbose
-   logger.plot("", true);
+   logger.plot(true);
 
 }

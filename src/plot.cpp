@@ -22,11 +22,8 @@ void Axis::addLine(const std::string& name, const std::string& format)
 
 void Axis::updateLine(uint idx, double x, double y)
 {
-  if(idx == 0)
-  {
-    xmin = std::min(xmin, x);
-    xmax = std::max(xmax, x);
-  }
+  xmin = std::min(xmin, x);
+  xmax = std::max(xmax, x);
   ymin = std::min(ymin, y);
   ymax = std::max(ymax, y);
 

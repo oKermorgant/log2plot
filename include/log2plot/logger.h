@@ -7,12 +7,39 @@
 #include <memory>
 #include <log2plot/container.h>
 #include <cmath>
+#include <sstream>
 
 namespace log2plot
 {
 
 // legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
+
+// legend for a fully connected graph of n points
+std::string legendFullyConnected(const uint n);
+
+// legend for a fully disconnected graph of n points
+std::string legendFullyDisonnected(const uint n);
+
+// Builds YAML-proof single-lined matrix
+template<class T>
+static std::string toYAMLVector(const std::vector<std::vector<T> > &M)
+{
+  std::stringstream ss;
+  unsigned int i,j;
+  ss << "[";
+  for(i=0;i<M.size();++i)
+  {
+    ss << "[";
+    for(j=0;j<M[i].size()-1;++j)
+      ss << M[i][j] << ", ";
+    ss << M[i][j] << "]";
+    if(i != M.size()-1)
+      ss << ",";
+  }
+  ss << "]";
+  return ss.str();
+}
 
 const double nan = std::nan("");
 
@@ -44,6 +71,7 @@ protected:
     GenericContainer* last;
 
     bool first_update = true;
+    uint nb_fixed_objects = 0;
 
     // write initial information in latest saved variable
     void writeInitialInfo(const LogType &log_type, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file);
@@ -165,9 +193,7 @@ public:
 
     // Low-level static functions
     // Build 3D box nodes depending on dimensions
-    static std::vector<std::vector<double> > buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM);
-    // Builds YAML-proof single-lined matrix
-    static std::string toYAMLVector(const std::vector<std::vector<double> > &M);
+    static std::vector<std::vector<double> > buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM);  
 
     // Close all files and call the Python interpreter on the given script path
     void plot(std::string script_path, bool verbose = false);

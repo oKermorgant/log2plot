@@ -123,7 +123,9 @@ void Logger::showFixedRectangle(const double &xm, const double &ym, const double
 // 3D plot: fixed object (related to object frame)
 void Logger::showFixedObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::string &color)
 {
-  last->writeInfo("fixedObject", "");
+  std::stringstream ss;
+  ss << "fixedObject" << ++nb_fixed_objects;
+  last->writeInfo(ss.str(), "");
   last->writeInfo("    nodes", toYAMLVector(M));
   last->writeInfo("    graph", graph);
   if(color!="")
@@ -183,26 +185,6 @@ void Logger::update(const bool &flush)
 }
 
 
-// writes a matrix into a single line YAML format
-string Logger::toYAMLVector(const std::vector<std::vector<double> > &M)
-{
-  stringstream ss;
-  unsigned int i,j;
-  ss << "[";
-  for(i=0;i<M.size();++i)
-  {
-    ss << "[";
-    for(j=0;j<M[i].size()-1;++j)
-      ss << M[i][j] << ", ";
-    ss << M[i][j] << "]";
-    if(i != M.size()-1)
-      ss << ",";
-  }
-  ss << "]";
-  return ss.str();
-}
-
-
 // ***** Plotting functions
 
 void Logger::plot(bool verbose)
@@ -240,5 +222,24 @@ string legend2DPoint(const unsigned int &n)
   return ss.str();
 }
 
+// legend for a fully connected graph of n points
+std::string legendFullyConnected(const uint n)
+{
+  std::vector<std::vector<uint>> M(n-1);
+  for(uint i =  0; i < n-1; ++i)
+  {
+    for(uint j = i+1; j < n; ++j)
+      M.push_back({i,j});
+  }
+  return toYAMLVector(M);
+}
 
+// legend for a fully disconnected graph of n points
+std::string legendFullyDisonnected(const uint n)
+{
+  std::vector<std::vector<uint>> M;
+  for(uint i = 0; i < n; ++i)
+    M.push_back({i,i});
+  return toYAMLVector(M);
+}
 }

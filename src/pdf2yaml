@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+
+import minecart
+import pylab as pl
+import yaml
+import sys
+import os
+import uuid
+
+def bbox_center(bbox):
+    return (.5*(bbox[0] + bbox[2]),.5*(bbox[1] + bbox[3]))
+
+def dist(bbox, x, y, c = .5):
+    xm,ym = bbox_center(bbox)
+    return c*(x-xm)**2 + (1-c)*(y-ym)**2
+
+def closest(letterings, x, y, c = .5):
+    return float(min(letterings, key = lambda l: dist(l.get_bbox(), x, y, c)).title())
+
+def linreg(x, pdf_xmin, pdf_xmax, xmin, xmax):
+    ratio = (xmax - xmin)/(pdf_xmax - pdf_xmin)
+    return (x - pdf_xmin) * ratio + xmin
+
+class Scale:
+    def __init__(self, page, ax = []):
+        self.curves = []
+        lines = []
+        for shape in page.shapes:
+            if len(shape.path) == 2:
+                lines.append(shape.path)
+        x = [line[0][1] for line in lines]
+        y = [line[0][2] for line in lines]
+        self.pdf_xmin = min(x)
+        self.pdf_xmax = max(x)
+        self.pdf_ymin = min(y)
+        self.pdf_ymax = max(y)
+        
+        # find numbers
+        if not len(ax):
+            self.xmin = closest(page.letterings, self.pdf_xmin, self.pdf_ymin, 0.9)
+            self.ymin = closest(page.letterings, self.pdf_xmin, self.pdf_ymin, 0.1)
+            self.xmax = closest(page.letterings, self.pdf_xmax, self.pdf_ymin)
+            self.ymax = closest(page.letterings, self.pdf_xmin, self.pdf_ymax)
+            print('Found axis limits: {}',format([self.xmin, self.xmax, self.ymin, self.ymax]))
+        else:
+            self.xmin, self.xmax, self.ymin, self.ymax = [float(v) for v in ax]
+        
+    def scale(self, p):
+        return pl.array([linreg(p[1], self.pdf_xmin, self.pdf_xmax, self.xmin, self.xmax), linreg(p[2], self.pdf_ymin, self.pdf_ymax, self.ymin, self.ymax)])
+    
+    def register_curves(self, page, n = 100, thr = 0.01):
+        
+        thr = 1/(thr * pl.array([self.xmax - self.xmin, self.ymax - self.ymin]))
+        self.curves = []
+        
+        for shape in page.shapes:
+            if len(shape.path) >= n:
+                self.curves.append([self.scale(shape.path[0])])
+                
+                for p in shape.path[1:]:
+                    ps = self.scale(p)
+                    if pl.dist(thr*self.curves[-1][-1], thr*ps) > 1:
+                        self.curves[-1].append(ps)
+                self.curves[-1] = pl.array(self.curves[-1])
+                
+    def plot(self):
+        for c in self.curves:
+            pl.plot(c[:,0], c[:,1])
+        pl.axis((self.xmin, self.xmax, self.ymin, self.ymax))
+        
+    def dump(self, filename, is_xy = False):
+        filename = os.path.splitext(filename)[0] + '_l2p.yaml'
+        if os.path.exists(filename):
+            with open(filename) as f:
+                data = yaml.load(f)
+        else:
+            data = {}
+            
+        # check / guess if actually time-based
+        if not is_xy:
+            for c in self.curves:
+                if pl.amin(c[1:,0] - c[:-1,0]) < 0:
+                    is_xy = True
+
+        if is_xy:
+            data['dataType'] = 'XY'
+            # ensure same dim
+            dim = max(c.shape[0] for c in self.curves)
+            for i,c in enumerate(self.curves):
+                dim_c = c.shape[0]
+                self.curves[i] = pl.vstack([self.curves[i]] + [c[[-1],:]]*(dim-dim_c))
+            data['data'] = pl.hstack(self.curves).tolist()
+        else:
+            data['dataType'] = 'time-based'
+            # reshape to have single x-axis
+            xmin = min(c[0,0] for c in self.curves)
+            xmax = max(c[-1,0] for c in self.curves)
+            dim = int(c.shape[0]/2)
+            datarray = pl.linspace(xmin, xmax, dim).reshape(dim,1)
+            
+            for c in self.curves:
+                datarray = pl.hstack((datarray, pl.interp(datarray[:,0], c[:,0], c[:,1]).reshape(dim,1)))
+            data['data'] = datarray.tolist()
+        
+        
+        print('Extracted {} curves with {} points'.format(len(self.curves), len(data['data'])))
+        with open(filename, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False)
+                    
+        
+filename = 'path_simobs-eps-converted-to.pdf'
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
+    
+ax = []
+if '-ax' in sys.argv:
+    idx = sys.argv.index('-ax') + 1
+    try:
+        ax = [float(v) for v in sys.argv[idx:idx+4]]
+    except:
+        print('Could not read axis limits: xmin xmax ymin ymax')
+thr = 0.01
+if '-thr' in sys.argv:
+    idx = sys.argv.index('-thr') + 1
+    try:
+        thr = float(sys.argv[idx])
+    except:
+        print('Could not read threshold')
+
+with open(filename, 'rb') as pdffile:
+    doc = minecart.Document(pdffile)
+page = doc.get_page(0)
+
+scale = Scale(page, ax)
+scale.register_curves(page, thr = thr)
+
+scale.dump(filename, '-xy' in sys.argv)
+
+pl.close('all')
+scale.plot()
+
+pl.show()
+

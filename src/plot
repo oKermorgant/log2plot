@@ -71,7 +71,7 @@ argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='
 argFontLine = parser.add_argument_group('Font and line options')
 argFontLine.add_argument('-s', '--fontSize', metavar='size', type=int, help='Global font size',default=22)
 argFontLine.add_argument('--fontAxes', metavar='size', type=int, help='Size adjustment for axes fonts', default=0)
-argFontLine.add_argument('--fontLabel', metavar='size', type=int, help='Size adjustment for label fonts',default=0)
+argFontLine.add_argument('--fontLabel', metavar='size', type=int, help='Size adjustment for label fonts',default=2)
 argFontLine.add_argument('--fontLegend', metavar='size', type=int, help='Size adjustment for legend fonts',default=1)
 argFontLine.add_argument('-l', '--lineWidth', metavar='width', type=int, help='Line width',default=2)
 
@@ -229,14 +229,18 @@ def init2D():
                 ax.set_xlim(xMin,xMax)
                 ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
         # add 0-axis if needed
-        if args.no0 == False:
-            plot(dataSt.x[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
+        if args.no0 == False and dataSt.dataType != 'XY':
+            if dataSt.dataType == 'XY':
+                plot([xMin,xMax],[0,0], 'k-',linewidth=args.lineWidth-1)
+                plot([0,0],[yMin, yMax], 'k-',linewidth=args.lineWidth-1)
+            else:
+                plot(dataSt.x[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
         # set x label
         if i/C == L-1 and args.noX == False:
-            xlabel(dataSt.xlabel, size = args.fontSize)
+            xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
         # set y label
         if args.noY == False:
-            ylabel(dataSt.ylabel, size = args.fontSize+2)
+            ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
         # store lines
         lines += sublines
         
@@ -329,9 +333,10 @@ def init3D():
         lines += ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
 
         # plot fixed observed object if any - won't move
-        if 'fixedObject' in dataSt.keys:
-            for i in dataSt.fixedObject.graph:
-                ax.plot(dataSt.fixedObject.nodes[0,i], dataSt.fixedObject.nodes[1,i], dataSt.fixedObject.nodes[2,i], dataSt.fixedObject.color, linewidth=max(2,args.lineWidth-1))
+        if 'fixedObjects' in dataSt.keys:
+            for obj in dataSt.fixedObjects:
+                for i in obj.graph:
+                    ax.plot(obj.nodes[0,i], obj.nodes[1,i], obj.nodes[2,i], obj.color, linewidth=max(2,args.lineWidth-1))
 
     # get axes limits
     lim3D = array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()]).reshape(6)
@@ -358,7 +363,7 @@ def init3D():
             line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[0], dataSt.lineType[2])
             # desired
             if 'desiredPose' in dataSt.movingObject.keys:
-                line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.movingObject.desiredPose, dataSt.lineType[3])
+                line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.movingObject.desiredPose, dataSt.lineType[3] + '--')
             # if video, prepare lines for moving
             if args.video:
                 lines += line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[1], dataSt.lineType[2])
@@ -390,7 +395,7 @@ def refresh3D(ind = -1):
         for k,dataSt in enumerate(dataList):
             if 'movingObject' in dataSt.keys:
                 for i in indMoving[k]:
-                    line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[i], dataSt.lineType[(i==indMoving[k][-1]) and 2 or 1])
+                    line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[i], dataSt.lineType[(i==indMoving[k][-1]) and 3 or 1])
     else:
         # moving: plot (refresh) only current
         for dataSt in dataList:
@@ -532,12 +537,16 @@ def readFileList(filenames, n=0):
                         obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),'invertPose' in d)
                     obj['keys'] = obj.keys()
                     d['movingObject'] = dictToNamespace(obj)
-                if 'fixedObject' in d:
-                    obj = d['fixedObject']
-                    obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0))[:3,:]
-                    if 'color'not in obj:
-                        obj['color'] = 'b'
-                    d['fixedObject'] = dictToNamespace(obj)
+                obj_keys = [key for key in d if key.startswith('fixedObject')]
+                if len(obj_keys):
+                    d['fixedObjects'] = []
+                    for key in obj_keys:
+                        obj = d[key]
+                        obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0))[:3,:]
+                        if 'color' not in obj:
+                            obj['color'] = 'b'
+                        d['fixedObjects'].append(dictToNamespace(obj))
+                        d.pop(key)
                                   
             # store existing keys
             d['keys'] = d.keys()

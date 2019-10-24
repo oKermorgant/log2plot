@@ -31,29 +31,52 @@ public:
     ofs_ << "data:" << std::endl;
 
     // potentially several 2D-plots
-    for(size_t i = 0; i < actual->size(); ++i)
-      axis.addLine("$" + label(i) + "$", format(i));
+    if(log_type == LogType::XY)
+    {
+      for(size_t i = 0; i < actual->size()/2; ++i)
+        axis.addLine("$" + label(i) + "$", format(i));
+    }
+    else
+    {
+      for(size_t i = 0; i < actual->size(); ++i)
+        axis.addLine("$" + label(i) + "$", format(i));
+    }
   }
 
   // log update + refresh plot
   void update(double *t)
   {
     ofs_ << "    - [";
-    // write time if needed
-    if(log_type == LogType::TIME)
+
+    if(log_type == LogType::XY)
     {
-      ofs_ << *t << ", ";
-      x_coord = *t;
+      // write content
+      for(uint i=0;i<actual->size()/2;++i)
+      {
+        const double x = (*actual)[2*i];
+        const double y = (*actual)[2*i+1];
+        axis.updateLine(i, x, y);
+        ofs_ << x << ", " << y << ((i == actual->size()/2-1) ? "]\n" : ", ");
+      }
     }
     else
-      x_coord++;
-
-    // write content
-    for(uint i=0;i<actual->size();++i)
     {
-      const double v = actual->operator[](i);
-      axis.updateLine(i, x_coord, v);
-      ofs_ << v << ((i == actual->size()-1) ? "]\n" : ", ");
+      // write time if needed
+      if(log_type == LogType::TIME)
+      {
+        ofs_ << *t << ", ";
+        x_coord = *t;
+      }
+      else
+        x_coord++;
+
+      // write content
+      for(uint i=0;i<actual->size();++i)
+      {
+        const double v = (*actual)[i];
+        axis.updateLine(i, x_coord, v);
+        ofs_ << v << ((i == actual->size()-1) ? "]\n" : ", ");
+      }
     }
 
     axis.draw();

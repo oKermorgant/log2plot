@@ -23,8 +23,8 @@ public:
         // write content
         unsigned int i;
         for(i=0;i<actual->size()-1;++i)
-            ofs_ << actual->operator[](i) << ", ";
-        ofs_ << actual->operator[](i) << "]\n";
+            ofs_ << (*actual)[i] << ", ";
+        ofs_ << (*actual)[i] << "]\n";
     }
 
 protected:

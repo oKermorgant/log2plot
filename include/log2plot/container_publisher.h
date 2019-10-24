@@ -37,7 +37,7 @@ public:
     // write content
     for(uint i=0;i<actual->size();++i)
     {
-      const double v = actual->operator[](i);
+      const double v = (*actual)[i];
       msg.data[i] = v;
       ofs_ << v << ((i == actual->size()-1) ? "]\n" : ", ");
     }
