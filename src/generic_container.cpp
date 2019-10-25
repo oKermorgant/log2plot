@@ -23,7 +23,6 @@ std::string GenericContainer::close(const std::vector<double> &steps,
       else if(log_type == TIME)
         setSteps(steps_timed);
     }
-
     ofs_.close();
   }
   return filename;

@@ -1,7 +1,7 @@
 #include <sstream>
 #include <fstream>
 #include <log2plot/logger.h>
-
+#include <algorithm>
 
 
 namespace log2plot
@@ -187,23 +187,51 @@ void Logger::update(const bool &flush)
 
 // ***** Plotting functions
 
+// calls python to plot this / these files
+void Logger::plotFiles(const std::string &script_path, const std::string &files, bool verbose)
+{
+  string cmdline = "python " +
+      script_path + " " +
+      files + " &";
+
+  if(verbose)
+    cout << "executing "<< cmdline << endl;
+  UNUSED(system(cmdline.c_str()));
+}
+
 void Logger::plot(bool verbose)
 {
   plot(LOG2PLOT_SCRIPT_PATH, verbose);
 }
 
 // Plot a file
-void Logger::plot(std::string script_path, bool verbose)
+void Logger::plot(const std::string &script_path, bool verbose)
 {
-  for(auto &var: logged_vars)
+  std::vector<uint> plotted_group;
+  // first plot groups
+  for(const auto &group: grouped_vars)
   {
-    // close the corresponding file and call Python to plot it
-    string cmdline = "python " +
-        script_path + " " +
-        var->close(steps, steps_timed) + " &";
-    if(verbose)
-      cout << "executing "<< cmdline << endl;
-    UNUSED(system(cmdline.c_str()));
+    // build list of files
+    std::stringstream ss;
+    for(const auto &idx: group)
+    {
+      plotted_group.push_back(idx);
+      ss << logged_vars[idx]->close(steps, steps_timed) << " ";
+    }
+    plotFiles(script_path, ss.str(), verbose);
+  }
+
+  // plot non-grouped files
+  for(uint idx = 0; idx < logged_vars.size(); ++idx)
+  {
+    if(std::find(plotted_group.begin(),
+                 plotted_group.end(),
+                 idx) == plotted_group.end())
+    {
+      plotFiles(script_path,
+                logged_vars[idx]->close(steps, steps_timed),
+                verbose);
+    }
   }
 }
 

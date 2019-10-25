@@ -493,7 +493,7 @@ def readFileList(filenames, n=0):
                     d[key] += [''] * (d['data'].shape[1] - len(d[key]))
             # set default values for 3D plot lineType
             if d['dataType'] == '3D pose':
-                defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r--']
+                defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r']
                 k+=1
                 for i in xrange(4):
                     if d['lineType'][i] == '':

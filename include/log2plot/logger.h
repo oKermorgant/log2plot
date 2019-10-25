@@ -65,6 +65,7 @@ protected:
     std::string time_unit = "s";
     std::vector<double> time_buff;
     std::vector<double> steps, steps_timed;
+    std::vector<std::vector<uint>> grouped_vars;
 
     // logger variables and pointer to the last entered
     std::vector<std::unique_ptr<GenericContainer> > logged_vars;
@@ -78,6 +79,9 @@ protected:
 
     // build explicit legend from implicit
     static std::string buildLegend(const std::string legend, const unsigned int len);
+
+    // calls python to plot this / these files
+    void plotFiles(const std::string &script_path, const std::string &files, bool verbose);
 
 public:
     // constructor with default values
@@ -152,6 +156,15 @@ public:
 
     // **** End functions for new variables ****
 
+    // tells to plot the next n added variables in the same plot
+    void regroupNext(uint n)
+    {
+      const auto idx = static_cast<uint>(logged_vars.size());
+      grouped_vars.push_back({});
+      for(uint i = 0; i < n; ++i)
+        grouped_vars.back().push_back(idx + i);
+    }
+
     // **** Functions to specify metadata for the last registered variable ****
 
     // Units
@@ -196,7 +209,7 @@ public:
     static std::vector<std::vector<double> > buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM);  
 
     // Close all files and call the Python interpreter on the given script path
-    void plot(std::string script_path, bool verbose = false);
+    void plot(const std::string &script_path, bool verbose = false);
     void plot(bool verbose = false);
 
 };
