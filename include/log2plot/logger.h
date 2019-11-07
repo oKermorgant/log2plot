@@ -193,12 +193,20 @@ public:
     void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "");
     // **** End metadata functions ****
 
-    // Add a time-step
+
+    // Add a current moment for all iteration or time-based plots
     void writeStep()
     {
       steps.push_back(iter_count / subsamp);
       if(time)
         steps_timed.push_back(*time);
+    }
+
+    // add several time-steps for all iteration or time-based plots
+    void writeStepsAll(std::vector<double> _iterations, std::vector<double> _times = {})
+    {
+      steps = _iterations;
+      steps_timed = _times;
     }
 
     // Updates all saved variables

@@ -94,6 +94,7 @@ arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert 
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
+arg3Dplot.add_argument('--equal', action='store_true', help='Scales 3D axis to equal values',default=False)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -345,16 +346,14 @@ def init3D():
     # build limits and scaling matrix I    
     for i in xrange(3):
         x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
-        #for j in xrange(2):
-        #    lim3D[2*i+j] = x0 - (-1)**j * dX
+        for j in xrange(2):
+            lim3D[2*i+j] = x0 - (-1)**j * dX
         I[i,i] = 0.02*(lim3D[2*i+1] - lim3D[2*i])
     
     # set limits and ratio            
-    '''
     ax.set_xlim3d([lim3D[0],lim3D[1]])
     ax.set_ylim3d([lim3D[2],lim3D[3]])
     ax.set_zlim3d([lim3D[4],lim3D[5]])
-    '''
     #    ax.set_aspect('equal')
     # another run to plot first / desired positions of objects
     for dataSt in dataList:

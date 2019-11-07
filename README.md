@@ -43,7 +43,7 @@ The logged variables have to be containers of some sort, as long as the followin
 
 Besides these two points, all kind of data can be saved, but of course they will not be plottable if not numerical.
 
-Three types of data may be logged:
+Four types of data may be logged:
 * Iteration-based data will use the index as the X-axis for the plots.
   * `logger.save(v, name, legend, ylabel)`
   * `legend` should be a YAML-style list and may be using Latex: `"[v_x, \\omega_z]"`
@@ -51,6 +51,9 @@ Three types of data may be logged:
   * `logger.setTime(t, "s");` where `t` is a `double`
   * `logger.saveTimed(v, name, legend, ylabel)`
   * `legend` should be a YAML-style list and may be using Latex: `"[v_x, \\omega_z]"`
+* XY-based data are defined as {x1, y1, x2, y2, ...}
+  * `logger.saveXY(v, legend, x-label, y-label)`
+  * `legend` should be a YAML-style list with half the dimension of v`
 * 3D pose data has to be given a 6-components pose vector (as in translation + angle-axis representation). 
   * `logger.save3Dpose(v, name, trajectory_name, invert_pose)`
   * `trajectory_name` should be a single string
@@ -118,3 +121,15 @@ In the `examples` folder are shipped 4 use cases:
 * `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
 * `animation` shows how to perform a plot during runtime
+
+## Configuration file parser
+
+If the option `BUILD_PARSER` is set to True (default) then a `log2plot::ConfigManager` class is also available. It allows easy loading of a configuration file written in Yaml through the templated `read` method. 
+
+The configuration manager can also generate dynamically suitable names for experimental files through the following methods:
+* `setDirName(std::string s)`
+* `addNameElement(std::string str)`
+* `addNameElement(std::string pref, T val)`
+* `addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse)`
+* `fullName()`: outputs the resulting file name from all above information
+* `saveConfig()`: saves under `fullName() + _config.yaml`

@@ -8,6 +8,8 @@ option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" ON)
 option(USE_CATKIN "USE_CATKIN" ON)
 option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
+option(BUILD_PARSER "BUILD_PARSER" ON)
+
 
 # main files
 set(LOG2PLOT_HEADERS
@@ -67,6 +69,23 @@ find_package(catkin COMPONENTS roscpp QUIET)
    endif()
 endif()
 
+# check YAML for configuration file parser
+find_package(PkgConfig)
+pkg_check_modules(YamlCpp yaml-cpp)
+
+if(YamlCpp_FOUND AND BUILD_PARSER)
+  find_package(VISP)
+  if(VISP_FOUND)
+    add_definitions(-DWITH_VISP)
+    set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
+    set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
+  endif()
+
+  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} include/log2plot/config_manager.h)
+  set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
+  set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
+  set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${YamlCpp_INCLUDE_DIRS})
+endif()
 
 # Compile with available deps
 add_library(log2plot SHARED ${LOG2PLOT_HEADERS} ${LOG2PLOT_SRC})
@@ -123,6 +142,19 @@ if(BUILD_EXAMPLES)
         target_link_libraries(animation log2plot)
     endif()
 endif()
+
+
+################
+##Parser test ##
+################
+
+if(BUILD_PARSER)
+  add_executable(parser examples/parser/parser.cpp)
+  target_include_directories(parser
+    PRIVATE ${INCLUDE_DEPENDS})
+  target_link_libraries(parser log2plot)
+endif()
+
 
 
 #############
