@@ -4,6 +4,8 @@
 #include <yaml-cpp/yaml.h>
 #include <yaml-cpp/parser.h>
 #include <fstream>
+#include <iostream>
+#include <log2plot/defines.h>
 
 #ifdef WITH_VISP
 #include <visp/vpHomogeneousMatrix.h>
@@ -195,10 +197,9 @@ private:
   // ViSP core parsing is compiled
   void readViSPArray(std::vector<std::string> keys, vpArray2D<double> & M,
                      const uint cols = 0,
-                     const uint rows = 0) const;
-
-  static double str2double(const std::string &s);
+                     const uint rows = 0) const; 
 #endif
+  static double str2double(const std::string &s);
 };
 
 }

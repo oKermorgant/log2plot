@@ -36,7 +36,7 @@ int main()
   std::cout << R << "\n\n";  
 
 #else
-  auto R = config.read<std::vector<std::vector<double>>({"visp","R"});
+  auto R = config.read<std::vector<std::vector<double>>>({"visp","R"});
 #endif
 const bool pure_Z_rotation = fabs(R[2][2] - 1) < 1e-5;
 

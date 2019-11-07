@@ -10,12 +10,12 @@ option(USE_CATKIN "USE_CATKIN" ON)
 option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
 option(BUILD_PARSER "BUILD_PARSER" ON)
 
-
 # main files
 set(LOG2PLOT_HEADERS
   include/log2plot/generic_container.h
   include/log2plot/container.h
-  include/log2plot/logger.h)
+  include/log2plot/logger.h
+  include/log2plot/defines.h)
 set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
 set(INCLUDE_DEPENDS include)
 set(LIB_DEPENDS "")
@@ -76,9 +76,11 @@ pkg_check_modules(YamlCpp yaml-cpp)
 if(YamlCpp_FOUND AND BUILD_PARSER)
   find_package(VISP)
   if(VISP_FOUND)
-    add_definitions(-DWITH_VISP)
+    file(WRITE include/log2plot/defines.h "#define WITH_VISP")
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
+  else()
+    file(WRITE include/log2plot/defines.h "")
   endif()
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} include/log2plot/config_manager.h)
@@ -86,6 +88,7 @@ if(YamlCpp_FOUND AND BUILD_PARSER)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${YamlCpp_INCLUDE_DIRS})
 endif()
+
 
 # Compile with available deps
 add_library(log2plot SHARED ${LOG2PLOT_HEADERS} ${LOG2PLOT_SRC})
@@ -141,18 +144,14 @@ if(BUILD_EXAMPLES)
         target_include_directories(animation PRIVATE ${INCLUDE_DEPENDS})
         target_link_libraries(animation log2plot)
     endif()
-endif()
 
+    if(BUILD_PARSER)
+      add_executable(parser examples/parser/parser.cpp)
+      target_include_directories(parser
+        PRIVATE ${INCLUDE_DEPENDS})
+      target_link_libraries(parser log2plot)
+    endif()
 
-################
-##Parser test ##
-################
-
-if(BUILD_PARSER)
-  add_executable(parser examples/parser/parser.cpp)
-  target_include_directories(parser
-    PRIVATE ${INCLUDE_DEPENDS})
-  target_link_libraries(parser log2plot)
 endif()
 
 

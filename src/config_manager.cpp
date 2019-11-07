@@ -1,4 +1,3 @@
-#ifdef WITH_VISP
 
 #include <log2plot/config_manager.h>
 
@@ -39,6 +38,32 @@ bool ConfigManager::has(const YAML::Node &node, vsit begin, vsit end) const
   return has(node[tag], std::next(begin), end);
 }
 
+double ConfigManager::str2double(const std::string &s)
+{
+  if(s.size() > 1)
+  {
+    // look for fractions of pi
+    for(const auto denum: {2, 3, 4, 6, 1})
+    {
+      for(const auto sign: {1, -1})
+      {
+        // build string to be searched
+        std::stringstream ss;
+        if(sign == -1)
+          ss << "-";
+        ss << "PI";
+        if(denum != 1)
+          ss << "/" << denum;
+        if(s == ss.str())
+          return sign * M_PI/denum;
+      }
+    }
+  }
+
+  return atof(s.c_str());
+}
+
+#ifdef WITH_VISP
 void ConfigManager::readViSPArray(std::vector<std::string> keys, vpArray2D<double> &M,
                                   const uint cols, const uint rows) const
 {
@@ -74,32 +99,8 @@ void ConfigManager::readViSPArray(std::vector<std::string> keys, vpArray2D<doubl
       M[row][col] = str2double(content[idx++]);
   }
 }
-
-double ConfigManager::str2double(const std::string &s)
-{
-  if(s.size() > 1)
-  {
-    // look for fractions of pi
-    for(const auto denum: {2, 3, 4, 6, 1})
-    {
-      for(const auto sign: {1, -1})
-      {
-        // build string to be searched
-        std::stringstream ss;
-        if(sign == -1)
-          ss << "-";
-        ss << "PI";
-        if(denum != 1)
-          ss << "/" << denum;
-        if(s == ss.str())
-          return sign * M_PI/denum;
-      }
-    }
-  }
-
-  return atof(s.c_str());
-}
-
-}
-
 #endif
+
+}
+
+
