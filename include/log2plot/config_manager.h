@@ -79,12 +79,36 @@ public:
   }
 
 #ifdef WITH_VISP
+  // ViSP core parsing is compiled
+  void readViSPArray(std::vector<std::string> keys, vpArray2D<double> & M,
+                     const uint cols = 0,
+                     const uint rows = 0) const;
+
   template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpArray2D<double> & M,
+  void read(std::vector<std::string> keys, vpColVector & v,
+            const uint rows = 0) const
+  {
+    readViSPArray(keys, v, 1, rows);
+  }
+
+  template <class Dummy=int>
+  void read(std::vector<std::string> keys, vpTranslationVector& v) const
+  {
+    readViSPArray(keys, v);
+  }
+
+  template <class Dummy=int>
+  void read(std::vector<std::string> keys, vpMatrix & M,
             const uint cols = 0,
             const uint rows = 0) const
   {
     readViSPArray(keys, M, cols, rows);
+  }
+
+  template <class Dummy=int>
+  void read(std::vector<std::string> keys, vpColVector & V) const
+  {
+    readViSPArray(keys, V);
   }
 
   template <class Dummy=int>
@@ -193,12 +217,6 @@ private:
 
   bool has(const YAML::Node &node, vsit begin, vsit end) const;
 
-#ifdef WITH_VISP
-  // ViSP core parsing is compiled
-  void readViSPArray(std::vector<std::string> keys, vpArray2D<double> & M,
-                     const uint cols = 0,
-                     const uint rows = 0) const; 
-#endif
   static double str2double(const std::string &s);
 };
 
