@@ -95,8 +95,13 @@ public:
   }
 
   // main reading function from vector of tags
+  // prevent access from ViSP class if needed
   template <typename T>
+#ifdef WITH_VISP
   typename std::enable_if<!detail::vpArrayDerived<T>::value, void>::type
+#else
+  void
+#endif
   read(TagList tags, T&val) const
   {
     try {

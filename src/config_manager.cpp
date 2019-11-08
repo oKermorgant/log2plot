@@ -54,15 +54,18 @@ double ConfigManager::str2double(std::string s)
     {
       for(const auto sign: {1, -1})
       {
-        // build string to be searched
-        std::stringstream ss;
-        if(sign == -1)
-          ss << "-";
-        ss << "PI";
-        if(denum != 1)
-          ss << "/" << denum;
-        if(s == ss.str())
-          return sign * M_PI/denum;
+        for(const auto pi: {"PI", "pi"})
+        {
+          // build string to be searched
+          std::stringstream ss;
+          if(sign == -1)
+            ss << "-";
+          ss << pi;
+          if(denum != 1)
+            ss << "/" << denum;
+          if(s == ss.str())
+            return sign * M_PI/denum;
+        }
       }
     }
   }

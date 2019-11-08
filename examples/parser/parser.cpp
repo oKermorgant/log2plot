@@ -23,6 +23,7 @@ int main()
   // let us read a vector with some PI's
   std::vector<std::string> keys{"1", "p1"};
   auto v = config.read<std::vector<double>>(keys);
+  std::cout << "1:p1 = ";
   for(auto val: v)
     std::cout << val << " ";
   std::cout << "\n\n";
@@ -50,7 +51,7 @@ int main()
   vpColVector vec(5);
   //config.read({"visp", "v"}, vec);      // fails as visp:v field is dim. 4
   config.read({"visp", "v"}, vec, 4, 1);  // ok, only 2 first values are read
-  std::cout << "visp:v = " << vec.t() << std::endl;
+  std::cout << "visp:v = " << vec.t() << "\n\n";
 
 #else
   auto R = config.read<std::vector<std::vector<double>>>({"visp","R"});
@@ -65,6 +66,7 @@ int main()
 
 
   // unexisting tag sequence raises an exception
+  std::cout << std::endl;
   config.read<int>({"visp","not_here"});
 
 }

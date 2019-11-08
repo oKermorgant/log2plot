@@ -10,14 +10,7 @@ namespace log2plot
 {
 namespace detail {
 
-#ifndef WITH_VISP
-template <typename T>
-class vpArrayDerived
-{
-public:
-  enum {value = true};
-};
-#else
+#ifdef WITH_VISP
 
   // have to use SFINAE to prevent all derived of vpArray from using default method
   // just assume a vpArray2D has ::loadYAML
