@@ -36,7 +36,7 @@ public:
     addNameElement(ss.str());
   }
 
-  void addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse);
+  void addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse = "");
 
   void addNameElement(std::string str);
 
@@ -80,7 +80,16 @@ public:
   std::string tagPathMessage(TagList tags,
                              std::string msg="") const;
 
-  // some specializations to read doubles
+  // some specializations
+  void read(TagList tags, bool & v) const
+  {
+    const auto vstr = read<std::string>(tags);
+    v = (vstr != "0" &&
+        vstr != "false" &&
+        vstr != "False" &&
+        vstr != "0.");
+  }
+
   void read(TagList tags, double & v) const
   {
     v = str2double(read<std::string>(tags));

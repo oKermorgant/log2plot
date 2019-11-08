@@ -6,6 +6,8 @@ exp: sing
 display: False
 config: 3
 
+true: false
+
 pi: PI
 
 # in blocks

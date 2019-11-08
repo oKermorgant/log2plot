@@ -28,6 +28,9 @@ int main()
     std::cout << val << " ";
   std::cout << "\n\n";
 
+  auto bs = config.read<bool>("true");
+  std::cout << "bs = " << bs << std::endl;
+
 #ifdef WITH_VISP
   // 4x4 matrix defined by translation + theta-u
   auto cMo = config.read<vpHomogeneousMatrix>({"visp", "cMo"});
