@@ -12,21 +12,16 @@ namespace detail {
 
 #ifdef WITH_VISP
 
-  // have to use SFINAE to prevent all derived of vpArray from using default method
-  // just assume a vpArray2D has ::loadYAML
-  template <typename T>
-  class vpArrayDerived
-  {
-  private:
-    typedef char YesType[1];
-    typedef char NoType[2];
-
-    template <typename C> static YesType& test(decltype(&C::loadYAML));
-    template <typename C> static NoType& test(...);
-
-  public:
-    enum { value = sizeof(test<T>(nullptr)) == sizeof(YesType) };
-  };
+// have to use SFINAE to prevent all derived of vpArray from using default method
+// just assume a vpArray2D has .loadYAML
+template <typename T>
+struct vpArrayDerived
+{
+  template <typename C> static constexpr decltype(std::declval<C>().loadYAML, bool()) test(int /* unused */)
+  {return true;}
+  template <typename C> static constexpr bool test(...) {return false;}
+  static constexpr bool value = test<T>(int());
+};
 
 #endif // WITH_VISP
 
