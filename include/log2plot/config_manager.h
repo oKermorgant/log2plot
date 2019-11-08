@@ -5,21 +5,24 @@
 #include <yaml-cpp/parser.h>
 #include <fstream>
 #include <iostream>
-#include <log2plot/defines.h>
-
-#ifdef WITH_VISP
-#include <visp/vpHomogeneousMatrix.h>
-#endif
+#include <log2plot/config_manager_detail.h>
 
 namespace log2plot
 {
 
 class ConfigManager
 {
+  using TagList = const std::vector<std::string> &;
+
 public:
   ConfigManager(std::string filename) : config_file(filename)
   {
+    try {
     config = YAML::LoadFile(filename);
+    } catch (...) {
+      throw std::runtime_error("log2plot::ConfigManager: cannot load file \n"
+                               "  - file: " + config_file);
+    }
   }
 
   // deal with output file names
@@ -37,151 +40,11 @@ public:
 
   void addNameElement(std::string str);
 
-
-  // content of configuration file
-
-  // test if keys exist
-  bool has(std::vector<std::string> keys) const
-  {
-    return has(config, keys.begin(), keys.end());
-  }
-  bool has(std::initializer_list<std::string> keys) const
-  {
-    return has(std::vector<std::string>(keys));
-  }
-  bool has(std::string key) const
-  {
-    return has({key});
-  }
-
-
-  // main reading function
-  // Dummy is to allow partial specialization
-  template <class T, class Dummy=int>
-  void read(std::vector<std::string> keys, T&val) const
-  {
-    val = read<T>(config, keys.begin(), keys.end());
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, double & v) const
-  {
-    v = str2double(read<std::string>(keys));
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, std::vector<double> & v) const
-  {
-    const auto vstr = read<std::vector<std::string>>(keys);
-    v.clear();
-    for(const auto &val: vstr)
-      v.push_back(str2double(val));
-  }
-
-#ifdef WITH_VISP
-  // ViSP core parsing is compiled
-  void readViSPArray(std::vector<std::string> keys, vpArray2D<double> & M,
-                     const uint cols = 0,
-                     const uint rows = 0) const;
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpColVector & v,
-            const uint rows = 0) const
-  {
-    readViSPArray(keys, v, 1, rows);
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpTranslationVector& v) const
-  {
-    readViSPArray(keys, v);
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpMatrix & M,
-            const uint cols = 0,
-            const uint rows = 0) const
-  {
-    readViSPArray(keys, M, cols, rows);
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpColVector & V) const
-  {
-    readViSPArray(keys, V);
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpHomogeneousMatrix &M) const
-  {
-    // try to read as 6-dim vector
-    try
-    {
-      vpPoseVector p;
-      readViSPArray(keys, p);
-      M.buildFrom(p);
-    } catch (...)
-    {
-      // read as 4x4 matrix
-      readViSPArray(keys, M);
-    }
-  }
-
-  template <class Dummy=int>
-  void read(std::vector<std::string> keys, vpRotationMatrix &R) const
-  {
-    // try to read as 3-dim vector
-    try
-    {
-      vpThetaUVector tu;
-      readViSPArray(keys, tu);
-      R.buildFrom(tu);
-    } catch (...)
-    {
-      // read as 3x3 matrix
-      readViSPArray(keys, R);
-    }
-  }
-
-#endif // WITH_VISP
-
-
-  template <class T>
-  T read(std::vector<std::string> keys) const
-  {
-    T val;
-    read<T>(keys, val);
-    return val;
-  }
-
-  // read from simple string
-  template <class T>
-  void read(std::string key, T&val) const
-  {
-    read<T>({key}, val);
-  }
-  template <class T>
-  T read(std::string key) const
-  {
-    return read<T>({key});
-  }
-
-  // read from brace-initializer list
-  template <class T>
-  void read(std::initializer_list<std::string> keys, T&val) const
-  {
-    read<T>(std::vector<std::string>(keys), val);
-  }
-  template <class T>
-  T read(std::initializer_list<std::string> keys) const
-  {
-    return read<T>(std::vector<std::string>(keys));
-  }
-
   std::string fullName()
   {
     return base_dir + base_name;
   }
+
   void saveConfig(bool actuallySave = true)
   {
     if(actuallySave)
@@ -193,31 +56,111 @@ public:
     }
   }
 
+  // content of configuration file
+
+  // test if tags exist
+  bool has(TagList tags) const
+  {
+    try {
+      finalNode(tags);
+      return true;
+    } catch (...) {}
+    return false;
+
+  }
+  bool has(std::initializer_list<std::string> tags) const
+  {
+    return has(std::vector<std::string>(tags));
+  }
+  bool has(std::string tag) const
+  {
+    return has({tag});
+  }
+
+  std::string tagPathMessage(TagList tags,
+                             std::string msg="") const;
+
+  // some specializations to read doubles
+  void read(TagList tags, double & v) const
+  {
+    v = str2double(read<std::string>(tags));
+  }
+
+  void read(TagList tags, std::vector<double> & v) const
+  {
+    const auto vstr = read<std::vector<std::string>>(tags);
+    v.clear();
+    for(const auto &val: vstr)
+      v.push_back(str2double(val));
+  }
+
+  // main reading function from vector of tags
+  template <typename T>
+  typename std::enable_if<!detail::vpArrayDerived<T>::value, void>::type
+  read(TagList tags, T&val) const
+  {
+    try {
+      val = finalNode(tags).as<T>();
+    } catch (...) {
+      throw std::runtime_error(tagPathMessage(tags, "cannot be cast"));
+    }
+  }
+  template <typename T>
+  T read(TagList tags) const
+  {
+    T val;
+    read(tags, val);
+    return val;
+  }
+
+  // read from simple string
+  template <typename T>
+  void read(std::string tag, T&val) const
+  {
+    read({tag}, val);
+  }
+  template <typename T>
+  T read(std::string tag) const
+  {
+    return read<T>({tag});
+  }
+
+  // read from brace-initializer list
+  template <typename T>
+  void read(std::initializer_list<std::string> tags, T&val) const
+  {
+    read(std::vector<std::string>(tags), val);
+  }
+  template <typename T>
+  T read(std::initializer_list<std::string> tags) const
+  {
+    return read<T>(std::vector<std::string>(tags));
+  }
+
+#ifdef WITH_VISP
+  // can also read vpArray with passed dimensions
+  void read(TagList tags, vpArray2D<double> &M,
+            uint rows = 0, uint cols = 0) const;
+  // special cases for those two
+  void read(TagList tags, vpHomogeneousMatrix &M) const;
+  void read(TagList tags, vpRotationMatrix &M) const;
+#endif
+
 private:
   YAML::Node config;
   std::string config_file;
   std::string base_name;
   std::string base_dir;
 
-  using vsit = std::vector<std::string>::iterator;
-
-  // content of configuration file
-  template <class T>
-  T read(const YAML::Node &node, vsit begin, vsit end) const
+  YAML::Node finalNode(TagList tags) const
   {
-    if(begin == end)
-      return {};
-
-    const auto & tag = *begin;
-    if(std::next(begin) == end)
-      return node[tag].as<T>();
-
-    return read<T>(node[tag], std::next(begin), end);
+    return finalNode(tags, config);
   }
 
-  bool has(const YAML::Node &node, vsit begin, vsit end) const;
+  YAML::Node finalNode(TagList tags, const YAML::Node &node,
+                       size_t idx = 0) const;
 
-  static double str2double(const std::string &s);
+  static double str2double(std::string s);
 };
 
 }

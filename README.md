@@ -133,3 +133,5 @@ The configuration manager can also generate dynamically suitable names for exper
 * `addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse)`
 * `fullName()`: outputs the resulting file name from all above information
 * `saveConfig()`: saves under `fullName() + _config.yaml`
+
+See the corresponding example in `examples/parser`

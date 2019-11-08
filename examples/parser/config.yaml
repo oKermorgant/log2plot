@@ -1,0 +1,23 @@
+# config file example
+# some base types
+dataPath: the/data/path
+maxIter: 2000
+exp: sing
+display: False
+config: 3
+
+pi: PI
+
+# in blocks
+1:
+    n: 3
+    p1: [PI,0,-PI/2]
+    p2: [3, -1, 4]
+   
+# some visp parsing
+visp:
+    cMo: [0,0,1,0.1,0,PI/6]
+    t: [1,2,3]
+    v: [1,2,3,4]
+    R: [[-1,0,0],[0,-1,0],[0,0,1]]
+    Rtu: [0,0,PI]

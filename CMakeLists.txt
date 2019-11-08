@@ -77,13 +77,17 @@ if(YamlCpp_FOUND AND BUILD_PARSER)
   find_package(VISP)
   if(VISP_FOUND)
     file(WRITE include/log2plot/defines.h "#define WITH_VISP")
+      set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
   else()
     file(WRITE include/log2plot/defines.h "")
   endif()
 
-  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} include/log2plot/config_manager.h)
+  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 
+  include/log2plot/config_manager.h
+  include/log2plot/config_manager_detail.h
+  )  
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${YamlCpp_INCLUDE_DIRS})
