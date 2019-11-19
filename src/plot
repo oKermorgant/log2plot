@@ -183,7 +183,7 @@ def init2D():
     if len(dataList) < L:
         L = len(dataList) 
     C = int(float(len(dataList))/L)
-    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L), frameon=False)
+    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
 
     # get axes number and limits
     lines = []
@@ -313,7 +313,7 @@ def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
 def init3D():
     global F, lines, ax, indMoving
 
-    F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]), frameon=True)
+    F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]))
     ax = F.gca(projection='3d')
     #sp = subplot(1,1,1)
     #sp.set_xticks(array([]))
