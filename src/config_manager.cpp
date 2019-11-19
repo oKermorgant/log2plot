@@ -3,6 +3,30 @@
 namespace log2plot
 {
 
+void ConfigManager::updateFrom(int argc, char **argv)
+{
+  for(int i = 0; i < argc; ++i)
+  {
+    const auto tags = toTags(argv[i]);
+    if(has(tags))
+    {
+      auto node = finalNode(tags, config);
+      node = std::string(argv[++i]);
+    }
+  }
+}
+
+std::vector<std::string> ConfigManager::toTags(std::string tag) const
+{
+  std::vector<std::string> tags;
+  std::string out;
+  std::istringstream iss(tag);
+  while(std::getline(iss, out, ':'))
+    tags.push_back(out);
+
+  return tags;
+}
+
 void ConfigManager::addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse)
 {
   if(condition)

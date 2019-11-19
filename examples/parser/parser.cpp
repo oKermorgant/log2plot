@@ -3,18 +3,19 @@
 
 
 
-int main()
+int main(int argc, char** argv)
 {
   std::string parser_path(LOG2PLOT_EXAMPLE_PATH);
   parser_path += "/parser";
   log2plot::ConfigManager config(parser_path + "/config.yaml");
+  config.updateFrom(argc, argv);
 
   // explicit specialization allows 1-line parsing
   std::cout << config.read<std::string>("dataPath") << "\n\n";
 
   // implicit if variable already exists
   int n;
-  config.read({"1", "n"}, n);
+  config.read("1:n", n);
   std::cout << "n is " << n << "\n\n";
 
   auto pi = config.read<double>("pi");

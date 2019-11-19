@@ -25,6 +25,8 @@ public:
     }
   }
 
+  void updateFrom(int argc, char**argv);
+
   // deal with output file names
   void setDirName(std::string s) {base_dir = s + "/";}
   template <class Numeric>
@@ -49,17 +51,20 @@ public:
   {
     if(actuallySave)
     {
-      std::ifstream  src(config_file, std::ios::binary);
+     /* std::ifstream  src(config_file, std::ios::binary);
       std::ofstream  dst(fullName() + "_config.yaml",   std::ios::binary);
       std::cout << "Saving config to " << fullName() + "_config.yaml\n";
-      dst << src.rdbuf();
+      dst << src.rdbuf();*/
+      std::ofstream  dst(fullName() + "_config.yaml",   std::ios::binary);
+      dst << YAML::Dump(config);
+      dst.close();
     }
   }
 
   // content of configuration file
 
   // test if tags exist
-  bool has(TagList tags) const
+  bool has(std::vector<std::string> tags) const
   {
     try {
       finalNode(tags);
@@ -74,14 +79,14 @@ public:
   }
   bool has(std::string tag) const
   {
-    return has({tag});
+    return has(toTags(tag));
   }
 
   std::string tagPathMessage(TagList tags,
                              std::string msg="") const;
 
   // some specializations
-  void read(TagList tags, bool & v) const
+  void read(std::vector<std::string> tags, bool & v) const
   {
     const auto vstr = read<std::string>(tags);
     v = (vstr != "0" &&
@@ -90,12 +95,12 @@ public:
         vstr != "0.");
   }
 
-  void read(TagList tags, double & v) const
+  void read(std::vector<std::string> tags, double & v) const
   {
     v = str2double(read<std::string>(tags));
   }
 
-  void read(TagList tags, std::vector<double> & v) const
+  void read(std::vector<std::string> tags, std::vector<double> & v) const
   {
     const auto vstr = read<std::vector<std::string>>(tags);
     v.clear();
@@ -111,7 +116,7 @@ public:
 #else
   void
 #endif
-  read(TagList tags, T&val) const
+  read(std::vector<std::string> tags, T&val) const
   {
     try {
       val = finalNode(tags).as<T>();
@@ -120,7 +125,7 @@ public:
     }
   }
   template <typename T>
-  T read(TagList tags) const
+  T read(std::vector<std::string> tags) const
   {
     T val;
     read(tags, val);
@@ -131,19 +136,19 @@ public:
   template <typename T>
   void read(std::string tag, T&val) const
   {
-    read({tag}, val);
+    read(toTags(tag), val);
   }
   template <typename T>
   T read(std::string tag) const
   {
-    return read<T>({tag});
+    return read<T>(toTags(tag));
   }
 
   // read from brace-initializer list
   template <typename T>
   void read(std::initializer_list<std::string> tags, T&val) const
   {
-    read(std::vector<std::string>(tags), val);
+    read(TagList(tags), val);
   }
   template <typename T>
   T read(std::initializer_list<std::string> tags) const
@@ -153,11 +158,11 @@ public:
 
 #ifdef WITH_VISP
   // can also read vpArray with passed dimensions
-  void read(TagList tags, vpArray2D<double> &M,
+  void read(std::vector<std::string> tags, vpArray2D<double> &M,
             uint rows = 0, uint cols = 0) const;
   // special cases for those two
-  void read(TagList tags, vpHomogeneousMatrix &M) const;
-  void read(TagList tags, vpRotationMatrix &M) const;
+  void read(std::vector<std::string> tags, vpHomogeneousMatrix &M) const;
+  void read(std::vector<std::string> tags, vpRotationMatrix &M) const;
 #endif
 
 private:
@@ -173,6 +178,8 @@ private:
 
   YAML::Node finalNode(TagList tags, const YAML::Node &node,
                        size_t idx = 0) const;
+
+  std::vector<std::string> toTags(std::string tag) const;
 
   static double str2double(std::string s);
 };
