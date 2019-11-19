@@ -5,7 +5,7 @@
 import sys, os
 from pylab import *
 from matplotlib import rc, animation, rcParams
-from mpl_toolkits.mplot3d import Axes3D
+import mpl_toolkits.mplot3d 
 from matplotlib.font_manager import FontProperties
 import argparse
 import yaml
@@ -31,6 +31,7 @@ rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
 # plot colors
 plot_colors = ['C' + str(i) for i in range(10)]
 plot_markers = ['', 'o', 's', 'x', 'D', 'p', '+']
+
 nbmark = 10.
 # margin around actual values
 plotMargin = 0.05
@@ -182,7 +183,7 @@ def init2D():
     if len(dataList) < L:
         L = len(dataList) 
     C = int(float(len(dataList))/L)
-    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
+    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L), frameon=False)
 
     # get axes number and limits
     lines = []
@@ -312,14 +313,18 @@ def line3Dobject(ax, objectGraph, objectNodes, objectPose, lineType):
 def init3D():
     global F, lines, ax, indMoving
 
-    F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]))
-    sp = subplot(1,1,1)
-    sp.set_xticks(array([]))
-    sp.set_yticks(array([]))
+    F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]), frameon=True)
+    ax = F.gca(projection='3d')
+    #sp = subplot(1,1,1)
+    #sp.set_xticks(array([]))
+    #sp.set_yticks(array([]))
     F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
-    ax = Axes3D(F, rect=sp.get_position())
+    #ax = Axes3D(F, rect=sp.get_position())
     ax.view_init(args.ae[1],args.ae[0])
     objectPoses = []
+    
+    #F.patch.set_visible(False)
+    #ax.patch.set_visible(False)
 
     # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
     p = 2
