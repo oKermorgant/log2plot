@@ -188,24 +188,26 @@ void Logger::update(const bool &flush)
 // ***** Plotting functions
 
 // calls python to plot this / these files
-void Logger::plotFiles(const std::string &script_path, const std::string &files, bool verbose)
+void Logger::plotFiles(const std::string &script_path, const std::string &files, bool verbose, bool display)
 {
-  string cmdline = "python " +
-      script_path + " " +
-      files + " &";
+  string cmdline = "python " + script_path + " " + files;
+  if(!display)
+    cmdline += " --nodisplay &";
+  else
+    cmdline += " &";
 
   if(verbose)
     cout << "executing "<< cmdline << endl;
   UNUSED(system(cmdline.c_str()));
 }
 
-void Logger::plot(bool verbose)
+void Logger::plot(bool verbose, bool display)
 {
-  plot(LOG2PLOT_SCRIPT_PATH, verbose);
+  plot(LOG2PLOT_SCRIPT_PATH, verbose, display);
 }
 
 // Plot a file
-void Logger::plot(const std::string &script_path, bool verbose)
+void Logger::plot(const std::string &script_path, bool verbose, bool display)
 {
   std::vector<uint> plotted_group;
   // first plot groups
@@ -218,7 +220,7 @@ void Logger::plot(const std::string &script_path, bool verbose)
       plotted_group.push_back(idx);
       ss << logged_vars[idx]->close(steps, steps_timed) << " ";
     }
-    plotFiles(script_path, ss.str(), verbose);
+    plotFiles(script_path, ss.str(), verbose, display);
   }
 
   // plot non-grouped files
@@ -230,7 +232,7 @@ void Logger::plot(const std::string &script_path, bool verbose)
     {
       plotFiles(script_path,
                 logged_vars[idx]->close(steps, steps_timed),
-                verbose);
+                verbose, display);
     }
   }
 }

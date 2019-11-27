@@ -46,7 +46,6 @@ public:
     template<class T>
     inline void saveXY(T &v, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, bool keep_file = true)
     {
-
         // add this to logged variables
         logged_vars.push_back(std::unique_ptr<ContainerPlotter<T> >
                               (new ContainerPlotter<T>(v, buildLegend(legend, v.size()/2))));
