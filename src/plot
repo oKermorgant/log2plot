@@ -25,9 +25,29 @@ except:
 # in-script tuning
 videoFreeze = 10
 # LateX
+rc('font', family='sans-serif')
 rc('text', usetex = True)
-rc('font', family='serif')
-rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rcParams['text.latex.preamble']=[
+    r"\usepackage{amsmath}",
+    r'\usepackage{helvet}',    # set the normal font here
+    r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
+    r'\sansmath']
+
+
+def toTex(s, math = True):
+    if '<' not in s and not math:
+        return s
+    while '<' in s:
+        front_tilde = (s[0] != '<' and '~' or '')
+        back_tilde  = (s[-1] != '>' and '~' or '')       
+        
+        s = s.replace('<', front_tilde + '\\text{', 1)
+        s = s.replace('>', back_tilde + '}', 1)        
+    return '$' + s + '$'
+
+#rcParams['font.family'] = 'sans-serif'
+#rcParams['font.sans-serif'] = ['Tahoma']
 # plot colors
 plot_colors = ['C' + str(i) for i in range(10)]
 plot_markers = ['', 'o', 's', 'x', 'D', 'p', '+']
@@ -265,7 +285,8 @@ def init2D():
                 ti.set_fontsize(args.fontSize+args.fontAxes)
 
     # resize fig
-    F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+    #F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+    F.tight_layout()
     return F
 
 
@@ -387,6 +408,9 @@ def init3D():
             # if video, prepare lines for moving
             if args.video:
                 lines += line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[1], dataSt.lineType[2])
+                
+    for ti in ax.get_xticklabels() + ax.get_yticklabels() + ax.get_zticklabels():
+        ti.set_fontsize(args.fontSize-2+args.fontAxes)
 
     return F
 
@@ -534,7 +558,7 @@ def readFileList(filenames, n=0):
                 if d['dataType'] != '3D pose':
                     for i in xrange(len(d['legend'])):
                         if d['legend'][i] != '':
-                            d['legend'][i] = '$\\boldsymbol{' + d['legend'][i].replace('<', '}\\textnormal{ ').replace('>','}\\boldsymbol{') + '}$'
+                            d['legend'][i] = toTex(d['legend'][i])
                             if len(d['units']) > i:
                                 if d['units'][i] != '':
                                     d['legend'][i] += ' [%s]' % d['units'][i]
@@ -543,8 +567,7 @@ def readFileList(filenames, n=0):
                 if label not in d:
                     d[label] = ''
             # set ylabel to Latex-style if needed
-            if '<' in d['ylabel']:
-                d['ylabel'] = '$\\boldsymbol{' + d['ylabel'].replace('<', '}\\textnormal{ ').replace('>','}\\boldsymbol{') + '}$'
+            d['ylabel'] = toTex(d['ylabel'], False)
                 
             # store data dimension
             d['rows'],d['cols'] = d['data'].shape
