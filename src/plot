@@ -77,6 +77,7 @@ argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve 
 argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
 argGal.add_argument('--steps', type=float, nargs='+', help='Will plot vertical lines at given steps', default=())
 
+
 # Value-related
 argValues = parser.add_argument_group('Value-related options')
 argValues.add_argument('--norm', type=str, help='Plots the norm of the value with the given legend',default='')
@@ -86,6 +87,8 @@ argValues.add_argument('--scale', metavar='x', type=float, help='Rescale all the
 argValues.add_argument('--rescale', metavar=['label', 'min', 'max'], nargs=3, help='Rescale given label between min and max',default=[])
 argValues.add_argument('--xLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for X axis',default=[])
 argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for Y axis',default=[])
+argValues.add_argument('--logY', action='store_true', help='Use log scale for Y-axis',default=False)
+argValues.add_argument('--logX', action='store_true', help='Use log scale for X-axis',default=False)
 
 # font and line args
 argFontLine = parser.add_argument_group('Font and line options')
@@ -106,6 +109,7 @@ argLegendLabel.add_argument('--noYa', action='store_true', help='Does not displa
 argLegendLabel.add_argument('--noX', action='store_true', help='Does not display X label',default=False)
 argLegendLabel.add_argument('--no0', action='store_true', help='Does not display 0-x axis',default=False)
 argLegendLabel.add_argument('--twin', metavar='index',  type=int, help='Separate y-axis after index', default=-1)
+argLegendLabel.add_argument('--twinLabel', metavar='index',  type=str, help='y-label of new axis', default='')
 
 # 3D plot args
 arg3Dplot = parser.add_argument_group('3D plot options')
@@ -121,9 +125,12 @@ argVid = parser.add_argument_group('Video options')
 argVid.add_argument('-v', dest='video', type=int, help='Creates a video with given subsampling',default=0)
 argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to create videos',default=0.04)
 
+plot2D = plot
 
 # function to and check consistency and links between arguments 
 def checkArgs(parsed):
+    global plot2D
+    global plotMargin
     if parsed.noYa:
         parsed.noY = True;
     if parsed.twin != -1:
@@ -140,6 +147,12 @@ def checkArgs(parsed):
         parsed.gMo = (0,0,0,0,pi,0)
     if parsed.group:
         parsed.Lines = 1
+    if parsed.logX:
+        plot2D = semilogx
+    elif parsed.logY:
+        plot2D = semilogy
+        plotMargin = 0
+    
         
     avail_legends = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right',
           'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none']
@@ -160,6 +173,8 @@ def checkArgs(parsed):
 
 global args
 args = checkArgs(parser.parse_args())
+
+
 
 # rotation from theta-u
 def Rot(tU):
@@ -208,7 +223,7 @@ def init2D():
         L = len(dataList) 
     C = int(float(len(dataList))/L)
     F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
-
+    
     # get axes number and limits
     lines = []
     all_ax = []
@@ -221,11 +236,11 @@ def init2D():
             xMax = nanmax(dataSt.x)
             if dataSt.dataType == 'XY':
                 xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
-                      
+                    
         if args.twin != -1:
             # ony one plot, store limits for both axes
-            yMin = nanmin(dataSt.data[:,:args.twin])
-            yMax = nanmax(dataSt.data[:,:args.twin])
+            yMin = nanmin(dataSt.data[:,:args.twin+1])
+            yMax = nanmax(dataSt.data[:,:args.twin+1])
             yMin2 = nanmin(dataSt.data[:,args.twin+1:])
             yMax2 = nanmax(dataSt.data[:,args.twin+1:])
         else:
@@ -241,38 +256,49 @@ def init2D():
         # add first axis
         ax = F.add_subplot(L, C, i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
         all_ax.append(ax)
+        
+        if 'fixedObjects' in dataSt.keys:
+            for obj in dataSt.fixedObjects:
+                for k in obj.graph:
+                    plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
+                  
+        
+        # set x label
+        if i/C == L-1 and args.noX == False:
+            xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
+            
+        # set y label
+        if args.noY == False:
+            ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
+        
         # add lines
         sublines = []
         for j in xrange(dataSt.data.shape[1]):
             if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
-                plot(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
+                plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
-                sublines += plot([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+                sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
             if j == args.twin:
                 # change axe
                 ax = ax.twinx()
                 all_ax.append(ax)
                 ax.set_xlim(xMin,xMax)
                 ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
+                ax.set_ylabel(args.twinLabel, size = args.fontSize+args.fontLabel)
         # add 0-axis if needed
         if args.no0 == False and dataSt.dataType != 'XY':
             if dataSt.dataType == 'XY':
-                plot([xMin,xMax],[0,0], 'k-',linewidth=args.lineWidth-1)
-                plot([0,0],[yMin, yMax], 'k-',linewidth=args.lineWidth-1)
+                plot2D([xMin,xMax],[0,0], 'k-',linewidth=args.lineWidth-1)
+                plot2D([0,0],[yMin, yMax], 'k-',linewidth=args.lineWidth-1)
             else:
-                plot(dataSt.x[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
-        # set x label
-        if i/C == L-1 and args.noX == False:
-            xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
-        # set y label
-        if args.noY == False:
-            ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
+                plot2D(dataSt.x[[0,-1]], [0,0], 'k-', linewidth=args.lineWidth-1)
+                
         # store lines
         lines += sublines
         
     # add vertical lines
     for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):
-            plot([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
+            plot2D([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
 
     # correct font / display legend on all found axes
     for ax in all_ax:
@@ -306,13 +332,15 @@ def refresh2D(ind = -1):
                 iline += 1
     # display legends if needed
     #draw()
-    for ax in all_ax:
+    for ax_idx,ax in enumerate(all_ax):
         if(args.legendLoc != 'none'):
             if args.legendLoc != 'out':
-                lgd = ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
+                lgd = ax.legend(lines, [l.get_label() for l in lines], loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1, fancybox=True, framealpha=0.9)
             else:
             # out of box
-                lgd = legend(loc="upper left", bbox_to_anchor=(1,1), ncol = args.legendCol, prop=legendSize, numpoints=1)
+                lgd = legend(lines, [l.get_label() for l in lines], loc="upper left", bbox_to_anchor=(1,1), ncol = args.legendCol, prop=legendSize, numpoints=1,framealpha=0.5 )
+        if ax_idx == args.twin:
+            break
 
     return lines
 
@@ -592,6 +620,17 @@ def readFileList(filenames, n=0):
                             obj['color'] = 'b'
                         d['fixedObjects'].append(dictToNamespace(obj))
                         d.pop(key)
+            else:
+                # check for fixed objects in 2D graph
+                obj_keys = [key for key in d if key.startswith('fixedObject')]
+                d['fixedObjects'] = []
+                for key in obj_keys:
+                    obj = d[key]
+                    obj['nodes'] = array(obj['nodes']).transpose()
+                    if 'color' not in obj:
+                        obj['color'] = 'b'
+                    d['fixedObjects'].append(dictToNamespace(obj))
+                    d.pop(key)
                                   
             # store existing keys
             d['keys'] = d.keys()

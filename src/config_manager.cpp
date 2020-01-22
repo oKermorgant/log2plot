@@ -9,10 +9,7 @@ void ConfigManager::updateFrom(int argc, char **argv)
   {
     const auto tags = toTags(argv[i]);
     if(has(tags))
-    {
-      auto node = finalNode(tags, config);
-      node = std::string(argv[++i]);
-    }
+      finalNode(tags, config) = std::string(argv[++i]);
   }
 }
 

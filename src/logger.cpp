@@ -120,7 +120,7 @@ void Logger::showFixedRectangle(const double &xm, const double &ym, const double
   showFixedObject(M, "[[0,1],[1,2],[2,3],[3,0]]", color);
 }
 
-// 3D plot: fixed object (related to object frame)
+// fixed object (2D: graph coordinates / 3D: related to object frame)
 void Logger::showFixedObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::string &color)
 {
   std::stringstream ss;

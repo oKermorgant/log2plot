@@ -27,6 +27,14 @@ public:
 
   void updateFrom(int argc, char**argv);
 
+  template <typename T>
+  void forceParameter(std::string tag, T value)
+  {
+    const auto tags = toTags(tag);
+    if(has(tags))
+      finalNode(tags, config) = value;
+  }
+
   // deal with output file names
   void setDirName(std::string s) {base_dir = s + "/";}
   template <class Numeric>
