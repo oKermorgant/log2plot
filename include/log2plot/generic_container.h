@@ -25,14 +25,14 @@ public:
     LogType type() const {return log_type;}
 
     // opens file stream
-    inline void setFile(std::string s) {filename = s; ofs_.open(s, std::ios_base::trunc);}
+    inline void setFile(std::string s) {filename = s; yaml_stream.open(s, std::ios_base::trunc);}
     // begin actual data and flush header to file
     virtual void init() = 0;
     // append the stream with current data from actual container
     virtual void update(double *t) = 0;
 
     // flush buffer into file
-    inline void flush() {ofs_.flush();}
+    inline void flush() {yaml_stream.flush();}
     // close file, add potential steps
     std::string close(const std::vector<double> &steps,
                       const std::vector<double> &steps_timed);
@@ -43,8 +43,7 @@ public:
     virtual void writeInfo(const std::string &_label, const std::string &_info);
 
 protected:
-    // stream to given file
-    std::ofstream ofs_;
+    std::ofstream yaml_stream;
     LogType log_type;
     std::string filename;
     bool has_steps = false;

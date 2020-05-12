@@ -88,11 +88,12 @@ argValues.add_argument('--rescale', metavar=['label', 'min', 'max'], nargs=3, he
 argValues.add_argument('--xLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for X axis',default=[])
 argValues.add_argument('--yLim', metavar='min, max', nargs=2, type=float, help='Impose lower and upper bounds for Y axis',default=[])
 argValues.add_argument('--logY', action='store_true', help='Use log scale for Y-axis',default=False)
+argValues.add_argument('--logY2', action='store_true', help='Use log scale for secondary Y-axis',default=False)
 argValues.add_argument('--logX', action='store_true', help='Use log scale for X-axis',default=False)
 
 # font and line args
 argFontLine = parser.add_argument_group('Font and line options')
-argFontLine.add_argument('-s', '--fontSize', metavar='size', type=int, help='Global font size',default=22)
+argFontLine.add_argument('-s', '--fontSize', metavar='size', type=int, help='Global font size',default=20)
 argFontLine.add_argument('--fontAxes', metavar='size', type=int, help='Size adjustment for axes fonts', default=0)
 argFontLine.add_argument('--fontLabel', metavar='size', type=int, help='Size adjustment for label fonts',default=2)
 argFontLine.add_argument('--fontLegend', metavar='size', type=int, help='Size adjustment for legend fonts',default=1)
@@ -124,6 +125,7 @@ arg3Dplot.add_argument('--equal', action='store_true', help='Scales 3D axis to e
 argVid = parser.add_argument_group('Video options')
 argVid.add_argument('-v', dest='video', type=int, help='Creates a video with given subsampling',default=0)
 argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to create videos',default=0.04)
+argVid.add_argument('--v3d', dest='v3d', type=int, help='Creates a video by having 3D plot rotate',default=0)
 
 plot2D = plot
 
@@ -154,27 +156,26 @@ def checkArgs(parsed):
         plotMargin = 0
     
         
-    avail_legends = ['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right',
-          'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none']
-
+    avail_legends = ('best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none')
+    
     if parsed.legendLoc == -1:
         parsed.legendLoc = 'none'
-    elif parsed.legendLoc.isdigit():    
+    elif parsed.legendLoc.isdigit():
         parsed.legendLoc = int(parsed.legendLoc)
         if parsed.legendLoc > len(avail_legends):
             parsed.legendLoc = 'best'
         else:
             parsed.legendLoc = avail_legends[parsed.legendLoc]  
     parsed.legendLoc = parsed.legendLoc.replace('_', ' ')
-    if parsed.legendLoc not in avail_legends:
-        parsed.legendLoc = 'best'
+    #if parsed.legendLoc not in avail_legends:
+    #    print('not in list')
+    #    parsed.legendLoc = 'best'
+    
     return parsed
 
 
 global args
 args = checkArgs(parser.parse_args())
-
-
 
 # rotation from theta-u
 def Rot(tU):
@@ -217,7 +218,7 @@ class dictToNamespace(object):
 # -- 2D plots ------------------------
 
 def init2D():
-    global F, lines, all_ax
+    global F, lines, all_ax, plot2D
     L = args.Lines
     if len(dataList) < L:
         L = len(dataList) 
@@ -238,7 +239,7 @@ def init2D():
                 xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
                     
         if args.twin != -1:
-            # ony one plot, store limits for both axes
+            # only one plot, store limits for both axes
             yMin = nanmin(dataSt.data[:,:args.twin+1])
             yMax = nanmax(dataSt.data[:,:args.twin+1])
             yMin2 = nanmin(dataSt.data[:,args.twin+1:])
@@ -257,11 +258,14 @@ def init2D():
         ax = F.add_subplot(L, C, i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
         all_ax.append(ax)
         
+        # add vertical lines
+        for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):
+            plot2D([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
+        
         if 'fixedObjects' in dataSt.keys:
             for obj in dataSt.fixedObjects:
                 for k in obj.graph:
                     plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
-                  
         
         # set x label
         if i/C == L-1 and args.noX == False:
@@ -283,7 +287,11 @@ def init2D():
                 ax = ax.twinx()
                 all_ax.append(ax)
                 ax.set_xlim(xMin,xMax)
-                ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
+                if args.logY2:
+                    plot2D = semilogy
+                    ax.set_ylim(yMin2, yMax2)
+                else:
+                    ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
                 ax.set_ylabel(args.twinLabel, size = args.fontSize+args.fontLabel)
         # add 0-axis if needed
         if args.no0 == False and dataSt.dataType != 'XY':
@@ -296,10 +304,6 @@ def init2D():
         # store lines
         lines += sublines
         
-    # add vertical lines
-    for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):
-            plot2D([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
-
     # correct font / display legend on all found axes
     for ax in all_ax:
         for ti in ax.get_xticklabels():
@@ -332,15 +336,21 @@ def refresh2D(ind = -1):
                 iline += 1
     # display legends if needed
     #draw()
-    for ax_idx,ax in enumerate(all_ax):
+    ax_legend = range(len(all_ax))
+    if args.twin != -1:
+        ax_legend = [args.twin+1]
+    for idx in ax_legend:
+        ax = all_ax[idx]
+        disp = [line for line in lines]
+        if len(args.files) > 1:
+            disp = [line for line in ax.lines]
         if(args.legendLoc != 'none'):
             if args.legendLoc != 'out':
-                lgd = ax.legend(lines, [l.get_label() for l in lines], loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1, fancybox=True, framealpha=0.9)
+                lgd = ax.legend(disp, [l.get_label() for l in disp], loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1, fancybox=True, framealpha=0.9)
             else:
             # out of box
-                lgd = legend(lines, [l.get_label() for l in lines], loc="upper left", bbox_to_anchor=(1,1), ncol = args.legendCol, prop=legendSize, numpoints=1,framealpha=0.5 )
-        if ax_idx == args.twin:
-            break
+                lgd = legend(disp, [l.get_label() for l in disp], loc="upper left", bbox_to_anchor=(1,1), ncol = args.legendCol, prop=legendSize, numpoints=1,framealpha=0.5 )
+
 
     return lines
 
@@ -423,6 +433,10 @@ def init3D():
     ax.set_xlim3d([lim3D[0],lim3D[1]])
     ax.set_ylim3d([lim3D[2],lim3D[3]])
     ax.set_zlim3d([lim3D[4],lim3D[5]])
+    
+    if len(ax.get_xticks()) > 7:
+        for d in 'xyz':
+            ax.locator_params(axis=d,nbins=5)
     
     #    ax.set_aspect('equal')
     # another run to plot first / desired positions of objects
@@ -516,9 +530,6 @@ def readFileList(filenames, n=0):
             d['data'] = array([[float(v) for v in line] for line in d['data'][:args.index]])
             if args.only != ():
                 d['data'] = d['data'][:,args.only]                
-            # scale if needed
-            if args.scale != 1:
-                d['data'] *= args.scale
             # rescale particular variable
             if len(args.rescale) != 0 and args.rescale[0] in d['legend']:
                 args.rescale[1] = float(args.rescale[1])
@@ -547,13 +558,14 @@ def readFileList(filenames, n=0):
                             d.pop('legend')
             elif d['dataType'] == 'XY':
                 d['x'] = d['data'][:,::2]
-                d['data'] = d['data'][:,1::2]
+                d['data'] = d['data'][:,1::2]*args.scale
             # otherwise create x-axis depending on iteration or time-based                    
             elif d['dataType'] == 'time-based':
                 d['x'] = d['data'][:,0]
-                d['data'] = d['data'][:,1:]
+                d['data'] = d['data'][:,1:]*args.scale
             elif d['dataType'] == 'iteration-based':
                 d['x'] = arange(d['data'].shape[0])
+                d['data'] *= args.scale
             # create legend and lineType keys if not present and fill up to data dimension 
             for key in ('units', 'legend', 'lineType'):
                 # create key
@@ -759,9 +771,33 @@ if __name__ == "__main__":
         fun_refresh = refresh2D
 
     # video or not
-    if(args.video):
+    if args.video == 0 and args.v3d == 0:
+        fun_refresh()
+        fullName += '.pdf'
+        if args.legendLoc == 'out':
+            F.savefig(fullName, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        else:
+            F.savefig(fullName)
+        if not args.nodisplay:
+            show()
+    else:
+        # some kind of video
         t = time.time()
-        frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1.)/args.video)]
+        if args.v3d:
+            # plot 3D
+            fun_refresh()
+            def fun_refresh(azim):
+                ax.azim = azim
+                ax.legend(loc = 'upper right', ncol = args.legendCol, prop=legendSize, numpoints=1, fancybox=True, framealpha=0.9)
+                draw()
+                return lines
+            frame_idx = range(int(args.ae[0]), int(args.ae[0]) + args.v3d*360, 2)
+            args.video = max(args.video, 1)
+        else:
+            frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1.)/args.video)]
+            # add 2 sec on last frame            
+            frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
+            
         ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
         print('Saving video...')
         for wrt in ('avconv', 'ffmpeg'):
@@ -771,12 +807,4 @@ if __name__ == "__main__":
         ani.save(filename= fullName + '.mp4', writer=writer)                
         print('time taken: %f' % (time.time() - t))
         #ani.close()
-    else:
-        fun_refresh()
-        fullName += '.pdf'
-        if args.legendLoc == 'out':
-            F.savefig(fullName, bbox_extra_artists=(lgd,), bbox_inches='tight')
-        else:
-            F.savefig(fullName)
-        if not args.nodisplay:
-            show()
+

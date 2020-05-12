@@ -6,14 +6,14 @@ namespace log2plot
 
 void GenericContainer::writeInfo(const std::string &_label, const std::string &_info)
 {
-  ofs_ << _label << ": " << _info << '\n';
+  yaml_stream << _label << ": " << _info << '\n';
 }
 
 
 std::string GenericContainer::close(const std::vector<double> &steps,
                          const std::vector<double> &steps_timed)
 {
-  if(ofs_.is_open())
+  if(yaml_stream.is_open())
   {
     // add steps if needed
     if(!has_steps)
@@ -23,7 +23,7 @@ std::string GenericContainer::close(const std::vector<double> &steps,
       else if(log_type == TIME)
         setSteps(steps_timed);
     }
-    ofs_.close();
+    yaml_stream.close();
   }
   return filename;
 }
@@ -35,10 +35,10 @@ void GenericContainer::setSteps(const std::vector<double> &steps)
     return;
 
   has_steps = true;
-  ofs_ << "steps" << ": [";
+  yaml_stream << "steps" << ": [";
   for(size_t i = 0; i < steps.size()-1; ++i)
-    ofs_ << steps[i] << ", ";
-  ofs_ << steps.back() << "]\n";
+    yaml_stream << steps[i] << ", ";
+  yaml_stream << steps.back() << "]\n";
 }
 
 }

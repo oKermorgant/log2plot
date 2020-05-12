@@ -13,7 +13,7 @@ template<class T> class ContainerPlotter : public GenericContainer
 {
 public:
   // constructor also takes nodehandle and variable name, used for the published topic
-  ContainerPlotter(T &original, std::string _legend) : actual(&original), legend(decompose(_legend))
+  ContainerPlotter(T &original, std::string _legend) : content(&original), legend(decompose(_legend))
   { }
 
   // write additionnal info
@@ -28,17 +28,17 @@ public:
 
   void init()
   {
-    ofs_ << "data:" << std::endl;
+    yaml_stream << "data:" << std::endl;
 
     // potentially several 2D-plots
     if(log_type == LogType::XY)
     {
-      for(size_t i = 0; i < actual->size()/2; ++i)
+      for(size_t i = 0; i < content->size()/2; ++i)
         axis.addLine("$" + label(i) + "$", format(i));
     }
     else
     {
-      for(size_t i = 0; i < actual->size(); ++i)
+      for(size_t i = 0; i < content->size(); ++i)
         axis.addLine("$" + label(i) + "$", format(i));
     }
   }
@@ -46,17 +46,17 @@ public:
   // log update + refresh plot
   void update(double *t)
   {
-    ofs_ << "    - [";
+    yaml_stream << "    - [";
 
     if(log_type == LogType::XY)
     {
       // write content
-      for(uint i=0;i<actual->size()/2;++i)
+      for(uint i=0;i<content->size()/2;++i)
       {
-        const double x = (*actual)[2*i];
-        const double y = (*actual)[2*i+1];
+        const double x = (*content)[2*i];
+        const double y = (*content)[2*i+1];
         axis.updateLine(i, x, y);
-        ofs_ << x << ", " << y << ((i == actual->size()/2-1) ? "]\n" : ", ");
+        yaml_stream << x << ", " << y << ((i == content->size()/2-1) ? "]\n" : ", ");
       }
     }
     else
@@ -64,18 +64,18 @@ public:
       // write time if needed
       if(log_type == LogType::TIME)
       {
-        ofs_ << *t << ", ";
+        yaml_stream << *t << ", ";
         x_coord = *t;
       }
       else
         x_coord++;
 
       // write content
-      for(uint i=0;i<actual->size();++i)
+      for(uint i=0;i<content->size();++i)
       {
-        const double v = (*actual)[i];
+        const double v = (*content)[i];
         axis.updateLine(i, x_coord, v);
-        ofs_ << v << ((i == actual->size()-1) ? "]\n" : ", ");
+        yaml_stream << v << ((i == content->size()-1) ? "]\n" : ", ");
       }
     }
 
@@ -120,7 +120,7 @@ protected:
     return tokens;
   }
 
-  T* actual;
+  T* content;
   std::vector<std::string> legend, line_type;
   Axis axis;
   double x_coord = 0;

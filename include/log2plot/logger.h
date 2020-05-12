@@ -22,8 +22,8 @@ std::string legendFullyConnected(const uint n);
 std::string legendFullyDisconnected(const uint n);
 
 // Builds YAML-proof single-lined matrix
-template<class T>
-static std::string toYAMLVector(const std::vector<std::vector<T> > &M)
+template<class Coord>
+static std::string toYAMLVector(const std::vector<Coord> &M)
 {
   std::stringstream ss;
   unsigned int i,j;
@@ -190,13 +190,23 @@ public:
   void showMovingBox(const double &x = 10, const double &y = 5, const double &z = 3, const std::vector<double> &desired_pose = std::vector<double>());
   // 3D plot: custom object with a (nx3) matrix
   void showMovingObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::vector<double> &desired_pose = std::vector<double>());
-
-  // 3D plot: fixed object (related to object frame)
-  void showFixedObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::string &color = "");
   // 3D plot: fixed 3D-box
   void showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color = "");
   // 3D plot: fixed 2D-rectangle on Z=0
   void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "");
+  // 3D plot: any fixed object from a list of 3D coordinates (related to object frame)
+  template <class Point3D>
+  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "")
+  {
+    std::stringstream ss;
+    ss << "fixedObject" << ++nb_fixed_objects;
+    last->writeInfo(ss.str(), "");
+    last->writeInfo("    nodes", toYAMLVector(M));
+    last->writeInfo("    graph", graph);
+    if(color!="")
+      last->writeInfo("    color", color);
+  }
+
   // **** End metadata functions ****
 
 

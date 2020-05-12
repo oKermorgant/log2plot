@@ -9,26 +9,26 @@ namespace log2plot
 template<class T> class Container : public GenericContainer
 {
 public:
-    Container(T &original) : actual(&original) {}
+    Container(T &original) : content(&original) {}
 
-    void init() {ofs_ << "data:" << std::endl;}
+    void init() {yaml_stream << "data:" << std::endl;}
 
     void update(double *t)
     {
-        ofs_ << "    - [";
+        yaml_stream << "    - [";
         // write time if needed
         if(log_type == LogType::TIME)
-            ofs_ << *t << ", ";
+            yaml_stream << *t << ", ";
 
         // write content
         unsigned int i;
-        for(i=0;i<actual->size()-1;++i)
-            ofs_ << (*actual)[i] << ", ";
-        ofs_ << (*actual)[i] << "]\n";
+        for(i=0;i<content->size()-1;++i)
+            yaml_stream << (*content)[i] << ", ";
+        yaml_stream << (*content)[i] << "]\n";
     }
 
 protected:
-    T* actual;
+    T* content;
 };
 
 }

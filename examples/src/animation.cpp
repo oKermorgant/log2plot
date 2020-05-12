@@ -23,7 +23,7 @@ int main()
     std::vector<int> v_int(4,0);
     // saved with iteration X-axis with implicit legend
     logger.save(v_int, "std_i", "i_", "Value of I");
-    // also set custome line types in matplotlib style
+    // also set custom line types in matplotlib style
     logger.setLineType("[k-, r., b--, gD]");
 
     // plot some doubles as X-Y

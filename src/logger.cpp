@@ -18,6 +18,7 @@ template <typename... Args> inline void UNUSED(Args&&...) {}
 // Generic variable
 void Logger::writeInitialInfo(const LogType &log_type, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file)
 {
+  nb_fixed_objects = 0;
   last = logged_vars.back().get();
 
   // corresponding file name
@@ -71,7 +72,6 @@ std::string Logger::buildLegend(const std::string legend, const unsigned int len
 
 // **** Functions to specify metadata for the last registered variable ****
 
-// 3D plot: show moving camera
 void Logger::showMovingCamera(const std::vector<double> &desired_pose, const double &x, const double &y, const double &z)
 {
   // init 5x3 matrix
@@ -83,7 +83,6 @@ void Logger::showMovingCamera(const std::vector<double> &desired_pose, const dou
   showMovingObject(M, "[[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1]]", desired_pose);
 }
 
-// 3D plot: show moving box
 void Logger::showMovingBox(const double &x, const double &y, const double &z, const std::vector<double> &desired_pose)
 {
   UNUSED(desired_pose);
@@ -119,19 +118,6 @@ void Logger::showFixedRectangle(const double &xm, const double &ym, const double
   M[3][0] = xm;   M[3][1] = yM;
   showFixedObject(M, "[[0,1],[1,2],[2,3],[3,0]]", color);
 }
-
-// fixed object (2D: graph coordinates / 3D: related to object frame)
-void Logger::showFixedObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::string &color)
-{
-  std::stringstream ss;
-  ss << "fixedObject" << ++nb_fixed_objects;
-  last->writeInfo(ss.str(), "");
-  last->writeInfo("    nodes", toYAMLVector(M));
-  last->writeInfo("    graph", graph);
-  if(color!="")
-    last->writeInfo("    color", color);
-}
-
 
 
 // 3D plot: build 3D box nodes
