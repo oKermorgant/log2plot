@@ -1,5 +1,5 @@
-#ifndef LOG2PLOTLOGGER_H_
-#define LOG2PLOTLOGGER_H_
+#ifndef LOG2PLOT_LOGGER_H_
+#define LOG2PLOT_LOGGER_H_
 
 #include <iostream>
 #include <string>
@@ -205,6 +205,10 @@ public:
     last->writeInfo("    graph", graph);
     if(color!="")
       last->writeInfo("    color", color);
+  }
+  void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
+  {
+    showFixedObject<std::vector<double>>(M, graph, color);
   }
 
   // **** End metadata functions ****

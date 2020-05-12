@@ -1,5 +1,5 @@
-#ifndef LOG_PLOTTER_H
-#define LOG_PLOTTER_H
+#ifndef LOG2PLOT_LOG_PLOTTER_H
+#define LOG2PLOT_LOG_PLOTTER_H
 
 #include <log2plot/logger.h>
 #include <log2plot/container_plotter.h>

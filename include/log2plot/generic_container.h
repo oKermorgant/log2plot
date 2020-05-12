@@ -1,5 +1,5 @@
-#ifndef GENERIC_CONTAINER_H
-#define GENERIC_CONTAINER_H
+#ifndef LOG2PLOT_GENERIC_CONTAINER_H
+#define LOG2PLOT_GENERIC_CONTAINER_H
 
 #include <fstream>
 #include <vector>

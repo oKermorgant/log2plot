@@ -1,8 +1,8 @@
-#ifndef CONFIG_MANAGER_DETAIL_H
-#define CONFIG_MANAGER_DETAIL_H
+#ifndef LOG2PLOT_CONFIG_MANAGER_DETAIL_H
+#define LOG2PLOT_CONFIG_MANAGER_DETAIL_H
 
 #include <log2plot/defines.h>
-#ifdef WITH_VISP
+#ifdef LOG2PLOT_WITH_VISP
 #include <visp/vpHomogeneousMatrix.h>
 #endif
 
@@ -10,7 +10,7 @@ namespace log2plot
 {
 namespace detail {
 
-#ifdef WITH_VISP
+#ifdef LOG2PLOT_WITH_VISP
 
 // have to use SFINAE to prevent all derived of vpArray from using default method
 // just assume a vpArray2D has .loadYAML
@@ -23,7 +23,7 @@ struct vpArrayDerived
   static constexpr bool value = test<T>(int());
 };
 
-#endif // WITH_VISP
+#endif // LOG2PLOT_WITH_VISP
 
 } // detail
 } // log2plot

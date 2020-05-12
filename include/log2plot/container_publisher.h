@@ -1,5 +1,5 @@
-#ifndef LOG2PLOTCONTAINERPUBLISHER_H
-#define LOG2PLOTCONTAINERPUBLISHER_H
+#ifndef LOG2PLOT_CONTAINERPUBLISHER_H
+#define LOG2PLOT_CONTAINERPUBLISHER_H
 
 #include <std_msgs/Float32MultiArray.h>
 #include <ros/publisher.h>

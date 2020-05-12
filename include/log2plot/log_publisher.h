@@ -1,5 +1,5 @@
-#ifndef LOG2PLOTLOGPUBLISHER_H_
-#define LOG2PLOTLOGPUBLISHER_H_
+#ifndef LOG2PLOT_LOGPUBLISHER_H_
+#define LOG2PLOT_LOGPUBLISHER_H_
 
 #include <log2plot/logger.h>
 #include <ros/ros.h>

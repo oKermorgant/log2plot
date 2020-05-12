@@ -1,1 +1,1 @@
-#define WITH_VISP
+#define LOG2PLOT_WITH_VISP

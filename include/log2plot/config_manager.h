@@ -1,11 +1,12 @@
-#ifndef CONFIGMANAGER_H
-#define CONFIGMANAGER_H
+#ifndef LOG2PLOT_CONFIGMANAGER_H
+#define LOG2PLOT_CONFIGMANAGER_H
 
 #include <yaml-cpp/yaml.h>
 #include <yaml-cpp/parser.h>
 #include <fstream>
 #include <iostream>
 #include <log2plot/config_manager_detail.h>
+#include <log2plot/dir_tools.h>
 
 namespace log2plot
 {
@@ -36,7 +37,12 @@ public:
   }
 
   // deal with output file names
-  void setDirName(std::string s) {base_dir = s + "/";}
+  void setDirName(std::string path)
+  {
+    if(!dirTools::exists(path))
+      dirTools::makePath(path);
+    base_dir = path + dirTools::sep;
+  }
   template <class Numeric>
   void addNameElement(std::string pref, Numeric val)
   {
@@ -119,7 +125,7 @@ public:
   // main reading function from vector of tags
   // prevent access from ViSP class if needed
   template <typename T>
-#ifdef WITH_VISP
+#ifdef LOG2PLOT_WITH_VISP
   typename std::enable_if<!detail::vpArrayDerived<T>::value, void>::type
 #else
   void
@@ -164,7 +170,7 @@ public:
     return read<T>(std::vector<std::string>(tags));
   }
 
-#ifdef WITH_VISP
+#ifdef LOG2PLOT_WITH_VISP
   // can also read vpArray with passed dimensions
   void read(std::vector<std::string> tags, vpArray2D<double> &M,
             uint rows = 0, uint cols = 0) const;
@@ -194,4 +200,4 @@ private:
 
 }
 
-#endif // CONFIGMANAGER_H
+#endif // LOG2PLOT_CONFIGMANAGER_H
