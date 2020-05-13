@@ -7,6 +7,7 @@ from pylab import *
 from matplotlib import rc, animation, rcParams
 import mpl_toolkits.mplot3d 
 from matplotlib.font_manager import FontProperties
+from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 import argparse
 import yaml
 import time
@@ -76,6 +77,7 @@ argGal.add_argument('--index', type=int, help='Only plots from 0 to given x-inde
 argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve indices', default=())
 argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
 argGal.add_argument('--steps', type=float, nargs='+', help='Will plot vertical lines at given steps', default=())
+argGal.add_argument('--inset', type=float, nargs=8, help='Add inset in 2D plot', default=(0,0,0,0,0,0,0,0))
 
 
 # Value-related
@@ -313,7 +315,67 @@ def init2D():
         else:
             for ti in ax.get_yticklabels():
                 ti.set_fontsize(args.fontSize+args.fontAxes)
-
+                
+    # add inset if needed - only for a single dataStruct
+    if len(all_ax) == 1 and args.inset.count(0) != 8:
+        
+        xm, xM, ym, yM = ax.axis()
+        # inset position to normalized coordinates
+        xs1, ys1, xs2, ys2 = args.inset[:4]
+        x1, y1, x2, y2 = args.inset[4:]
+        y2 = y1 + (x2-x1)*(ys2-ys1)/(xs2-xs1)
+        
+        xn1 = (x1-xm)/(xM-xm)
+        yn1 = (y1-ym)/(yM-ym)
+        xn2 = (x2-xm)/(xM-xm) - xn1
+        yn2 = (y2-ym)/(yM-ym) - yn1
+    
+        ax_in = axes([0,0,.1,.1])
+        ip = InsetPosition(ax, [xn1, yn1, xn2, yn2])
+        ax_in.set_axes_locator(ip)
+        
+        # find best corners to link
+        pos = ''
+        if ys1 > y2:
+            pos = 'top'
+        elif ys2 < y1:
+            pos = 'bottom'
+        if xs1 > x2:
+            pos += 'right'
+        elif xs2 < x1:
+            pos += 'left'
+            
+        locs = [1,2]
+        if pos == 'bottom':
+            locs = [1,2]
+        elif pos == 'bottomleft':
+            locs = [2,4]
+        elif pos == 'bottomright':
+            locs = [1,3]
+        elif pos == 'top':
+            locs = [3,4]
+        elif pos == 'topleft':
+            locs = [1,3]
+        elif pos == 'topright':
+            locs = [2,4]
+        
+        mark_inset(ax, ax_in, loc1=locs[0], loc2=locs[1], fc="none", ec='0.5')
+        ax_in.axis([xs1,xs2,ys1,ys2])
+        
+        ax_in.set_xticks([])
+        ax_in.set_yticks([])
+        
+        dataSt = dataList[0]        
+        if 'fixedObjects' in dataSt.keys:
+            for obj in dataSt.fixedObjects:
+                for k in obj.graph:
+                    plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
+        for j in xrange(dataSt.data.shape[1]):
+            if dataSt.dataType == 'XY':
+                plot2D(dataSt.x[:,j], dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+            else:
+                plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+        
     # resize fig
     #F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
     F.tight_layout()
