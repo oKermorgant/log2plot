@@ -4,8 +4,8 @@ project(log2plot)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
 
-option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
-option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" ON)
+option(BUILD_EXAMPLES "BUILD_EXAMPLES" OFF)
+option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" OFF)
 option(USE_CATKIN "USE_CATKIN" ON)
 option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
 option(BUILD_PARSER "BUILD_PARSER" ON)
@@ -17,6 +17,7 @@ set(LOG2PLOT_HEADERS
   include/log2plot/logger.h
   include/log2plot/defines.h)
 set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
+
 set(INCLUDE_DEPENDS include)
 set(LIB_DEPENDS "")
 
@@ -40,7 +41,7 @@ if(USE_MATPLOTLIBCPP)
     ${MATPLOTLIBCPP})
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/plot.cpp)
 
-  find_package(PythonLibs 2.7)
+  find_package(PythonLibs 3)
   get_filename_component(MATPLOTLIBCPP_INCLUDE ${MATPLOTLIBCPP} DIRECTORY)
   set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS} ${MATPLOTLIBCPP_INCLUDE})

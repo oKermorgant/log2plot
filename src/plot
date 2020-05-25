@@ -279,7 +279,7 @@ def init2D():
         
         # add lines
         sublines = []
-        for j in xrange(dataSt.data.shape[1]):
+        for j in range(dataSt.data.shape[1]):
             if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
                 plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
@@ -370,7 +370,7 @@ def init2D():
             for obj in dataSt.fixedObjects:
                 for k in obj.graph:
                     plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
-        for j in xrange(dataSt.data.shape[1]):
+        for j in range(dataSt.data.shape[1]):
             if dataSt.dataType == 'XY':
                 plot2D(dataSt.x[:,j], dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
             else:
@@ -389,7 +389,7 @@ def refresh2D(ind = -1):
         ind = dataList[0].rows
     iline = 0    
     for i,dataSt in enumerate(dataList):
-        for j in xrange(dataSt.data.shape[1]):
+        for j in range(dataSt.data.shape[1]):
             if 'k-' not in dataSt.lineType[j]: # is a line to be refreshed
                 if dataSt.dataType == 'XY':
                     lines[iline].set_data(dataSt.x[:ind,j], dataSt.data[:ind,j])
@@ -482,12 +482,12 @@ def init3D():
             lim3D[2*idx] = min(lim3D[2*idx], desPose[idx])
             lim3D[2*idx+1] = max(lim3D[2*idx+1], desPose[idx])                
     
-    dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in xrange(3)]) # max range
+    dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in range(3)]) # max range
     
     # build limits and scaling matrix I    
-    for i in xrange(3):
+    for i in range(3):
         x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
-        for j in xrange(2):
+        for j in range(2):
             lim3D[2*i+j] = x0 - (-1)**j * dX
         I[i,i] = 0.02*(lim3D[2*i+1] - lim3D[2*i])
     
@@ -567,16 +567,16 @@ def readFileList(filenames, n=0):
     '''
     global args
     if n > 5:
-        print 'readFileList too recursive, check files'
+        print('readFileList too recursive, check files')
         sys.exit(1)
     dataList = []
     k = 0
     for file_idx,filename in enumerate(filenames):
         with open(filename) as f:
             try:
-                d = yaml.load(f)
+                d = yaml.safe_load(f)
             except:
-                print 'Could not read', filename
+                print('Could not read ' + filename)
                 sys.exit(0)
            
         if 'args' in d:    # get args used when creating file
@@ -643,12 +643,12 @@ def readFileList(filenames, n=0):
             if d['dataType'] == '3D pose':
                 defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r']
                 k+=1
-                for i in xrange(4):
+                for i in range(4):
                     if d['lineType'][i] == '':
                         d['lineType'][i] = defLine[i]
             else:
                 # set default values for 2D plot lineType
-                for i in xrange(d['data'].shape[1]):
+                for i in range(d['data'].shape[1]):
                     if d['lineType'][i] == '':
                         d['lineType'][i] = plot_colors[k%len(plot_colors)] + '-'+ plot_markers[k%len(plot_markers)]
                         k+=1
@@ -658,7 +658,7 @@ def readFileList(filenames, n=0):
                     d['legend'] = [''] * d['data'].shape[1]
                 # set non-empty legends to Latex-style (2D only)
                 if d['dataType'] != '3D pose':
-                    for i in xrange(len(d['legend'])):
+                    for i in range(len(d['legend'])):
                         if d['legend'][i] != '':
                             d['legend'][i] = toTex(d['legend'][i])
                             if len(d['units']) > i:
@@ -728,18 +728,18 @@ if __name__ == "__main__":
             for ext in ext_try:
                 if os.path.lexists(f + ext):
                     found = True
-                    print 'Assuming', f, 'is for', f + ext
+                    print('Assuming {} is for {}'.format(f, f + ext))
                     args.files[i] = f + ext
                     break
             if not found:
-                print f, 'could not be found'
+                print(f + ' could not be found')
                 sys.exit(0)
 
     #  if directory was given, then process all inner .txt files with the same arguments (= replot all files)
     if os.path.isdir(args.files[0]):
         for filename in os.listdir(args.files[0]):
             if filename[-4:] == '.txt':
-                print 'Reading', filename
+                print('Reading ' + filename)
                 os.system('python ' + sys.argv[0] + ' ' + args.files[0] + '/' + filename + ' --nodisplay ' + ' '.join(sys.argv[2:]))
         sys.exit(0)
 
@@ -762,7 +762,7 @@ if __name__ == "__main__":
 
     # create metafile if several files, same extension as 1st file
     if len(args.files) > 1:
-        print 'Writing metafile', fullName + '.' + args.files[0].split('.')[-1]
+        print('Writing metafile ' + fullName + '.' + args.files[0].split('.')[-1])
         with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
             yaml.dump({'dataType': 'metafile', 'files': args.files}, f, default_flow_style=False)
             add_args = ' '.join([arg for arg in sys.argv[len(args.files)+1:] if arg != '--nodisplay'])
@@ -774,19 +774,19 @@ if __name__ == "__main__":
     if dataList[0].dataType == '3D pose':
         args.group = True
         if len(args.legend) == len(dataList):
-            for i in xrange(len(dataList)):
+            for i in range(len(dataList)):
                 dataList[i].legend[0] = args.legend[i]
     elif args.group:
         # if 2D and group, then concatenate 2D data into a single structure
         dataMain = dataList[0]
         for dataSt in dataList[1:]:
             if dataSt.dataType != dataMain.dataType:
-                print 'Warning, trying to group', dataMain.dataType, 'and', dataSt.dataType
+                print('Warning, trying to group {} and {}'.format(dataMain.dataType, dataSt.dataType))
             if dataSt.ylabel != dataMain.ylabel:
-                print 'Warning, trying to group with different ylabels:', dataMain.ylabel, 'vs', dataSt.ylabel
+                print('Warning, trying to group with different ylabels: {} vs {}'.format(dataMain.ylabel, dataSt.ylabel))
                 dataMain.ylabel = ''
             if shape(dataSt.data)[0] != shape(dataMain.data)[0]:
-                print 'Trying to group data with different lengths:', shape(dataMain.data)[0], 'vs', shape(dataSt.data)[0], '- aborting'
+                print('Trying to group data with different lengths: {} vs {} - aborting'.format(shape(dataMain.data)[0], shape(dataSt.data)[0]))
                 sys.exit(0)
                 
             # ok, concatenate data, legends, lineTypes and units
@@ -797,7 +797,7 @@ if __name__ == "__main__":
     elif args.diff:
         # compute the difference
         if len(dataList) != 2:
-            print 'Error, 2 files needed to plot diff'
+            print('Error, 2 files needed to plot diff')
             sys.exit(0)
         if dataList[0].data.shape == dataList[1].data.shape:
             dataList[0].data -= dataList[1].data
@@ -805,12 +805,12 @@ if __name__ == "__main__":
     elif args.diffpc:
         # compute the difference in percent
         if len(dataList) != 2:
-            print 'Error, 2 files needed to plot diffpc'
+            print('Error, 2 files needed to plot diffpc')
             sys.exit(0)
         if dataList[0].data.shape == dataList[1].data.shape:
             dataList[1].data = dataList[0].data - dataList[1].data
-            for i in xrange(dataList[0].data.shape[0]):
-                for j in xrange(dataList[0].data.shape[1]):
+            for i in range(dataList[0].data.shape[0]):
+                for j in range(dataList[0].data.shape[1]):
                     if dataList[0].data[i,j] != 0:
                         dataList[0].data[i,j] = dataList[1].data[i,j]/dataList[0].data[i,j]
             dataList = [dataList[0]]
@@ -818,7 +818,7 @@ if __name__ == "__main__":
     # if compute norm, reduce the vector
     if args.norm != '':
         for dataSt in dataList:
-            for i in xrange(dataSt.data.shape[0]):
+            for i in range(dataSt.data.shape[0]):
                 dataSt.data[i][0] = norm(dataSt.data[i])
             dataSt.data = dataSt.data[:,[0]]
             dataSt.legend = [args.norm]
