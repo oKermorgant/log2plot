@@ -4,8 +4,8 @@ project(log2plot)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
 
-option(BUILD_EXAMPLES "BUILD_EXAMPLES" OFF)
-option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" OFF)
+option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
+option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" ON)
 option(USE_CATKIN "USE_CATKIN" ON)
 option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
 option(BUILD_PARSER "BUILD_PARSER" ON)
@@ -75,7 +75,7 @@ find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
-  find_package(VISP)
+  find_package(VISP COMPONENTS core)
   if(VISP_FOUND)
     file(WRITE include/log2plot/defines.h "#define LOG2PLOT_WITH_VISP")
       set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
@@ -135,7 +135,7 @@ if(BUILD_EXAMPLES)
     endif()
 
     # build ViSP example
-    find_package(VISP QUIET)
+    find_package(VISP QUIET COMPONENTS core)
     if(VISP_FOUND)
         add_executable(visp_containers examples/src/visp_containers.cpp)
         target_include_directories(visp_containers
