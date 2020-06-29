@@ -283,7 +283,7 @@ def init2D():
             if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
                 plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
-                sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+                sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=int(dataSt.rows//10))
             if j == args.twin:
                 # change axe
                 ax = ax.twinx()
@@ -508,7 +508,10 @@ def init3D():
             line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[0], dataSt.lineType[2])
             # desired
             if 'desiredPose' in dataSt.movingObject.keys:
-                line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.movingObject.desiredPose, dataSt.lineType[3] + '--')
+                desiredDisplay = dataSt.lineType[3]
+                if not desiredDisplay.endswith('-'):
+                    desiredDisplay += '--'
+                line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.movingObject.desiredPose, desiredDisplay)
             # if video, prepare lines for moving
             if args.video:
                 lines += line3Dobject(ax, dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[1], dataSt.lineType[2])
