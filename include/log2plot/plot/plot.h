@@ -1,7 +1,7 @@
 #ifndef LOG2PLOT_H
 #define LOG2PLOT_H
 
-#include <matplotlibcpp.h>
+#include <log2plot/matplotlibcpp.h>
 #include <memory>
 
 namespace log2plot

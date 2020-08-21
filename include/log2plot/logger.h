@@ -8,6 +8,7 @@
 #include <log2plot/container.h>
 #include <cmath>
 #include <sstream>
+#include <assert.h>
 
 namespace log2plot
 {
@@ -75,7 +76,7 @@ protected:
   uint nb_fixed_objects = 0;
 
   // write initial information in latest saved variable
-  void writeInitialInfo(const LogType &log_type, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file);
+  void writeInitialInfo(const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file);
 
   // build explicit legend from implicit
   static std::string buildLegend(const std::string legend, const unsigned int len);
@@ -117,9 +118,9 @@ public:
   inline void save(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
+    logged_vars.push_back(std::make_unique<Container<T>>(LogType::ITERATION, v));
     // and write initial info
-    writeInitialInfo(log2plot::ITERATION, name, buildLegend(legend, v.size()), "iterations", ylabel, keep_file);
+    writeInitialInfo(name, buildLegend(legend, v.size()), "iterations", ylabel, keep_file);
   }
 
   // Save time-based vector
@@ -127,9 +128,9 @@ public:
   inline void saveTimed(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
+    logged_vars.push_back(std::make_unique<Container<T>>(LogType::TIME, v));
     // and write initial info
-    writeInitialInfo(log2plot::TIME, name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
+    writeInitialInfo(name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
   }
 
   // Save XY vector
@@ -137,19 +138,20 @@ public:
   inline void saveXY(T &v, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
+    logged_vars.push_back(std::make_unique<Container<T>>(LogType::XY, v));
     // and write initial info
-    writeInitialInfo(log2plot::XY, name, buildLegend(legend, v.size()/2), xlabel, ylabel, keep_file);
+    writeInitialInfo(name, buildLegend(legend, v.size()/2), xlabel, ylabel, keep_file);
   }
 
   // Save 3D pose or position
   template<class T>
   inline void save3Dpose(T &v, const std::string &name, const std::string &legend, bool invert = false, bool keep_file = true)
   {
+    assert(v.size() == 3 || v.size() == 6);
     // add this to logged variables
-    logged_vars.push_back(std::unique_ptr<Container<T> >(new Container<T>(v)));
+    logged_vars.push_back(std::make_unique<Container<T>>(LogType::POSE, v));
     // and write initial info
-    writeInitialInfo(log2plot::POSE, name, "["+legend+"]", "", "", keep_file);
+    writeInitialInfo(name, "["+legend+"]", "", "", keep_file);
     if(invert)
       last->writeInfo("invertPose", "True");
   }
@@ -185,11 +187,11 @@ public:
   }
 
   // 3D plot: show camera
-  void showMovingCamera(const std::vector<double> &desired_pose = std::vector<double>(),const double &x = 1.5, const double &y = 1, const double &z = 4);
+  void showMovingCamera(const std::vector<double> &desired_pose = {},const double &x = 1.5, const double &y = 1, const double &z = 4);
   // 3D plot: show box
-  void showMovingBox(const double &x = 10, const double &y = 5, const double &z = 3, const std::vector<double> &desired_pose = std::vector<double>());
+  void showMovingBox(const double &x = 10, const double &y = 5, const double &z = 3, const std::vector<double> &desired_pose = {});
   // 3D plot: custom object with a (nx3) matrix
-  void showMovingObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::vector<double> &desired_pose = std::vector<double>());
+  virtual void showMovingObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::vector<double> &desired_pose = {});
   // 3D plot: fixed 3D-box
   void showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color = "");
   // 3D plot: fixed 2D-rectangle on Z=0
@@ -206,7 +208,7 @@ public:
     if(color!="")
       last->writeInfo("    color", color);
   }
-  void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
+  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
   {
     showFixedObject<std::vector<double>>(M, graph, color);
   }
@@ -230,7 +232,7 @@ public:
   }
 
   // Updates all saved variables
-  void update(const bool &flush = false);
+  virtual void update(const bool &flush = false);
 
   // Low-level static functions
   // Build 3D box nodes depending on dimensions
@@ -238,7 +240,7 @@ public:
 
   // Close all files and call the Python interpreter on the given script path
   void plot(const std::string &script_path, bool verbose = false, bool display = true);
-  void plot(bool verbose = false, bool display = true);
+  virtual void plot(bool verbose = false, bool display = true);
 
   // Close all files and call interpreter without actual plotting
   void generateFigures(const std::string &script_path, bool verbose = false)

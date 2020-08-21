@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 
+'''
+An experimental script to retrieve plotted data from a PDF plot
+'''
+
 import minecart
 import pylab as pl
 import yaml

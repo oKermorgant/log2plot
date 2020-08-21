@@ -8,7 +8,7 @@
 
 namespace log2plot
 {
-enum LogType
+enum class LogType
 {
     ITERATION,
     TIME,
@@ -19,13 +19,12 @@ enum LogType
 class GenericContainer
 {
 public:
-    GenericContainer() {}
+    GenericContainer(LogType _type) : log_type(_type) {}
 
-    void setType(LogType _type) {log_type = _type;}
     LogType type() const {return log_type;}
 
-    // opens file stream
-    inline void setFile(std::string s) {filename = s; yaml_stream.open(s, std::ios_base::trunc);}
+    // opens file stream and write plot type
+    void setFile(std::string s);
     // begin actual data and flush header to file
     virtual void init() = 0;
     // append the stream with current data from actual container
@@ -44,7 +43,7 @@ public:
 
 protected:
     std::ofstream yaml_stream;
-    LogType log_type;
+    const LogType log_type;
     std::string filename;
     bool has_steps = false;
 };

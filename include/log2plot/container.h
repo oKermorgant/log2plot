@@ -9,7 +9,7 @@ namespace log2plot
 template<class T> class Container : public GenericContainer
 {
 public:
-    Container(T &original) : content(&original) {}
+    Container(LogType _type, T &original) : GenericContainer(_type), content(&original) {}
 
     void init() {yaml_stream << "data:" << std::endl;}
 

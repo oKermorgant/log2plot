@@ -1,7 +1,9 @@
 #include <sstream>
 #include <fstream>
-#include <log2plot/logger.h>
 #include <algorithm>
+#include <log2plot/logger.h>
+#include <log2plot/dir_tools.h>
+
 
 
 namespace log2plot
@@ -16,7 +18,7 @@ using std::endl;
 template <typename... Args> inline void UNUSED(Args&&...) {}
 
 // Generic variable
-void Logger::writeInitialInfo(const LogType &log_type, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file)
+void Logger::writeInitialInfo(const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file)
 {
   nb_fixed_objects = 0;
   last = logged_vars.back().get();
@@ -31,23 +33,9 @@ void Logger::writeInitialInfo(const LogType &log_type, const std::string &name, 
     last->setFile("/tmp/log2plot-" + name + "." + string(ctpl));
   }
 
-  // set log type in container + in file
-  last->setType(log_type);
-  switch(log_type)
-  {
-  case(LogType::XY):
-    last->writeInfo("dataType", "XY");
-    break;
-  case(LogType::ITERATION):
-    last->writeInfo("dataType", "iteration-based");
-    break;
-  case(LogType::TIME):
-    last->writeInfo("dataType", "time-based");
+  // add time unit if needed
+  if(last->type() == LogType::TIME)
     last->writeInfo("time unit", time_unit);
-    break;
-  default:
-    last->writeInfo("dataType", "3D pose");
-  }
 
   // additionnal info
   if(legend != "")
@@ -94,6 +82,7 @@ void Logger::showMovingBox(const double &x, const double &y, const double &z, co
 // 3D plot: custom object with a (nx3) matrix
 void Logger::showMovingObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::vector<double> &desired_pose)
 {
+  assert(desired_pose.size() %3 == 0);
   last->writeInfo("movingObject", "");
   last->writeInfo("    nodes", toYAMLVector(M));
   last->writeInfo("    graph", graph);
@@ -189,7 +178,11 @@ void Logger::plotFiles(const std::string &script_path, const std::string &files,
 
 void Logger::plot(bool verbose, bool display)
 {
-  plot(LOG2PLOT_SCRIPT_PATH, verbose, display);
+  // find source vs install paths of script
+  if(dirTools::fileExists(LOG2PLOT_SCRIPT_SOURCE))
+    plot(LOG2PLOT_SCRIPT_SOURCE, verbose, display);
+  else
+    plot(LOG2PLOT_SCRIPT_INSTALL, verbose, display);
 }
 
 // Plot a file

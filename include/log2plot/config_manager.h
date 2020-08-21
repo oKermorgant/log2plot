@@ -126,7 +126,7 @@ public:
   // prevent access from ViSP class if needed
   template <typename T>
 #ifdef LOG2PLOT_WITH_VISP
-  typename std::enable_if<!detail::vpArrayDerived<T>::value, void>::type
+  typename std::enable_if_t<!detail::vpArrayDerived<T>::value, void>
 #else
   void
 #endif

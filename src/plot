@@ -214,7 +214,18 @@ legendSize = FontProperties(size=args.fontSize+args.fontLegend)
 class dictToNamespace(object):
   def __init__(self, adict):
     self.__dict__.update(adict)
+    
+def xval(dataSt, idx, max_ind = -1):
+    if dataSt.dataType == 'XY':
+        val = dataSt.x[:,idx]
+    else:
+        val = dataSt.x[:,0]
+    if max_ind == -1:
+        return val
+    return val[:max_ind]
 
+def full_line(dataSt, idx):
+    return 'k-' in dataSt.lineType[idx] and dataSt.legend[idx] == ''
 
 
 # -- 2D plots ------------------------
@@ -280,8 +291,8 @@ def init2D():
         # add lines
         sublines = []
         for j in range(dataSt.data.shape[1]):
-            if 'k-' in dataSt.lineType[j]: # black lines are always plotted entirely (usually axes or bounds)
-                plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
+            if full_line(dataSt, j): # black lines without legend are always plotted entirely (usually axes or bounds)
+                plot2D(xval(dataSt,j), dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
                 sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=int(dataSt.rows//10))
             if j == args.twin:
@@ -390,7 +401,7 @@ def refresh2D(ind = -1):
     iline = 0    
     for i,dataSt in enumerate(dataList):
         for j in range(dataSt.data.shape[1]):
-            if 'k-' not in dataSt.lineType[j]: # is a line to be refreshed
+            if not full_line(dataSt, j): # is a line to be refreshed
                 if dataSt.dataType == 'XY':
                     lines[iline].set_data(dataSt.x[:ind,j], dataSt.data[:ind,j])
                 else:
@@ -480,7 +491,7 @@ def init3D():
         x,y,z = desPose
         for idx in range(3):
             lim3D[2*idx] = min(lim3D[2*idx], desPose[idx])
-            lim3D[2*idx+1] = max(lim3D[2*idx+1], desPose[idx])                
+            lim3D[2*idx+1] = max(lim3D[2*idx+1], desPose[idx])               
     
     dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in range(3)]) # max range
     

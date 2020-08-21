@@ -1,4 +1,5 @@
 #include <log2plot/config_manager.h>
+#include <math.h>
 
 namespace log2plot
 {

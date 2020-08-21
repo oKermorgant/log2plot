@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   auto bs = config.read<bool>("true");
   std::cout << "bs = " << bs << std::endl;
 
-#ifdef WITH_VISP
+#ifdef LOG2PLOT_WITH_VISP
   // 4x4 matrix defined by translation + theta-u
   auto cMo = config.read<vpHomogeneousMatrix>({"visp", "cMo"});
   std::cout << "visp:cMo = \n" << cMo << "\n\n";
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 #else
   auto R = config.read<std::vector<std::vector<double>>>({"visp","R"});
 #endif
-  const bool pure_Z_rotation = fabs(R[2][2] - 1) < 1e-5;
+  const bool pure_Z_rotation = std::abs(R[2][2] - 1) < 1e-5;
 
   config.setDirName(parser_path);
   config.addNameElement(config.read<std::string>("exp"));

@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(log2plot)
 
-set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
 
 option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
-option(USE_MATPLOTLIBCPP "USE_MATPLOTLIBCPP" ON)
-option(USE_CATKIN "USE_CATKIN" ON)
-option(CATKIN_ENABLE_TESTING "CATKIN_ENABLE_TESTING" OFF)
+option(ENABLE_DYNAMIC_PLOT "ENABLE_DYNAMIC_PLOT" ON)
 option(BUILD_PARSER "BUILD_PARSER" ON)
 
 # main files
@@ -15,67 +12,45 @@ set(LOG2PLOT_HEADERS
   include/log2plot/generic_container.h
   include/log2plot/container.h
   include/log2plot/logger.h
-  include/log2plot/defines.h)
+  include/log2plot/defines.h
+)
 set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
 
 set(INCLUDE_DEPENDS include)
 set(LIB_DEPENDS "")
 
-# check MATPLOTLIBCPP
-if(USE_MATPLOTLIBCPP)
-    find_file(MATPLOTLIBCPP matplotlibcpp.h
-                HINTS matplotlib-cpp)
-    if(MATPLOTLIBCPP)
-        message("-- Found Matplotlib-cpp: ${MATPLOTLIBCPP}")
+# check dynamic plots
+if(ENABLE_DYNAMIC_PLOT)
+    find_package(PythonLibs 3)
+    if(PythonLibs_FOUND)
+      set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS}
+        include/log2plot/log_plotter.h
+        include/log2plot/plot/container_plotter.h
+        include/log2plot/plot/container_plotter2d.h
+        include/log2plot/plot/container_plotter3d.h
+        include/log2plot/plot/figure_utils.h
+        include/log2plot/plot/figure2d.h
+        include/log2plot/plot/figure3d.h)
+      set(LOG2PLOT_SRC ${LOG2PLOT_SRC}
+        src/figure_utils.cpp
+        src/figure2d.cpp
+        src/figure3d.cpp
+        src/container_plotter.cpp)
+
+      set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
+      set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS})
     else()
-        message("-- Could not find Matplotlib-cpp")
-        set(USE_MATPLOTLIBCPP OFF)
+      set(ENABLE_DYNAMIC_PLOT OFF)
     endif()
 endif()
 
-if(USE_MATPLOTLIBCPP)
-  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS}
-    include/log2plot/container_plotter.h
-    include/log2plot/log_plotter.h
-    include/log2plot/plot.h
-    ${MATPLOTLIBCPP})
-  set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/plot.cpp)
-
-  find_package(PythonLibs 3)
-  get_filename_component(MATPLOTLIBCPP_INCLUDE ${MATPLOTLIBCPP} DIRECTORY)
-  set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
-  set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS} ${MATPLOTLIBCPP_INCLUDE})
-endif()
-
-# check CATKIN
-if(USE_CATKIN)
-find_package(catkin COMPONENTS roscpp QUIET)
-    if(${catkin_FOUND})
-        # build as a ROS package
-        catkin_package(
-            INCLUDE_DIRS ${INCLUDE_DEPENDS} 
-            LIBRARIES log2plot
-            CATKIN_DEPENDS roscpp
-            )
-        # add log_publisher
-        set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS}
-          include/log2plot/container_publisher.h
-          include/log2plot/log_publisher.h)
-        # update depends
-        set(LIB_DEPENDS ${LIB_DEPENDS} ${catkin_LIBRARIES})
-        set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${catkin_INCLUDE_DIRS})
-    else()
-        set(USE_CATKIN OFF)
-        message("-- Could not find CATKIN")
-   endif()
-endif()
+find_package(VISP COMPONENTS core)
 
 # check YAML for configuration file parser
 find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
-  find_package(VISP COMPONENTS core)
   if(VISP_FOUND)
     file(WRITE include/log2plot/defines.h "#define LOG2PLOT_WITH_VISP")
       set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
@@ -86,6 +61,7 @@ if(YamlCpp_FOUND AND BUILD_PARSER)
   endif()
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 
+  include/log2plot/dir_tools.h
   include/log2plot/config_manager.h
   include/log2plot/config_manager_detail.h
   )  
@@ -94,7 +70,7 @@ if(YamlCpp_FOUND AND BUILD_PARSER)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${YamlCpp_INCLUDE_DIRS})
 endif()
 
-
+set(CMAKE_CXX_STANDARD 17)
 # Compile with available deps
 add_library(log2plot SHARED ${LOG2PLOT_HEADERS} ${LOG2PLOT_SRC})
 target_include_directories(log2plot PRIVATE ${INCLUDE_DEPENDS})
@@ -106,7 +82,9 @@ target_link_libraries(log2plot ${LIB_DEPENDS})
 ##############
 
 # get compile directory for default script path
-add_definitions(-DLOG2PLOT_SCRIPT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/plot")
+add_definitions(-DLOG2PLOT_SCRIPT_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/src/plot")
+add_definitions(-DLOG2PLOT_SCRIPT_INSTALL="${CMAKE_INSTALL_PREFIX}/bin/log2plot")
+
 if(BUILD_EXAMPLES)
 
     # default output datafile path
@@ -117,14 +95,6 @@ if(BUILD_EXAMPLES)
     target_include_directories(std_containers PRIVATE ${INCLUDE_DEPENDS})
     target_link_libraries(std_containers log2plot)
     
-    # std container with publisher
-    if(USE_CATKIN)
-        add_executable(std_publisher examples/src/std_publisher.cpp)
-        target_include_directories(std_publisher
-          PRIVATE ${INCLUDE_DEPENDS})
-        target_link_libraries(std_publisher log2plot)
-    endif()
-
     # build Eigen example
     find_package(Eigen3 QUIET)
     if(EIGEN3_FOUND)
@@ -144,7 +114,7 @@ if(BUILD_EXAMPLES)
     endif()
 
     # animated graph
-    if(USE_MATPLOTLIBCPP)
+    if(ENABLE_DYNAMIC_PLOT)
         add_executable(animation examples/src/animation.cpp)
         target_include_directories(animation PRIVATE ${INCLUDE_DEPENDS})
         target_link_libraries(animation log2plot)
@@ -165,37 +135,20 @@ endif()
 ## Install ##
 #############
 
-if(USE_CATKIN)
-    install(PROGRAMS
-    src/plot
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+install(TARGETS log2plot EXPORT log2plotConfig
+    ARCHIVE  DESTINATION lib
+    LIBRARY  DESTINATION lib
+    RUNTIME  DESTINATION bin)  
+install(FILES ${LOG2PLOT_HEADERS} DESTINATION include/${PROJECT_NAME})
+install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 
-    # only install actual library
-    install(TARGETS log2plot
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 
-    install(FILES ${LOG2PLOT_HEADERS} 
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/log2plotConfig.cmake.in
+"${PROJECT_BINARY_DIR}/log2plotConfig.cmake")
 
-  else()
-  
-    install(TARGETS log2plot EXPORT log2plotConfig
-        ARCHIVE  DESTINATION lib
-        LIBRARY  DESTINATION lib
-        RUNTIME  DESTINATION bin)  
-    install(FILES ${LOG2PLOT_HEADERS} DESTINATION include/${PROJECT_NAME})
+install (FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/log2plotConfig.cmake
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/log2plot")
 
-    set(ConfigPackageLocation lib/cmake/log2plot)
-
-    set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/log2plotConfig.cmake.in
-    "${PROJECT_BINARY_DIR}/log2plotConfig.cmake" @ONLY)
-    
-    install (FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/log2plotConfig.cmake
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/log2plot")
-endif()

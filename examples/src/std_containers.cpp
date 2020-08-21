@@ -16,7 +16,7 @@ int main()
   // saved with iteration X-axis with implicit legend
   logger.save(v_int, "std_i", "i_", "Value of I");
   // also set custome line types in matplotlib style
-  logger.setLineType("[k-, r., b--, gD]");
+  logger.setLineType("[k, r., b--, gD]");
 
   // save some doubles
   std::vector<double> v_double(6,0);

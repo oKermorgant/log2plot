@@ -4,17 +4,7 @@ A Python script is then used to plot the files with various options.
 
 ## Compilation and installation
 
-The module can be compiled as a ROS package or standalone. When compiled as a ROS package, numerical logged data can also be published to provide online analysis through rqt_plot or other tools.
-
-### As a ROS package
-
-Just clone the repository in your ROS workspace and build it with catkin:  `catkin build log2plot`.
-
-In this case a new logger, namely `LogPublisher` can be used instead of `Logger`.
-
-### As a standalone library
-
-If you do not have ROS on the computer then the package will compile standalone:
+As of version 2, the module is ROS-agnostic and is a classical CMake package:
 
 * `mkdir build`
 * `cd build`
@@ -23,15 +13,15 @@ If you do not have ROS on the computer then the package will compile standalone:
 
 The library can then be found through CMake find_package.
 
-If you do have ROS installed but prefer compiling this library as standalone, just pass `-DUSE_CATKIN=OFF` when calling CMake.
+The plotting script will be placed at `/usr/local/bin/log2plot` and can be used just typing `log2plot <yaml data file>`.
 
-### Matplotlib-cpp option
+### Dynamic plot option
 
-The logger can also plot 2D graphs at runtime, by using [matplotlib-cpp](https://github.com/lava/matplotlib-cpp). Just update the git submodule `git submodule init && git submodule update` before compiling.
+The logger can also plot 2D or 3D graphs at runtime, by using -DENABLE_DYNAMIC_PLOT=ON with Cmake. This requires Python3 and Matplotlib.
 
 In this case a new logger, namely `LogPlotter` can be used instead of `Logger`.
 
-If matplotlib-cpp is installed but you do not want the corresponding features, pass `-DUSE_MATPLOTLIBCPP=OFF` when calling CMake.
+Due to the Python interpreter, using numerous dynamic plots may reduce the frequency of the main loop. 
 
 ## Use from C++ code
 
@@ -60,8 +50,6 @@ Four types of data may be logged:
   * `invert_pose` (default false) allows to log a pose whom inverse will be actually plotted. This can be useful typically when working with a world-to-camera pose but we still want to display the camera-to-world pose afterwards.
 
 This will log data into the file: `fileprefix + name + .yaml`
-
-ROS users may use the `log2plot::LogPublisher` class with the exact same syntax. It will also publish the logged data as `Float32MultiArray`'s on the `log2plot/<name>` topics. Trying to publish data that cannot be cast to double will lead to undefined behavior. In this case a `Logger` can be instanciated to log particular data while a `LogPublisher` will log and publish numerical data.
 
 ### General options
 
@@ -105,9 +93,9 @@ If some (double) logged data is non defined or irrelevant at some point, it is p
   
 ## Python syntax
 
-The Python module used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line or with the `rosrun` syntax if compiled with ROS:
-* `python plot <file.yaml>`
-* `rosrun log2plot plot <file.yaml>`
+The Python module used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line:
+* `python path/to/src/plot <file.yaml>` (if not installed)
+* `log2plot <file.yaml>` (if installed)
 
 Many options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
 
@@ -117,7 +105,6 @@ Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will
 
 In the `examples` folder are shipped 4 use cases:
 * `std_container` uses std::vectors and shows iteration-based, time-based and 3D pose plots. It also shows how to use Not a Number for iterations where some logged values are not defined.
-* `std_publisher` shows how to publish data to ROS topics when logging
 * `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
 * `animation` shows how to perform a plot during runtime

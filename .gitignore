@@ -71,3 +71,4 @@ Thumbs.db
 *.pdf
 *.mp4
 !examples/parser/config.yaml
+include/log2plot/matplotlibcpp.h

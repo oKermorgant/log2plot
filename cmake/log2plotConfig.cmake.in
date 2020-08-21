@@ -1,11 +1,7 @@
 # This file exports the CMake target which should be passed to the
 # target_link_libraries command.
 
-set (LOG2PLOT_FOUND 1)
+set(LOG2PLOT_FOUND 1)
+set(LOG2PLOT_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set(LOG2PLOT_LIBRARIES "${CMAKE_INSTALL_PREFIX}/lib/liblog2plot.so")
 
-# Compute paths
-get_filename_component(LOG2PLOT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(LOG2PLOT_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
-  
-# These are IMPORTED targets created by FooBarTargets.cmake
-set(LOG2PLOT_LIBRARIES log2plot)
