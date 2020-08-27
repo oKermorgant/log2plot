@@ -126,20 +126,32 @@ argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to crea
 argVid.add_argument('--v3d', dest='v3d', type=int, help='Creates a video by having 3D plot rotate',default=0)
 
 
-plot2D = plot
+global args
+args = parser.parse_args()
+
+if args.nodisplay:
+    # tell matplotlib that no X-server is needed
+    mpl.use('Agg')
+from pylab import *
+import mpl_toolkits.mplot3d 
+from matplotlib.font_manager import FontProperties
+from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 
 # function to and check consistency and links between arguments 
 def checkArgs(parsed):
     global plot2D
     global plotMargin
+    
+    plot2D = plot
+    
     if parsed.noYa:
         parsed.noY = True;
     if parsed.twin != -1:
         parsed.group = True
     if  parsed.white:
-        rc('axes', edgecolor='white')
+        mpl.rc('axes', edgecolor='white')
     else:
-        rc('axes', edgecolor='black')
+        mpl.rc('axes', edgecolor='black')
     if parsed.video > 0:
         #parsed.legendLoc = -1
         parsed.lineWidth = 4
@@ -172,17 +184,7 @@ def checkArgs(parsed):
     
     return parsed
 
-
-global args
 args = checkArgs(parser.parse_args())
-
-if args.nodisplay:
-    # tell matplotlib that no X-server is needed
-    mpl.use('Agg')
-from pylab import *
-import mpl_toolkits.mplot3d 
-from mpl.font_manager import FontProperties
-from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 
 # rotation from theta-u
 def Rot(tU):
