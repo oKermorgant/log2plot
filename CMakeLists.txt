@@ -44,7 +44,7 @@ if(ENABLE_DYNAMIC_PLOT)
     endif()
 endif()
 
-find_package(VISP COMPONENTS core)
+find_package(VISP QUIET COMPONENTS core)
 
 # check YAML for configuration file parser
 find_package(PkgConfig)
@@ -105,7 +105,6 @@ if(BUILD_EXAMPLES)
     endif()
 
     # build ViSP example
-    find_package(VISP QUIET COMPONENTS core)
     if(VISP_FOUND)
         add_executable(visp_containers examples/src/visp_containers.cpp)
         target_include_directories(visp_containers

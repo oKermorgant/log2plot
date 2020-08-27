@@ -4,7 +4,7 @@
 
 import sys, os
 from pylab import *
-from matplotlib import rc, animation, rcParams
+import matplotlib as mpl
 import mpl_toolkits.mplot3d 
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
@@ -26,10 +26,10 @@ except:
 # in-script tuning
 videoFreeze = 10
 # LateX
-rc('font', family='sans-serif')
-rc('text', usetex = True)
+mpl.rc('font', family='sans-serif')
+mpl.rc('text', usetex = True)
 #rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rcParams['text.latex.preamble']=[
+mpl.rcParams['text.latex.preamble']=[
     r"\usepackage{amsmath}",
     r'\usepackage{helvet}',    # set the normal font here
     r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
@@ -129,6 +129,7 @@ argVid.add_argument('-v', dest='video', type=int, help='Creates a video with giv
 argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to create videos',default=0.04)
 argVid.add_argument('--v3d', dest='v3d', type=int, help='Creates a video by having 3D plot rotate',default=0)
 
+
 plot2D = plot
 
 # function to and check consistency and links between arguments 
@@ -178,6 +179,10 @@ def checkArgs(parsed):
 
 global args
 args = checkArgs(parser.parse_args())
+
+if args.nodisplay:
+    # tell matplotlib that no X-server is needed
+    mpl.use('Agg')
 
 # rotation from theta-u
 def Rot(tU):
@@ -874,7 +879,7 @@ if __name__ == "__main__":
             # add 2 sec on last frame            
             frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
             
-        ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
+        ani = mpl.animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
         print('Saving video...')
         for wrt in ('avconv', 'ffmpeg'):
             if wrt in animation.writers.avail:
