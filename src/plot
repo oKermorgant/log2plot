@@ -3,11 +3,7 @@
 #
 
 import sys, os
-from pylab import *
 import matplotlib as mpl
-import mpl_toolkits.mplot3d 
-from matplotlib.font_manager import FontProperties
-from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 import argparse
 import yaml
 import time
@@ -183,6 +179,10 @@ args = checkArgs(parser.parse_args())
 if args.nodisplay:
     # tell matplotlib that no X-server is needed
     mpl.use('Agg')
+from pylab import *
+import mpl_toolkits.mplot3d 
+from mpl.font_manager import FontProperties
+from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 
 # rotation from theta-u
 def Rot(tU):
