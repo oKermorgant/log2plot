@@ -51,6 +51,7 @@ find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
+
   if(VISP_FOUND)
     file(WRITE include/log2plot/defines.h "#define LOG2PLOT_WITH_VISP")
       set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
@@ -143,7 +144,9 @@ install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 
-set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set(INCLUDE_DEPENDS ${CMAKE_INSTALL_PREFIX}/include ${INCLUDE_DEPENDS})
+set(LIB_DEPENDS ${CMAKE_INSTALL_PREFIX}/lib/liblog2plot.so ${LIB_DEPENDS})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/log2plotConfig.cmake.in
 "${PROJECT_BINARY_DIR}/log2plotConfig.cmake")
 
