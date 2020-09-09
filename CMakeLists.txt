@@ -139,7 +139,7 @@ install(TARGETS log2plot EXPORT log2plotConfig
     ARCHIVE  DESTINATION lib
     LIBRARY  DESTINATION lib
     RUNTIME  DESTINATION bin)  
-install(FILES ${LOG2PLOT_HEADERS} DESTINATION include/${PROJECT_NAME})
+install(DIRECTORY include/log2plot DESTINATION include)
 install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
