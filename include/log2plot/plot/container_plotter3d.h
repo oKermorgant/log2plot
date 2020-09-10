@@ -1,8 +1,8 @@
 #ifndef LOG2PLOT_CONTAINER_PLOTTER3D_H
 #define LOG2PLOT_CONTAINER_PLOTTER3D_H
 #include <log2plot/container.h>
-#include "figure3d.h"
-#include "container_plotter.h"
+#include <log2plot/plot/figure3d.h>
+#include <log2plot/plot/container_plotter.h>
 
 namespace log2plot
 {
@@ -18,6 +18,16 @@ public:
   {
     yaml_stream << "data:" << std::endl;
     fig.init("$" + label(0) + "$", format(0), format(1), format(2), format(3));
+  }
+
+  void run(const std::string &line)
+  {
+    fig.run(line);
+  }
+
+  void waitExecution()
+  {
+    fig.waitExecution();
   }
 
   // log update + refresh plot

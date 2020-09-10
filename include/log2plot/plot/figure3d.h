@@ -1,7 +1,7 @@
 #ifndef LOG2PLOT_FIGURE3D_H
 #define LOG2PLOT_FIGURE3D_H
 
-#include "figure_utils.h"
+#include <log2plot/plot/figure_utils.h>
 #include <vector>
 #include <array>
 #include <math.h>
@@ -81,12 +81,15 @@ class Figure3D : public Figure
 
   struct Line3D
   {
-    Line3D(const std::string &ax_tag)
-      : tag(ax_tag + "_" + std::to_string(line_count++)) {}
+    Line3D(const std::string &ax_tag,size_t id)
+      : callerID(id), tag(ax_tag + "_" + std::to_string(line_count++)) {}
 
-    void init(const std::string &ax_tag, const std::string &format, const std::string &label = "");
+    void init(const std::string &ax_tag,
+              const std::string &format,
+              const std::string &label = "");
     void append(double x, double y, double z);
-    void setData(const std::string &x, const std::string &y, const std::string &z);
+    void setData(const std::string &x, const std::string &y, const std::string &z,
+                 bool required = true);
     template <class Position>
     void append(const Position &p)
     {
@@ -94,8 +97,19 @@ class Figure3D : public Figure
     }
     void draw()
     {
-      setData(tag + "_x", tag + "_y", tag + "_z");
+      setData(tag + "_x", tag + "_y", tag + "_z", false);
     }
+
+    void run(const std::ostringstream& ss, bool required = true)
+    {
+      interp->run(ss.str(), required ? 0 : callerID);
+    }
+    void run(const std::string &line, bool required = true)
+    {
+      interp->run(line, required ? 0 : callerID);
+    }
+
+    const size_t callerID;
     const std::string tag;
     static int line_count;
   };
@@ -103,22 +117,22 @@ class Figure3D : public Figure
   struct Edge3D : public Line3D
   {
     const Translation t1, t2;
-    Edge3D(const std::string &ax_tag, Translation _t1, Translation _t2)
-      : Line3D(ax_tag), t1(_t1), t2(_t2)
+    Edge3D(const std::string &ax_tag, size_t id, Translation _t1, Translation _t2)
+      : Line3D(ax_tag, id), t1(_t1), t2(_t2)
     {}
     void update(const Translation &t, const Rotation &R, double scale = 1);
     static void createEdge(const std::string &ax_tag,
-                const std::string &format,
-                const Vectord &p1, const Vectord &p2);
+                           const std::string &format,
+                           const Vectord &p1, const Vectord &p2);
   };
 
   struct FixedEdge3D : public Edge3D
   {
     const Translation t;
     const Rotation R;
-    FixedEdge3D(const std::string &ax_tag, Translation _t1, Translation _t2,
+    FixedEdge3D(const std::string &tag, size_t id, Translation _t1, Translation _t2,
                 const Translation &_t, const Rotation &_R)
-      : Edge3D(ax_tag, _t1, _t2), t(_t), R(_R) {}
+      : Edge3D(tag, id, _t1, _t2), t(_t), R(_R) {}
     void scale(double scale)
     {
       update(t, R, scale);
@@ -145,8 +159,8 @@ public:
     updateLimits(t);
 
     const bool limits_change(xl_prev.different(xl) ||
-                              yl_prev.different(yl) ||
-                              zl_prev.different(zl));
+                             yl_prev.different(yl) ||
+                             zl_prev.different(zl));
 
     if(limits_change)
       scale = resizeBox();
@@ -163,6 +177,7 @@ public:
       for(auto &edge: scaled)
         edge.scale(scale);
     }
+    run(ax_tag + ".figure.canvas.draw()", false);
   }
 
   void addObject(const std::vector<Vectord> &M,

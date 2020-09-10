@@ -240,7 +240,7 @@ public:
 
   // Close all files and call the Python interpreter on the given script path
   void plot(const std::string &script_path, bool verbose = false, bool display = true);
-  virtual void plot(bool verbose = false, bool display = true);
+  void plot(bool verbose = false, bool display = true);
 
   // Close all files and call interpreter without actual plotting
   void generateFigures(const std::string &script_path, bool verbose = false)

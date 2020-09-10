@@ -4,8 +4,6 @@
 #include <log2plot/logger.h>
 #include <log2plot/dir_tools.h>
 
-
-
 namespace log2plot
 {
 
@@ -172,13 +170,13 @@ void Logger::plotFiles(const std::string &script_path, const std::string &files,
     cmdline += " &";
 
   if(verbose)
-    cout << "executing "<< cmdline << endl;
+    cout << "log2plot: plotting "<< files << endl;
   UNUSED(system(cmdline.c_str()));
 }
 
 void Logger::plot(bool verbose, bool display)
 {
-  // find source vs install paths of script
+  // find source vs install paths of script (I keep it to easily test new plot tools)
   if(dirTools::fileExists(LOG2PLOT_SCRIPT_SOURCE))
     plot(LOG2PLOT_SCRIPT_SOURCE, verbose, display);
   else

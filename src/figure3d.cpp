@@ -7,9 +7,10 @@ namespace log2plot {
 
 int Figure3D::Line3D::line_count = 0;
 
-void Figure3D::Line3D::setData(const std::string &x, const std::string &y, const std::string &z)
+void Figure3D::Line3D::setData(const std::string &x, const std::string &y, const std::string &z,
+                               bool required)
 {
-  py::call(tag + ".set_data_3d(" + x + ", " + y + ", " + z + ")");
+  run(tag + ".set_data_3d(" + x + ", " + y + ", " + z + ")", required);
 }
 
 void Figure3D::Line3D::init(const std::string &ax_tag,
@@ -23,18 +24,18 @@ void Figure3D::Line3D::init(const std::string &ax_tag,
   {
     plot_cmd += ", label = '" + label + "'";
     // init xyz variables
-    py::call(tag + "_x = []");
-    py::call(tag + "_y = []");
-    py::call(tag + "_z = []");
+    run(tag + "_x = []");
+    run(tag + "_y = []");
+    run(tag + "_z = []");
   }
-  py::call(plot_cmd + ")");
+  run(plot_cmd + ")");
 }
 
 void Figure3D::Line3D::append(double x, double y, double z)
 {
-  py::call(tag + "_x.append(" + std::to_string(x) + ")");
-  py::call(tag + "_y.append(" + std::to_string(y) + ")");
-  py::call(tag + "_z.append(" + std::to_string(z) + ")");
+  run(tag + "_x.append(" + std::to_string(x) + ")");
+  run(tag + "_y.append(" + std::to_string(y) + ")");
+  run(tag + "_z.append(" + std::to_string(z) + ")");
 }
 
 void Figure3D::Edge3D::createEdge(const std::string &ax_tag, const std::string &format, const Vectord &p1, const Vectord &p2)
@@ -47,7 +48,7 @@ void Figure3D::Edge3D::createEdge(const std::string &ax_tag, const std::string &
   if(format != "")
     plot_cmd << ", '" << format << "'";
   plot_cmd << ")";
-  py::call(plot_cmd);
+  interp->run(plot_cmd.str());
 }
 
 void Figure3D::Edge3D::update(const Translation &t, const Rotation &R, double scale)
@@ -57,7 +58,7 @@ void Figure3D::Edge3D::update(const Translation &t, const Rotation &R, double sc
 
   setData("[" + py::join(p1[0], p2[0]) + "]",
       "[" + py::join(p1[1], p2[1]) + "]",
-      "[" + py::join(p1[2], p2[2]) + "]");
+      "[" + py::join(p1[2], p2[2]) + "]", false);
 }
 
 void Figure3D::updateLimits(double x, double y, double z)
@@ -76,12 +77,12 @@ void Figure3D::updateLimits(double x, double y, double z)
   }
 }
 
-Figure3D::Figure3D(bool _invert) : invert(_invert), traj(ax_tag)
+Figure3D::Figure3D(bool _invert) : invert(_invert), traj(ax_tag,newCallerID())
 {
   // create new 3D figure
-  py::call("pl.figure(figsize=(7,7))");
-  py::call(ax_tag + " = pl.gca(projection='3d')");
-  py::call("pl.tight_layout()");
+  run("pl.figure(figsize=(7,7))");
+  run(ax_tag + " = pl.gca(projection='3d')");
+  run("pl.tight_layout()");
 }
 
 void Figure3D::init(const std::string &label, const std::string &format,
@@ -102,27 +103,31 @@ void Figure3D::init(const std::string &label, const std::string &format,
   if(moving.size())
     initial_format = initial_fmt;
 
-  py::call("pl.legend(loc = 'upper right')");
+  run("pl.legend(loc = 'upper right')");
 }
 
 void Figure3D::addObject(const std::vector<Vectord> &M,
                          const std::vector<std::pair<size_t, size_t>> &graph,
                          const Vectord &desired_pose)
 {
+  auto objID(newCallerID());
+
   std::vector<Translation> nodes;
   for(const auto &p: M)
     nodes.emplace_back(p[0], p[1], p[2]);
 
   for(const auto &[p1, p2]: graph)
-    moving.emplace_back(ax_tag, nodes[p1], nodes[p2]);
+    moving.emplace_back(ax_tag, objID, nodes[p1], nodes[p2]);
 
   if(desired_pose.size())
   {
     const auto [t, R] = decompose(desired_pose); {}
     updateLimits(t);
 
+    objID = newCallerID();
+
     for(const auto &[p1, p2]: graph)
-      scaled.emplace_back(ax_tag, nodes[p1], nodes[p2], t, R);
+      scaled.emplace_back(ax_tag, objID, nodes[p1], nodes[p2], t, R);
   }
 }
 
@@ -131,9 +136,10 @@ void Figure3D::addInitialObject(const Translation &t, const Rotation &R)
   if(moving.size() == 0 || initial_format == "done")
     return;
 
+  const auto objID(newCallerID());
   for(const auto &edge: moving)
   {
-    scaled.emplace_back(ax_tag, edge.t1, edge.t2, t, R);
+    scaled.emplace_back(ax_tag, objID, edge.t1, edge.t2, t, R);
     scaled.back().init(ax_tag, initial_format);
   }
   initial_format = "done";
@@ -153,9 +159,9 @@ double Figure3D::resizeBox()
 
   const double x0(.5*(xl.max+xl.min)),
       y0(.5*(yl.max+yl.min)), z0(.5*(zl.max+zl.min));
-  py::call(ax_tag + ".set_xlim3d(" + py::join(x0-half_range, x0+half_range) + ")");
-  py::call(ax_tag + ".set_ylim3d(" + py::join(y0-half_range, y0+half_range) + ")");
-  py::call(ax_tag + ".set_zlim3d(" + py::join(z0-half_range, z0+half_range) + ")");
+  run(ax_tag + ".set_xlim3d(" + py::join(x0-half_range, x0+half_range) + ")", false);
+  run(ax_tag + ".set_ylim3d(" + py::join(y0-half_range, y0+half_range) + ")", false);
+  run(ax_tag + ".set_zlim3d(" + py::join(z0-half_range, z0+half_range) + ")", false);
 
   xl_prev.update(xl);
   yl_prev.update(yl);

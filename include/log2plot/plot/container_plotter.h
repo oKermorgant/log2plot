@@ -15,9 +15,13 @@ public:
   // write additionnal info
   void writeInfo(const std::string &_label, const std::string &_info);
 
+  virtual void run(const std::string &line) = 0;
   virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "") = 0;
   virtual void showMovingObject(const std::vector<std::vector<double>> &, const std::string &, const std::vector<double> & = {})
   {}
+
+  virtual void waitExecution() = 0;
+
 
 protected:
   std::vector<std::string> legend, line_type;

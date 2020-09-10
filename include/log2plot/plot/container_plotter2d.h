@@ -2,8 +2,8 @@
 #define LOG2PLOT_CONTAINERPLOTTER2D_H
 
 #include <log2plot/container.h>
-#include "figure2d.h"
-#include "container_plotter.h"
+#include <log2plot/plot/figure2d.h>
+#include <log2plot/plot/container_plotter.h>
 #include <sstream>
 
 namespace log2plot
@@ -14,7 +14,12 @@ template<class T> class ContainerPlotter2D : public ContainerPlotter
 public:
   ContainerPlotter2D(LogType _type, T &original, std::string _legend) :
     ContainerPlotter(_type, _legend), content(&original), fig(_type == LogType::XY)
-  { }
+  {}
+
+  void waitExecution()
+  {
+    fig.waitExecution();
+  }
 
   void init()
   {
@@ -30,6 +35,11 @@ public:
       for(size_t i = 0; i < content->size(); ++i)
        fig.addLine("$" + label(i) + "$", format(i));
     }
+  }
+
+  void run(const std::string &line)
+  {
+    fig.run(line);
   }
 
   // log update + refresh plot

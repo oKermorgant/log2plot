@@ -3,21 +3,24 @@
 
 #include <log2plot/defines.h>
 #include <log2plot/logger.h>
-#include "plot/container_plotter2d.h"
-#include "plot/container_plotter3d.h"
+#include <log2plot/plot/container_plotter2d.h>
+#include <log2plot/plot/container_plotter3d.h>
 #include <assert.h>
+#include <Python.h>
 
 namespace log2plot
 {
 
 class LogPlotter : public Logger
 {
-  ContainerPlotter *last_plot;
+  ContainerPlotter *last_plot = nullptr;
 
 public:
-  LogPlotter(std::string _file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1)
+  LogPlotter(std::string _file_path = "", float dt = 0.1, unsigned int _buffer = 10, unsigned int _subsampling = 1)
     : Logger(_file_path, _buffer, _subsampling)
-  { }
+  {
+    Figure::setTargetSampling(dt);
+  }
 
   void setLineType(const std::string lineType)
   {
@@ -26,8 +29,15 @@ public:
 
   void update(const bool &flush = false)
   {
+    const bool first_update_plot(first_update);
     Logger::update(flush);
-    py::call("pl.pause(0.0001)");
+
+    if(last_plot)
+    {
+      if(first_update_plot)
+        last_plot->run("pl.pause(0.0001)");
+      last_plot->waitExecution();
+    }
   }
 
   void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
@@ -50,9 +60,9 @@ public:
     logged_vars.push_back(std::make_unique<ContainerPlotter2D<T>>(LogType::ITERATION, v, buildLegend(legend, v.size())));
     last_plot = static_cast<ContainerPlotter*>(logged_vars.back().get());
     // set labels
-    py::call("pl.xlabel('iterations')");
-    py::call("pl.ylabel('" + ylabel + "')");
-    py::call("pl.tight_layout()");
+    last_plot->run("pl.xlabel('iterations')");
+    last_plot->run("pl.ylabel('" + ylabel + "')");
+    last_plot->run("pl.tight_layout()");
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()), "iterations", ylabel, keep_file);
   }
@@ -65,9 +75,9 @@ public:
     logged_vars.push_back(std::make_unique<ContainerPlotter2D<T>>(LogType::TIME, v, buildLegend(legend, v.size())));
     last_plot = static_cast<ContainerPlotter*>(logged_vars.back().get());
     // set labels
-    py::call("pl.xlabel('time [" + time_unit + "]')");
-    py::call("pl.ylabel('" + ylabel + "')");
-    py::call("pl.tight_layout()");
+    last_plot->run("pl.xlabel('time [" + time_unit + "]')");
+    last_plot->run("pl.ylabel('" + ylabel + "')");
+    last_plot->run("pl.tight_layout()");
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
   }
@@ -81,9 +91,9 @@ public:
     logged_vars.push_back(std::make_unique<ContainerPlotter2D<T>>(LogType::XY, v, buildLegend(legend, v.size()/2)));
     last_plot = static_cast<ContainerPlotter*>(logged_vars.back().get());
     // set labels
-    py::call("pl.xlabel('" + xlabel + "')");
-    py::call("pl.ylabel('" + ylabel + "')");
-    py::call("pl.tight_layout()");
+    last_plot->run("pl.xlabel('" + xlabel + "')");
+    last_plot->run("pl.ylabel('" + ylabel + "')");
+    last_plot->run("pl.tight_layout()");
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()/2), xlabel, ylabel, keep_file);
   }
@@ -101,12 +111,6 @@ public:
     writeInitialInfo(name, "["+legend+"]", "", "", keep_file);
     if(invert)
       last->writeInfo("invertPose", "True");
-  }
-
-  void plot(bool verbose = false, bool display = true)
-  {
-    Logger::plot(verbose, display);
-    py::call("try:\n  pl.pause(0)\nexcept:\n  pass");
   }
 };
 }
