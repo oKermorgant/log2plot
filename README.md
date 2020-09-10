@@ -9,7 +9,7 @@ As of version 2, the module is ROS-agnostic and is a classical CMake package:
 * `mkdir build`
 * `cd build`
 * `cmake ..`
-* `make` or `make install`
+* `make` or `sudo make install`
 
 The library can then be found through CMake find_package.
 
@@ -19,17 +19,15 @@ The plotting script will be placed at `/usr/local/bin/log2plot` and can be used 
 
 The logger can also plot 2D or 3D graphs at runtime, by using -DENABLE_DYNAMIC_PLOT=ON with Cmake. This requires Python3 and Matplotlib.
 
-In this case a new logger, namely `LogPlotter` can be used instead of `Logger`.
-
-Due to the Python interpreter, using numerous dynamic plots may reduce the frequency of the main loop. 
+In this case a new logger, namely `LogPlotter` can be used instead of `Logger`. This class requires a target rate and will try to update the plot within this rate, despite the possibly slow Python interpreter.
 
 ## Use from C++ code
 
 Examples can be found in the `examples` folder. The main class is `log2plot::Logger` and should be instanciated with the desired data file path and prefix:  `log2plot::Logger logger(fileprefix)`. If no fileprefix is given then the files will be created in the `/tmp` folder. Shipped examples use the `examples` path at compile time. 
 
 The logged variables have to be containers of some sort, as long as the following member functions are available:
-* operator[] to get the value at a given index
-* size() to get the length of the logged container
+* `operator[]` to get the value at a given index
+* `size()` to get the length of the logged container
 
 Besides these two points, all kind of data can be saved, but of course they will not be plottable if not numerical.
 
@@ -65,7 +63,7 @@ Options should be given before calling the first `update()`.
 The following commands will be applied to the last added variable:
 * Units: `logger.setUnits("[unit1, unit2, unit2]");` will save the units for the 3 first components
 * Line styles: `logger.setLineType(["b, g, r--]");`, line styles have to be defined in Matplotlib styles (color + line style)
-* Important time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
+* particular time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
 * Steps can also be added while recording with `logger.writeStep();` 
 
 ### 3D pose options
@@ -97,7 +95,7 @@ The Python module used to plot the files is in the `src` folder and requires `ma
 * `python path/to/src/plot <file.yaml>` (if not installed)
 * `log2plot <file.yaml>` (if installed)
 
-Many options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
+Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
 
 Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will be used to create a mp4 file showing the plot evolution. 
 
