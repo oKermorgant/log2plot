@@ -6,7 +6,7 @@ namespace log2plot
 
 void ConfigManager::updateFrom(int argc, char **argv, bool warn)
 {
-  for(int i = 0; i < (argc-1)/2; i+=2)
+  for(int i = 0; i < (argc-1)/2; i++)
   {
     const auto tags = toTags(argv[2*i+1]);
     if(has(tags))
