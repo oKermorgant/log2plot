@@ -6,11 +6,11 @@ namespace log2plot
 
 void ConfigManager::updateFrom(int argc, char **argv)
 {
-  for(int i = 1; i < (argc-1)/2; i+=2)
+  for(int i = 0; i < (argc-1)/2; i+=2)
   {
-    const auto tags = toTags(argv[i]);
+    const auto tags = toTags(argv[2*i+1]);
     if(has(tags))
-      finalNode(tags, config) = std::string(argv[i+1]);
+      finalNode(tags, config) = std::string(argv[2*i+2]);
   }
 }
 
