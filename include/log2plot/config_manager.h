@@ -26,7 +26,7 @@ public:
     }
   }
 
-  void updateFrom(int argc, char**argv);
+  void updateFrom(int argc, char**argv, bool warn = false);
 
   template <typename T>
   void forceParameter(std::string tag, T value)

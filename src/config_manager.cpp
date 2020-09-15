@@ -4,13 +4,15 @@
 namespace log2plot
 {
 
-void ConfigManager::updateFrom(int argc, char **argv)
+void ConfigManager::updateFrom(int argc, char **argv, bool warn)
 {
   for(int i = 0; i < (argc-1)/2; i+=2)
   {
     const auto tags = toTags(argv[2*i+1]);
     if(has(tags))
       finalNode(tags, config) = std::string(argv[2*i+2]);
+    else if(warn)
+      std::cout << "log2plot: Passed argument '" << argv[2*i+1] << "' is not a configuration tag" << std::endl;
   }
 }
 
