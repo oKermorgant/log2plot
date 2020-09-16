@@ -4,6 +4,7 @@
 
 import sys, os
 import matplotlib as mpl
+from matplotlib import animation
 import argparse
 import yaml
 import time
@@ -881,7 +882,7 @@ if __name__ == "__main__":
             # add 2 sec on last frame            
             frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
             
-        ani = mpl.animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
+        ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
         print('Saving video...')
         for wrt in ('avconv', 'ffmpeg'):
             if wrt in animation.writers.avail:
