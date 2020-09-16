@@ -301,7 +301,7 @@ def init2D():
             if full_line(dataSt, j): # black lines without legend are always plotted entirely (usually axes or bounds)
                 plot2D(xval(dataSt,j), dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
             else:
-                sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=int(dataSt.rows//10))
+                sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
             if j == args.twin:
                 # change axe
                 ax = ax.twinx()
@@ -390,9 +390,9 @@ def init2D():
                     plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
         for j in range(dataSt.data.shape[1]):
             if dataSt.dataType == 'XY':
-                plot2D(dataSt.x[:,j], dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+                plot2D(dataSt.x[:,j], dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
             else:
-                plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=dataSt.rows/10)
+                plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
         
     # resize fig
     #F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
