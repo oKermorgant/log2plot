@@ -52,13 +52,17 @@ pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
 
+  # add a definition for ViSP being here
+  set(DEFINES_CONTENT "")
   if(VISP_FOUND)
-    file(WRITE include/log2plot/defines.h "#define LOG2PLOT_WITH_VISP")
-      set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
+    set(DEFINES_CONTENT "#define LOG2PLOT_WITH_VISP")
+    set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
-  else()
-    file(WRITE include/log2plot/defines.h "")
+  endif()
+  file(READ include/log2plot/defines.h DEFINES_CURRENT)
+  if(NOT ${DEFINES_CURRENT} STREQUAL ${DEFINES_CONTENT})
+    file(WRITE include/log2plot/defines.h ${DEFINES_CONTENT})
   endif()
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 
