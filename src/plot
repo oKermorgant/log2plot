@@ -289,7 +289,6 @@ def init2D():
                     plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
         
         # set x label
-        print('{} {} {}'.format(i,C,L))
         if i//C == L-1 and args.noX == False:
             xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
             
