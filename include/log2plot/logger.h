@@ -47,7 +47,6 @@ const double nan = std::nan("");
 template<class T>
 void setNaN(T& v, uint start = 0, uint end = 0)
 {
-
   if(start == 0 && end == 0)
     end = v.size();
   for(uint i = start; i < end; ++i)
