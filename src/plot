@@ -515,6 +515,12 @@ def init3D():
     ax.set_ylim3d([lim3D[2],lim3D[3]])
     ax.set_zlim3d([lim3D[4],lim3D[5]])
     
+    ax.xaxis.labelpad=ax.yaxis.labelpad=15
+
+    ax.set_xlabel('X', size = args.fontSize+args.fontLabel)
+    ax.set_ylabel('Y', size = args.fontSize+args.fontLabel)
+    ax.set_zlabel('Z', size = args.fontSize+args.fontLabel)
+    
     if len(ax.get_xticks()) > 7:
         for d in 'xyz':
             ax.locator_params(axis=d,nbins=5)
