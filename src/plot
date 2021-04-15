@@ -35,13 +35,17 @@ mpl.rcParams['text.latex.preamble']=[
 
 def toTex(s, math = True):
     if '<' not in s and not math:
-        return s
+        return s    
     while '<' in s:
-        front_tilde = (s[0] != '<' and '~' or '')
-        back_tilde  = (s[-1] != '>' and '~' or '')       
+        front_idx = s.find('<')
+        back_idx = s.find('>')
+                
+        front_tilde = '' if front_idx else '~'
+        back_tilde  = '' if back_idx==len(s)-1 else '~'
         
-        s = s.replace('<', front_tilde + '\\text{', 1)
-        s = s.replace('>', back_tilde + '}', 1)        
+        s = '{}{}\\text{{{}}}{}{}'.format(s[:front_idx], front_tilde,
+                                        s[front_idx+1:back_idx].replace('_','\_'),
+                                        back_tilde, s[back_idx+1:])
     return '$' + s + '$'
 
 #rcParams['font.family'] = 'sans-serif'
