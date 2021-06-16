@@ -61,7 +61,7 @@ if(YamlCpp_FOUND AND BUILD_PARSER)
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
   endif()
   file(READ include/log2plot/defines.h DEFINES_CURRENT)
-  if(NOT ${DEFINES_CURRENT} STREQUAL ${DEFINES_CONTENT})
+  if(NOT "${DEFINES_CURRENT}" STREQUAL ${DEFINES_CONTENT})
     file(WRITE include/log2plot/defines.h ${DEFINES_CONTENT})
   endif()
 

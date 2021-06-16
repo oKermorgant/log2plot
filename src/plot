@@ -888,7 +888,7 @@ if __name__ == "__main__":
             frame_idx = range(int(args.ae[0]), int(args.ae[0]) + args.v3d*360, 2)
             args.video = max(args.video, 1)
         else:
-            frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1.)/args.video)]
+            frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1)//args.video)]
             # add 2 sec on last frame            
             frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
             
