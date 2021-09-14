@@ -81,7 +81,7 @@ protected:
   static std::string buildLegend(const std::string legend, const unsigned int len);
 
   // calls python to plot this / these files
-  void plotFiles(const std::string &script_path, const std::string &files, bool verbose, bool display);
+  void plotFiles(const std::string &script_path, const std::vector<std::string> &files, bool verbose, bool display);
 
 public:
   // constructor with default values

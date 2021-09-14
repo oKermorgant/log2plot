@@ -161,22 +161,29 @@ void Logger::update(const bool &flush)
 // ***** Plotting functions
 
 // calls python to plot this / these files
-void Logger::plotFiles(const std::string &script_path, const std::string &files, bool verbose, bool display)
+void Logger::plotFiles(const std::string &script_path, const vector<std::string> &files, bool verbose, bool display)
 {
-  string cmdline = "python " + script_path + " " + files;
+  string cmdline = "python " + script_path;
+  string all_files;
+  for(const auto &file: files)
+  {
+    cmdline += " '" + file + "'";
+    all_files += file + " ";
+  }
+
   if(!display)
     cmdline += " --nodisplay &";
   else
     cmdline += " &";
 
   if(verbose)
-    cout << "log2plot: plotting "<< files << endl;
+    cout << "log2plot: plotting "<< all_files << endl;
   UNUSED(system(cmdline.c_str()));
 }
 
 void Logger::plot(bool verbose, bool display)
 {
-  // find source vs install paths of script (I keep it to easily test new plot tools)
+  // find source vs install paths of script (lets us easily test devel plot script)
   if(dirTools::fileExists(LOG2PLOT_SCRIPT_SOURCE))
     plot(LOG2PLOT_SCRIPT_SOURCE, verbose, display);
   else
@@ -186,18 +193,19 @@ void Logger::plot(bool verbose, bool display)
 // Plot a file
 void Logger::plot(const std::string &script_path, bool verbose, bool display)
 {
-  std::vector<uint> plotted_group;
+  vector<uint> plotted_group;
+  vector<string> data_files;
+
   // first plot groups
   for(const auto &group: grouped_vars)
   {
     // build list of files
-    std::stringstream ss;
     for(const auto &idx: group)
     {
       plotted_group.push_back(idx);
-      ss << logged_vars[idx]->close(steps, steps_timed) << " ";
+      data_files.push_back(logged_vars[idx]->close(steps, steps_timed));
     }
-    plotFiles(script_path, ss.str(), verbose, display);
+    plotFiles(script_path, data_files, verbose, display);
   }
 
   // plot non-grouped files
@@ -208,7 +216,7 @@ void Logger::plot(const std::string &script_path, bool verbose, bool display)
                  idx) == plotted_group.end())
     {
       plotFiles(script_path,
-                logged_vars[idx]->close(steps, steps_timed),
+      {logged_vars[idx]->close(steps, steps_timed)},
                 verbose, display);
     }
   }
