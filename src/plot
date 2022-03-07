@@ -194,11 +194,9 @@ args = checkArgs(parser.parse_args())
 # rotation from theta-u
 def Rot(tU):
     th = norm(tU)
-    u = array([1,0,0])
-    if(th != 0):
-        u = tU.copy()/th
-    u.shape = (3,1)
-    R = cos(th)*identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*dot(u,u.transpose())
+    u = array([1,0,0]) if th == 0 else tU.reshape(3)/th
+    u3 = u.reshape(3,1)
+    R = cos(th)*identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*dot(u3,u3.T)
     return matrix(R)
 
 # homogeneous transform matrix
@@ -213,7 +211,7 @@ gMo = Homogeneous(matrix(args.gMo[:3]).reshape(3,1), gRo)
 # change pose (t,theta u) to Fg (3d plot frame)
 def poseToPlotFrame(p, invertPose):
     if args.invertPose or invertPose:
-        oRc = Rot(p[3:]).transpose()
+        oRc = Rot(p[3:]).T
         oTc = -oRc*matrix(p[:3].reshape(3,1))
     else:
         oRc = Rot(p[3:])
@@ -708,12 +706,13 @@ def readFileList(filenames, n=0):
             
             # 3D plot: check for moving or fixed object, change relative pose to absolute plot frame (do it once when reading the file)
             if d['dataType'] == '3D pose':
-                d['data'] = [poseToPlotFrame(p,'invertPose' in d) for p in d['data']]
+                invertPose = d['invertPose'] if 'invertPose' in d else False
+                d['data'] = [poseToPlotFrame(p,invertPose) for p in d['data']]
                 if 'movingObject' in d:
                     obj = d['movingObject']
-                    obj['nodes'] = concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0)
+                    obj['nodes'] = concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0)
                     if 'desiredPose' in obj:
-                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),'invertPose' in d)
+                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),invertPose)
                     obj['keys'] = obj.keys()
                     d['movingObject'] = dictToNamespace(obj)
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
@@ -721,7 +720,7 @@ def readFileList(filenames, n=0):
                     d['fixedObjects'] = []
                     for key in obj_keys:
                         obj = d[key]
-                        obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).transpose(),ones((1,len(obj['nodes'])))),0))[:3,:]
+                        obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0))[:3,:]
                         if 'color' not in obj:
                             obj['color'] = 'b'
                         d['fixedObjects'].append(dictToNamespace(obj))
@@ -732,7 +731,7 @@ def readFileList(filenames, n=0):
                 d['fixedObjects'] = []
                 for key in obj_keys:
                     obj = d[key]
-                    obj['nodes'] = array(obj['nodes']).transpose()
+                    obj['nodes'] = array(obj['nodes']).T
                     if 'color' not in obj:
                         obj['color'] = 'b'
                     d['fixedObjects'].append(dictToNamespace(obj))

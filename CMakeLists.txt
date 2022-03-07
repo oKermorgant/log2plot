@@ -103,6 +103,7 @@ if(BUILD_EXAMPLES)
     # build Eigen example
     find_package(Eigen3 QUIET)
     if(EIGEN3_FOUND)
+        set(CMAKE_CXX_STANDARD 17)
         add_executable(eigen_containers examples/src/eigen_containers.cpp)
         target_include_directories(eigen_containers
           PRIVATE ${EIGEN3_INCLUDE_DIRS} ${INCLUDE_DEPENDS})

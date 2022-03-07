@@ -19,7 +19,7 @@ public:
   ConfigManager(std::string filename) : config_file(filename)
   {
     try {
-    config = YAML::LoadFile(filename);
+      config = YAML::LoadFile(filename);
     } catch (...) {
       throw std::runtime_error("log2plot::ConfigManager: cannot load file \n"
                                "  - file: " + config_file);
@@ -41,8 +41,11 @@ public:
   {
     if(!dirTools::exists(path))
       dirTools::makePath(path);
-    base_dir = path + dirTools::sep;
+    base_dir = path;
+    if(base_dir.back() != dirTools::sep)
+      base_dir += dirTools::sep;
   }
+
   template <class Numeric>
   void addNameElement(std::string pref, Numeric val)
   {
@@ -61,18 +64,11 @@ public:
     return base_dir + base_name;
   }
 
-  void saveConfig(bool actuallySave = true)
+  void saveConfig()
   {
-    if(actuallySave)
-    {
-     /* std::ifstream  src(config_file, std::ios::binary);
-      std::ofstream  dst(fullName() + "_config.yaml",   std::ios::binary);
-      std::cout << "Saving config to " << fullName() + "_config.yaml\n";
-      dst << src.rdbuf();*/
-      std::ofstream  dst(fullName() + "_config.yaml",   std::ios::binary);
-      dst << YAML::Dump(config);
-      dst.close();
-    }
+    std::ofstream  dst(fullName() + "_config.yaml",   std::ios::binary);
+    dst << YAML::Dump(config);
+    dst.close();
   }
 
   // content of configuration file
@@ -104,9 +100,9 @@ public:
   {
     const auto vstr = read<std::string>(tags);
     v = (vstr != "0" &&
-        vstr != "false" &&
-        vstr != "False" &&
-        vstr != "0.");
+                 vstr != "false" &&
+                         vstr != "False" &&
+                                 vstr != "0.");
   }
 
   void read(std::vector<std::string> tags, double & v) const
