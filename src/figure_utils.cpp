@@ -123,7 +123,7 @@ Figure::Figure() : callerID(newCallerID()), ax_tag("ax_" + std::to_string(ax_cou
     run("from mpl_toolkits.mplot3d import axis3d");
     run("from numpy import nan");
     run("pl.switch_backend('tkagg')");
-    // run("pl.ion()");
+    run("pl.ion()");
   }
 }
 

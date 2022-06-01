@@ -80,8 +80,8 @@ void Figure3D::updateLimits(double x, double y, double z)
 Figure3D::Figure3D(bool _invert) : invert(_invert), traj(ax_tag,newCallerID())
 {
   // create new 3D figure
-  run("pl.figure(figsize=(7,7))");
-  run(ax_tag + " = pl.gca(projection='3d')");
+  run("F = pl.figure(figsize=(7,7))");
+  run(ax_tag + " = F.add_subplot(111, projection='3d')");
   run("pl.tight_layout()");
 }
 

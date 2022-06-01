@@ -94,6 +94,7 @@ public:
   void run(const std::string &line, bool required = true);
   void waitExecution()
   {
+    run("pl.draw();");
     // run("pl.pause(0.0001)");
     interp->waitExecution();
   }

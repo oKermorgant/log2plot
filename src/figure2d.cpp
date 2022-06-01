@@ -102,12 +102,13 @@ void Figure2D::refresh()
     redraw_fig = true;
   }
   if(redraw_fig)
-    run(ax_tag + ".figure.canvas.draw()", false);
+    run(ax_tag + ".figure.canvas.draw()", false);    
   else
   {
     for(const auto &line: lines)
       run(ax_tag + ".draw_artist(" + line.tag + ")",false);
   }
+  run(ax_tag + ".figure.canvas.flush_events()", false);
 }
 
 void Figure2D::updateLine(uint idx, double x, double y)

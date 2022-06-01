@@ -163,7 +163,7 @@ void Logger::update(const bool &flush)
 // calls python to plot this / these files
 void Logger::plotFiles(const std::string &script_path, const vector<std::string> &files, bool verbose, bool display)
 {
-  string cmdline = "python " + script_path;
+  string cmdline = "python3 " + script_path;
   string all_files;
   for(const auto &file: files)
   {

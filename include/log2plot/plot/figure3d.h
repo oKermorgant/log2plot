@@ -178,6 +178,7 @@ public:
         edge.scale(scale);
     }
     run(ax_tag + ".figure.canvas.draw()", false);
+    run(ax_tag + ".figure.canvas.flush_events()", false);
   }
 
   void addObject(const std::vector<Vectord> &M,

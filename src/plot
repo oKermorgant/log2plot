@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 
@@ -26,11 +26,11 @@ videoFreeze = 10
 mpl.rc('font', family='sans-serif')
 mpl.rc('text', usetex = True)
 #rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-mpl.rcParams['text.latex.preamble']=[
-    r"\usepackage{amsmath}",
-    r'\usepackage{helvet}',    # set the normal font here
-    r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
-    r'\sansmath']
+mpl.rcParams['text.latex.preamble']=r'''
+\usepackage{amsmath}
+\usepackage{helvet}
+\usepackage{sansmath}
+\sansmath'''
 
 
 def toTex(s, math = True):
@@ -460,7 +460,8 @@ def init3D():
     global F, lines, ax, indMoving
 
     F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]))
-    ax = F.gca(projection='3d')
+    #ax = F.gca(projection='3d')
+    ax = F.add_subplot(111, projection='3d')
     #sp = subplot(1,1,1)
     #sp.set_xticks(array([]))
     #sp.set_yticks(array([]))
@@ -893,6 +894,9 @@ if __name__ == "__main__":
             
         ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
         print('Saving video...')
+        # workaround for MPL versions
+        if not hasattr(animation.writers, 'avail'):
+            setattr(animation.writers, 'avail', animation.writers.list())
         for wrt in ('avconv', 'ffmpeg'):
             if wrt in animation.writers.avail:
                 Writer = animation.writers[wrt]
