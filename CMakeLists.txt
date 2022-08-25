@@ -12,7 +12,6 @@ set(LOG2PLOT_HEADERS
   include/log2plot/generic_container.h
   include/log2plot/container.h
   include/log2plot/logger.h
-  include/log2plot/defines.h
 )
 set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
 
@@ -44,7 +43,7 @@ if(ENABLE_DYNAMIC_PLOT)
     endif()
 endif()
 
-find_package(VISP QUIET COMPONENTS core)
+find_package(VISP COMPONENTS core)
 
 # check YAML for configuration file parser
 find_package(PkgConfig)
@@ -52,17 +51,14 @@ pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
 
-  # add a definition for ViSP being here
-  set(DEFINES_CONTENT "")
+  # add a definition for ViSP being here  
   if(VISP_FOUND)
-    set(DEFINES_CONTENT "#define LOG2PLOT_WITH_VISP")
+    add_definitions(-DLOG2PLOT_WITH_VISP)
     set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
-  endif()
-  file(READ include/log2plot/defines.h DEFINES_CURRENT)
-  if(NOT "${DEFINES_CURRENT}" STREQUAL ${DEFINES_CONTENT})
-    file(WRITE include/log2plot/defines.h ${DEFINES_CONTENT})
+  else()
+    remove_definitions(-DLOG2PLOT_WITH_VISP)
   endif()
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 

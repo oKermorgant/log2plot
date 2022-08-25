@@ -1,7 +1,6 @@
 #ifndef LOG2PLOT_CONFIG_MANAGER_DETAIL_H
 #define LOG2PLOT_CONFIG_MANAGER_DETAIL_H
 
-#include <log2plot/defines.h>
 #ifdef LOG2PLOT_WITH_VISP
 #include <visp/vpHomogeneousMatrix.h>
 #endif

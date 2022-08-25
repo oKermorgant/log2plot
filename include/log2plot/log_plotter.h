@@ -1,7 +1,6 @@
 #ifndef LOG2PLOT_LOG_PLOTTER_H
 #define LOG2PLOT_LOG_PLOTTER_H
 
-#include <log2plot/defines.h>
 #include <log2plot/logger.h>
 #include <log2plot/plot/container_plotter2d.h>
 #include <log2plot/plot/container_plotter3d.h>
