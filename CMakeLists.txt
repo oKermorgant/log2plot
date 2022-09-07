@@ -51,14 +51,20 @@ pkg_check_modules(YamlCpp yaml-cpp)
 
 if(YamlCpp_FOUND AND BUILD_PARSER)
 
-  # add a definition for ViSP being here  
+  # add a definition for ViSP being here
+  set(DEFINES_CONTENT "")
   if(VISP_FOUND)
-    add_definitions(-DLOG2PLOT_WITH_VISP)
+    set(DEFINES_CONTENT "#define LOG2PLOT_WITH_VISP")
     set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
-  else()
-    remove_definitions(-DLOG2PLOT_WITH_VISP)
+  endif()
+
+  file(READ include/log2plot/defines.h DEFINES_CURRENT)
+  string(COMPARE NOTEQUAL "${DEFINES_CURRENT}" "${DEFINES_CONTENT}" DEFINES_NEED_UPDATE)
+  
+  if(DEFINES_NEED_UPDATE)
+    file(WRITE include/log2plot/defines.h ${DEFINES_CONTENT})
   endif()
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 
