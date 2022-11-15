@@ -32,6 +32,15 @@ mpl.rcParams['text.latex.preamble']=r'''
 \usepackage{sansmath}
 \sansmath'''
 
+def set_proc_name(newname):
+    newname = newname.encode()
+    from ctypes import cdll, byref, create_string_buffer
+    libc = cdll.LoadLibrary('libc.so.6')
+    buff = create_string_buffer(len(newname)+1)
+    buff.value = newname
+    libc.prctl(15, byref(buff), 0, 0, 0)
+
+set_proc_name('log2plot')
 
 def toTex(s, math = True):
     if '<' not in s and not math:
@@ -79,7 +88,7 @@ argGal.add_argument('--only', type=int, nargs='+', help='Only plots given curve 
 argGal.add_argument('--fig', type=float, help='Figure dimensions', nargs=2, default=(5,7.5))
 argGal.add_argument('--steps', type=float, nargs='+', help='Will plot vertical lines at given steps', default=())
 argGal.add_argument('--inset', type=float, nargs=8, help='Add inset in 2D plot', default=(0,0,0,0,0,0,0,0))
-
+argGal.add_argument('--equal', action='store_true', help='Scales axes to equal values',default=False)
 
 # Value-related
 argValues = parser.add_argument_group('Value-related options')
@@ -122,7 +131,6 @@ arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert 
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
-arg3Dplot.add_argument('--equal', action='store_true', help='Scales 3D axis to equal values',default=False)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -246,8 +254,11 @@ def init2D():
     if len(dataList) < L:
         L = len(dataList) 
     C = int(float(len(dataList))/L)
-    F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
-    
+    if args.equal:
+        m = max(args.fig[1],args.fig[0])
+        F = figure(figsize=(m,m))
+    else:
+        F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
     # get axes number and limits
     lines = []
     all_ax = []
@@ -280,6 +291,8 @@ def init2D():
         # add first axis
         ax = F.add_subplot(L, C, i+1, autoscale_on=False, xlim=(xMin, xMax), ylim=(yMin-plotMargin*(yMax-yMin), yMax + plotMargin*(yMax-yMin)))
         all_ax.append(ax)
+        if args.equal:
+            ax.set_aspect('equal')
         
         # add vertical lines
         for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):

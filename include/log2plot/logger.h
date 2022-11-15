@@ -22,6 +22,12 @@ std::string legendFullyConnected(const uint n);
 // legend for a fully disconnected graph of n points
 std::string legendFullyDisconnected(const uint n);
 
+// Close all files and call the Python interpreter on the given script path
+inline void closePreviousPlots()
+{
+  [[maybe_unused]] const auto out = system("killall log2plot -q");
+}
+
 // Builds YAML-proof single-lined matrix
 template<class Coord>
 static std::string toYAMLVector(const std::vector<Coord> &M)
@@ -61,7 +67,7 @@ protected:
 
   // related to high-level functions
   unsigned int buff, subsamp, buff_count = 0, iter_count = 0;
-  double * time = nullptr;
+  double * time{};
   std::string time_unit = "s";
   std::vector<double> time_buff;
   std::vector<double> steps, steps_timed;
@@ -69,7 +75,7 @@ protected:
 
   // logger variables and pointer to the last entered
   std::vector<std::unique_ptr<GenericContainer> > logged_vars;
-  GenericContainer* last;
+  GenericContainer* last{};
 
   bool first_update = true;
   uint nb_fixed_objects = 0;
@@ -78,7 +84,7 @@ protected:
   void writeInitialInfo(const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file);
 
   // build explicit legend from implicit
-  static std::string buildLegend(const std::string legend, const unsigned int len);
+  static std::string buildLegend(const std::string &legend, const unsigned int len);
 
   // calls python to plot this / these files
   void plotFiles(const std::string &script_path, const std::vector<std::string> &files, bool verbose, bool display);
@@ -237,7 +243,6 @@ public:
   // Build 3D box nodes depending on dimensions
   static std::vector<std::vector<double> > buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM);
 
-  // Close all files and call the Python interpreter on the given script path
   void plot(const std::string &script_path, bool verbose = false, bool display = true);
   void plot(bool verbose = false, bool display = true);
 

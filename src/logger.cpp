@@ -44,7 +44,7 @@ void Logger::writeInitialInfo(const std::string &name, const std::string &legend
     last->writeInfo("ylabel", ylabel);
 }
 
-std::string Logger::buildLegend(const std::string legend, const unsigned int len)
+std::string Logger::buildLegend(const std::string &legend, const unsigned int len)
 {
   if(legend.substr(0,1) == "[")
     return legend;
