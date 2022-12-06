@@ -304,11 +304,11 @@ def init2D():
                     plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
         
         # set x label
-        if i//C == L-1 and args.noX == False:
+        if i//C == L-1 and not args.noX:
             xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
             
         # set y label
-        if args.noY == False:
+        if not args.noY:
             ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
         
         # add lines
@@ -399,7 +399,7 @@ def init2D():
         ax_in.set_xticks([])
         ax_in.set_yticks([])
         
-        dataSt = dataList[0]        
+        dataSt = dataList[0]
         if 'fixedObjects' in dataSt.keys:
             for obj in dataSt.fixedObjects:
                 for k in obj.graph:
@@ -809,7 +809,7 @@ if __name__ == "__main__":
     if len(args.files) > 1:
         print('Writing metafile ' + fullName + '.' + args.files[0].split('.')[-1])
         with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
-            yaml.dump({'dataType': 'metafile', 'files': args.files}, f, default_flow_style=False)
+            yaml.dump({'dataType': 'metafile', 'files': [os.path.basename(f) for f in args.files]}, f, default_flow_style=False)
             add_args = ' '.join([arg for arg in sys.argv[len(args.files)+1:] if arg != '--nodisplay'])
             if add_args:
                 yaml.dump({'args': add_args}, f, default_flow_style=False)
