@@ -13,7 +13,8 @@ enum class LogType
     ITERATION,
     TIME,
     XY,
-    POSE
+    POSE,
+    TIMED_XY
 };
 
 class GenericContainer
@@ -21,10 +22,11 @@ class GenericContainer
 public:
     GenericContainer(LogType _type) : log_type(_type) {}
 
-    LogType type() const {return log_type;}
+    inline LogType type() const {return log_type;}
+    inline bool isTimed() const {return log_type == LogType::TIME || log_type == LogType::TIMED_XY;}
 
     // opens file stream and write plot type
-    void setFile(std::string s);
+    void setFile(const std::string &s);
     // begin actual data and flush header to file
     virtual void init() = 0;
     // append the stream with current data from actual container

@@ -13,22 +13,22 @@
 namespace log2plot
 {
 
-// legend for a number of points (x_i,y_i)
+/// legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
 
-// legend for a fully connected graph of n points
+/// legend for a fully connected graph of n points
 std::string legendFullyConnected(const uint n);
 
-// legend for a fully disconnected graph of n points
+/// legend for a fully disconnected graph of n points
 std::string legendFullyDisconnected(const uint n);
 
-// Close all files and call the Python interpreter on the given script path
+/// Close all files and call the Python interpreter on the given script path
 inline void closePreviousPlots()
 {
   [[maybe_unused]] const auto out = system("killall log2plot -q");
 }
 
-// Builds YAML-proof single-lined matrix
+/// Builds YAML-proof single-lined matrix
 template<class Coord>
 static std::string toYAMLVector(const std::vector<Coord> &M)
 {
@@ -50,6 +50,7 @@ static std::string toYAMLVector(const std::vector<Coord> &M)
 
 const double nan = std::nan("");
 
+/// set some values of this vector to not a number
 template<class T>
 void setNaN(T& v, uint start = 0, uint end = 0)
 {
@@ -107,58 +108,69 @@ public:
 
   // **** Parameter methods ****
 
-  // Set pointer to time variable
+  /// Set pointer to time variable
   inline void setTime(double &t, const std::string &unit = "s") {time = &t;time_unit = unit;}
-  // number of calls before flushing to file
+  /// number of calls before flushing to file
   inline void setBuffer(unsigned int b) {buff = b;}
-  // if any subsampling
+  /// if any subsampling
   inline void setSubSampling(unsigned int s) {subsamp = s;}
-  // path to files to be saved, can include any prefix for files
-  inline void setSavePath(std::string _file_path) {file_path = _file_path;}
+  /// path to files to be saved, can include any prefix for files
+  inline void setSavePath(const std::string &file_path) {this->file_path = file_path;}
 
   // **** Functions to add new variables to be saved ****
 
-  // Save iteration-based vector
-  template<class T>
-  inline void save(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
+  /// Save iteration-based vector
+  template<class Vector>
+  inline void save(Vector &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::make_unique<Container<T>>(LogType::ITERATION, v));
+    logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::ITERATION, v));
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()), "iterations", ylabel, keep_file);
   }
 
-  // Save time-based vector
-  template<class T>
-  inline void saveTimed(T &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
+  /// Save time-based vector
+  template<class Vector>
+  inline void saveTimed(Vector &v, const std::string &name, const std::string &legend, const std::string &ylabel, bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::make_unique<Container<T>>(LogType::TIME, v));
+    logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::TIME, v));
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()), "time [" + time_unit + "]", ylabel, keep_file);
   }
 
-  // Save XY vector
-  template<class T>
-  inline void saveXY(T &v, const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, bool keep_file = true)
+  /// Save XY vector
+  template<class Vector>
+  inline void saveXY(Vector &v, const std::string &name, const std::string &legend,
+                     const std::string &xlabel="X", const std::string &ylabel="Y", bool keep_file = true)
   {
     // add this to logged variables
-    logged_vars.push_back(std::make_unique<Container<T>>(LogType::XY, v));
+    logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::XY, v));
     // and write initial info
     writeInitialInfo(name, buildLegend(legend, v.size()/2), xlabel, ylabel, keep_file);
   }
 
-  // Save 3D pose or position
-  template<class T>
-  inline void save3Dpose(T &v, const std::string &name, const std::string &legend, bool invert = false, bool keep_file = true)
+  /// Save 3D pose or position
+  template<class Vector>
+  inline void save3Dpose(Vector &v, const std::string &name, const std::string &legend, bool invert = false, bool keep_file = true)
   {
     assert(v.size() == 3 || v.size() == 6);
     // add this to logged variables
-    logged_vars.push_back(std::make_unique<Container<T>>(LogType::POSE, v));
+    logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::POSE, v));
     // and write initial info
     writeInitialInfo(name, "["+legend+"]", "", "", keep_file);
     if(invert)
       last->writeInfo("invertPose", "True");
+  }
+
+  /// save timed XY, only useful with a video output
+  template<class Vector>
+  inline void saveTimedXY(Vector &xy, const std::string &name, const std::string &legend,
+                          const std::string &xlabel="X", const std::string &ylabel="Y", bool keep_file = true)
+  {
+    assert(v.size() % 2 == 0);
+    logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::TIMED_XY, xy));
+    writeInitialInfo(name, buildLegend(legend, 1), xlabel, ylabel, keep_file);
   }
 
   // **** End functions for new variables ****
@@ -175,9 +187,9 @@ public:
   // **** Functions to specify metadata for the last registered variable ****
 
   // Units
-  void setUnits(const std::string units) {last->writeInfo("units", units);}
+  void setUnits(const std::string &units) {last->writeInfo("units", units);}
   // Line types
-  void setLineType(const std::string lineType) {last->writeInfo("lineType", lineType);}
+  void setLineType(const std::string &lineType) {last->writeInfo("lineType", lineType);}
 
   // Dashed steps
   void setSteps(std::vector<double> _steps)

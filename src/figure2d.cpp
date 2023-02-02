@@ -102,7 +102,7 @@ void Figure2D::refresh()
     redraw_fig = true;
   }
   if(redraw_fig)
-    run(ax_tag + ".figure.canvas.draw()", false);    
+    run(ax_tag + ".figure.canvas.draw()", false);
   else
   {
     for(const auto &line: lines)

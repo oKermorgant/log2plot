@@ -46,6 +46,10 @@ Four types of data may be logged:
   * `logger.save3Dpose(v, name, trajectory_name, invert_pose)`
   * `trajectory_name` should be a single string
   * `invert_pose` (default false) allows to log a pose whom inverse will be actually plotted. This can be useful typically when working with a world-to-camera pose but we still want to display the camera-to-world pose afterwards.
+* Timed-XY-based data are defined as {x1, y1, x2, y2, ...}
+  * `logger.saveTimedXY(v, legend, x-label, y-label)`
+  * `legend` should be a YAML-style list with one element
+  * This data type is used to visualize a changing XY curve. Only the video option would be relevant in this case
 
 This will log data into the file: `fileprefix + name + .yaml`
 
@@ -92,7 +96,7 @@ If some (double) logged data is non defined or irrelevant at some point, it is p
 ## Python syntax
 
 The Python module used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line:
-* `python path/to/src/plot <file.yaml>` (if not installed)
+* `python path/to/log2plot/src/plot <file.yaml>` (if not installed)
 * `log2plot <file.yaml>` (if installed)
 
 Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 

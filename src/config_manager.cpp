@@ -56,7 +56,7 @@ std::string ConfigManager::tagPathMessage(TagList tags, std::string msg) const
 }
 
 YAML::Node ConfigManager::finalNode(TagList tags, const YAML::Node &node, size_t idx) const
-{  
+{
   const auto& tag = tags[idx];
   const auto &child = node[tag];
   if(!child)

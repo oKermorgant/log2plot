@@ -17,7 +17,7 @@ public:
     {
         yaml_stream << "    - [";
         // write time if needed
-        if(log_type == LogType::TIME)
+        if(isTimed())
             yaml_stream << *t << ", ";
 
         // write content

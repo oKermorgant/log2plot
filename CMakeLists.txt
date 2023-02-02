@@ -101,6 +101,16 @@ if(BUILD_EXAMPLES)
     add_executable(std_containers examples/src/std_containers.cpp)
     target_include_directories(std_containers PRIVATE ${INCLUDE_DEPENDS})
     target_link_libraries(std_containers log2plot)
+
+    # static 3D objects
+    add_executable(static_3d examples/src/static_3d.cpp)
+    target_include_directories(static_3d PRIVATE ${INCLUDE_DEPENDS})
+    target_link_libraries(static_3d log2plot)
+
+    # timed XY
+    add_executable(timed_xy examples/src/timed_xy.cpp)
+    target_include_directories(timed_xy PRIVATE ${INCLUDE_DEPENDS})
+    target_link_libraries(timed_xy log2plot)
     
     # build Eigen example
     find_package(Eigen3 QUIET)

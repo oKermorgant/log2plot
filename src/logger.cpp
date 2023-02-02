@@ -32,7 +32,7 @@ void Logger::writeInitialInfo(const std::string &name, const std::string &legend
   }
 
   // add time unit if needed
-  if(last->type() == LogType::TIME)
+  if(last->isTimed())
     last->writeInfo("time unit", time_unit);
 
   // additionnal info

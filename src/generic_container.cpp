@@ -3,24 +3,27 @@
 namespace log2plot
 {
 
-void GenericContainer::setFile(std::string s)
+void GenericContainer::setFile(const std::string &s)
 {
   filename = s;
   yaml_stream.open(s, std::ios_base::trunc);
   // set log type in file
   switch(log_type)
   {
-  case(LogType::XY):
-    writeInfo("dataType", "XY");
-    break;
-  case(LogType::ITERATION):
-    writeInfo("dataType", "iteration-based");
-    break;
-  case(LogType::TIME):
-    writeInfo("dataType", "time-based");
-    break;
-  default:
-    writeInfo("dataType", "3D pose");
+    case(LogType::XY):
+      writeInfo("dataType", "XY");
+      break;
+    case(LogType::ITERATION):
+      writeInfo("dataType", "iteration-based");
+      break;
+    case(LogType::TIME):
+      writeInfo("dataType", "time-based");
+      break;
+    case(LogType::TIMED_XY):
+      writeInfo("dataType", "timed-XY");
+      break;
+    case(LogType::POSE):
+      writeInfo("dataType", "3D pose");
   }
 }
 
@@ -31,7 +34,7 @@ void GenericContainer::writeInfo(const std::string &_label, const std::string &_
 
 
 std::string GenericContainer::close(const std::vector<double> &steps,
-                         const std::vector<double> &steps_timed)
+                                    const std::vector<double> &steps_timed)
 {
   if(yaml_stream.is_open())
   {
