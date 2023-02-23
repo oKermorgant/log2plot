@@ -168,7 +168,7 @@ public:
   inline void saveTimedXY(Vector &xy, const std::string &name, const std::string &legend,
                           const std::string &xlabel="X", const std::string &ylabel="Y", bool keep_file = true)
   {
-    assert(v.size() % 2 == 0);
+    assert(xy.size() % 2 == 0);
     logged_vars.push_back(std::make_unique<Container<Vector>>(LogType::TIMED_XY, xy));
     writeInitialInfo(name, buildLegend(legend, 1), xlabel, ylabel, keep_file);
   }
