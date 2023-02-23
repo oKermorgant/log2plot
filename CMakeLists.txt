@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 project(log2plot)
 
 set(CMAKE_BUILD_TYPE Release)
@@ -6,6 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(ENABLE_DYNAMIC_PLOT "ENABLE_DYNAMIC_PLOT" ON)
 option(BUILD_PARSER "BUILD_PARSER" ON)
+option(PYTHON_BINDINGS "PYTHON_BINDINGS" ON)
 
 # main files
 set(LOG2PLOT_HEADERS
@@ -13,6 +14,7 @@ set(LOG2PLOT_HEADERS
   include/log2plot/container.h
   include/log2plot/logger.h
 )
+
 set(LOG2PLOT_SRC src/logger.cpp src/generic_container.cpp)
 
 set(INCLUDE_DEPENDS include)
@@ -82,6 +84,10 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(log2plot SHARED ${LOG2PLOT_HEADERS} ${LOG2PLOT_SRC})
 target_include_directories(log2plot PRIVATE ${INCLUDE_DEPENDS})
 target_link_libraries(log2plot ${LIB_DEPENDS})
+
+if(PYTHON_BINDINGS)
+  set_target_properties(log2plot PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 
 ##############
@@ -158,6 +164,13 @@ install(TARGETS log2plot EXPORT log2plotConfig
     RUNTIME  DESTINATION bin)  
 install(DIRECTORY include/log2plot DESTINATION include)
 install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
+
+# Python wrapper
+if(PYTHON_BINDINGS)
+  execute_process(COMMAND python3 -V OUTPUT_VARIABLE PYTHON_VERSION_FULL)
+  string(REGEX MATCH [0-9]\.[0-9]+ PYTHON_VERSION ${PYTHON_VERSION_FULL})
+  install(FILES src/__init__.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
+endif()
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 

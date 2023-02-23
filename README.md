@@ -92,11 +92,23 @@ The following commands will be applied to the last added variable:
 If some (double) logged data is non defined or irrelevant at some point, it is possible to keep logging but write Not a Number so that it will not be plotted. The syntax is:
 * `v[0] = log2plot::nan;` to erase only one component.
 * `log2plot::setNaN(v, 0, 2);` to erase components 0 and 1 from the v vector or array.
-  
-## Python syntax
 
-The Python module used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line:
-* `python path/to/log2plot/src/plot <file.yaml>` (if not installed)
+## Use from Python code
+
+A basic Python wrapper (only for the `Logger` class) is proposed and installed if `PYTHON_BINDINGS` is set to `True` (default).
+It relies on [`cppyy`](https://cppyy.readthedocs.io/en/latest/).
+
+Please look at the `from_python.py` example. Note that the logged variables have to be underlying C++ objects. The way to do it is:
+ - initialize object: `v = log2plot.Vec(5)` for a vector of dimension 5
+ - save it through your logger : `logger.save(v, path and legends)`
+ - when logging your data e.g. `my_array`, copy it to `v`:
+    - `log2plot.copy(my_array, v)`
+    - `logger.update()`
+  
+## Plotting script syntax
+
+The Python script used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line:
+* `python3 path/to/log2plot/src/plot <file.yaml>` (if not installed)
 * `log2plot <file.yaml>` (if installed)
 
 Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
@@ -110,6 +122,9 @@ In the `examples` folder are shipped 4 use cases:
 * `visp_containers` uses containers from the ViSP library (vpColVector and vpPoseVector) and logs an inverted 3D pose
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
 * `animation` shows how to perform a plot during runtime
+* `timed_xy` is an example of time-varying XY trajectory, only useful if saved as a video
+* `static_3d` shows a 3D plot with only static 3D objects
+* `from_python.py` shows how to use the logger from Python
 
 ## Configuration file parser
 

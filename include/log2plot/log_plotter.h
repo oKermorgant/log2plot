@@ -21,7 +21,7 @@ public:
     Figure::setTargetSampling(dt);
   }
 
-  void setLineType(const std::string lineType)
+  void setLineType(const std::string &lineType)
   {
     last->writeInfo("lineType", lineType);
   }
