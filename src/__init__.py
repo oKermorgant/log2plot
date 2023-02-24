@@ -12,28 +12,21 @@ cppyy.include('log2plot/logger.h')
 cppyy.include('log2plot/config_manager.h')
 cppyy.load_library(install_path + '/lib/liblog2plot.so')
 
-
-class log2plot:
-
-    @staticmethod
-    def Vec(size):
-        '''
-        Initialize an underlying std::vector<double> to be logged
-        '''
-        return cppyy.gbl.std.vector['double']([0 for _ in range(size)])
-
-    @staticmethod
-    def copy(src, dst):
-        '''
-        copy any Python type into the corresponding underlying std::vector
-        does not check sizes, just assumes they match
-        '''
-        for i in range(dst.size()):
-            dst[i] = src[i]
-
-
-methods = dir(cppyy.gbl.log2plot) + ['Logger', 'ConfigManager']
-
-for m in methods:
+# put methods / classes from log2plot C++ namespace into this one
+for m in dir(cppyy.gbl.log2plot) + ['Logger', 'ConfigManager']:
     if not m[0] == '_':
-        setattr(log2plot, m, getattr(cppyy.gbl.log2plot, m))
+        globals()[m] = getattr(cppyy.gbl.log2plot, m)
+
+del m, install_path
+
+# Wrap std::vector<double>
+Vec = cppyy.gbl.std.vector['double']
+
+
+def copy(src, dst: Vec):
+    '''
+    copy any Python type into the corresponding underlying std::vector
+    does not check sizes, just assumes they match
+    '''
+    for i in range(dst.size()):
+        dst[i] = src[i]

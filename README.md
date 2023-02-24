@@ -96,9 +96,10 @@ If some (double) logged data is non defined or irrelevant at some point, it is p
 ## Use from Python code
 
 A basic Python wrapper (only for the `Logger` class) is proposed and installed if `PYTHON_BINDINGS` is set to `True` (default).
-It relies on [`cppyy`](https://cppyy.readthedocs.io/en/latest/).
+It relies on [`cppyy`](https://cppyy.readthedocs.io/en/latest/), install it with: `pip3 install cppyy`.
 
 Please look at the `from_python.py` example. Note that the logged variables have to be underlying C++ objects. The way to do it is:
+ - Initialize the logger: `logger = log2plot.Logger(<base path>)`
  - initialize object: `v = log2plot.Vec(5)` for a vector of dimension 5
  - save it through your logger : `logger.save(v, path and legends)`
  - when logging your data e.g. `my_array`, copy it to `v`:
