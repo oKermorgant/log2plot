@@ -114,7 +114,7 @@ The Python script used to plot the files is in the `src` folder and requires `ma
 
 Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
 
-Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will be used to create a mp4 file showing the plot evolution. 
+Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will be used to create a mp4 file showing the plot evolution. Similarly, passing `--gif` uses pillow or imagemagick to create an animated gif.
 
 ## Examples
 

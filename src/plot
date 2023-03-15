@@ -145,6 +145,7 @@ argVid = parser.add_argument_group('Video options')
 argVid.add_argument('-v', dest='video', type=int, help='Creates a video with given subsampling',default=0)
 argVid.add_argument('--dt', dest='dt', type=float, help='Time step, used to create videos',default=0.04)
 argVid.add_argument('--v3d', dest='v3d', type=int, help='Creates a video by having 3D plot rotate',default=0)
+argVid.add_argument('--gif', action='store_true', help='Video as animated gif instead of mp4',default=False)
 
 
 global args
@@ -189,7 +190,7 @@ def checkArgs(parsed):
 
     avail_legends = ('best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none')
 
-    if parsed.legendLoc == -1:
+    if parsed.legendLoc == '-1':
         parsed.legendLoc = 'none'
     elif parsed.legendLoc.isdigit():
         parsed.legendLoc = int(parsed.legendLoc)
@@ -197,6 +198,8 @@ def checkArgs(parsed):
             parsed.legendLoc = 'best'
         else:
             parsed.legendLoc = avail_legends[parsed.legendLoc]
+    else:
+        parsed.legendLoc = parsed.legendLoc.replace('_',' ')
     parsed.legendLoc = parsed.legendLoc.replace('_', ' ')
     #if parsed.legendLoc not in avail_legends:
     #    print('not in list')
@@ -964,14 +967,29 @@ if __name__ == "__main__":
 
         ani = animation.FuncAnimation(F, fun_refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
         print('Saving video...')
-        # workaround for MPL versions
+
+        Writer = None
+        # find suitable writer
         if not hasattr(animation.writers, 'avail'):
             setattr(animation.writers, 'avail', animation.writers.list())
-        for wrt in ('avconv', 'ffmpeg'):
-            if wrt in animation.writers.avail:
-                Writer = animation.writers[wrt]
+
+        if args.gif:
+            writers = ('pillow', 'imagemagick')
+            ext = 'gif'
+        else:
+            writers = ('avconv','ffmpeg')
+            ext = 'mp4'
+
+        for writer in writers:
+            if writer in animation.writers.avail:
+                Writer = animation.writers[writer]
+                break
+        if Writer is None:
+            print(f'Could not find suitable writer for {ext} files')
+            sys.exit(0)
+
         writer = Writer(fps=1./(args.video*args.dt), bitrate=1800)
-        ani.save(filename= fullName + '.mp4', writer=writer)
+        ani.save(filename= f'{fullName}.{ext}', writer=writer)
         print('time taken: %f' % (time.time() - t))
         #ani.close()
 

@@ -16,7 +16,7 @@ class ConfigManager
   using TagList = const std::vector<std::string> &;
 
 public:
-  ConfigManager(std::string filename) : config_file(filename)
+  explicit ConfigManager(std::string filename) : config_file(filename)
   {
     try {
       config = YAML::LoadFile(filename);
@@ -29,7 +29,7 @@ public:
   void updateFrom(int argc, char**argv, bool warn = false);
 
   template <typename T>
-  void forceParameter(std::string tag, T value)
+  void forceParameter(const std::string &tag, T value)
   {
     const auto tags = toTags(tag);
     if(has(tags))
@@ -37,7 +37,7 @@ public:
   }
 
   // deal with output file names
-  void setDirName(std::string path)
+  void setDirName(const std::string &path)
   {
     if(!dirTools::exists(path))
       dirTools::makePath(path);
@@ -47,7 +47,7 @@ public:
   }
 
   template <class Numeric>
-  void addNameElement(std::string pref, Numeric val)
+  void addNameElement(const std::string &pref, Numeric val)
   {
     std::stringstream ss;
     ss.precision(3);
@@ -74,7 +74,7 @@ public:
   // content of configuration file
 
   // test if tags exist
-  bool has(std::vector<std::string> tags) const
+  bool has(TagList tags) const
   {
     try {
       finalNode(tags);
@@ -85,9 +85,9 @@ public:
   }
   bool has(std::initializer_list<std::string> tags) const
   {
-    return has(std::vector<std::string>(tags));
+    return has(TagList(tags));
   }
-  bool has(std::string tag) const
+  bool has(const std::string &tag) const
   {
     return has(toTags(tag));
   }
@@ -96,7 +96,7 @@ public:
                              std::string msg="") const;
 
   // some specializations
-  void read(std::vector<std::string> tags, bool & v) const
+  void read(TagList tags, bool & v) const
   {
     const auto vstr = read<std::string>(tags);
     v = (vstr != "0" &&
@@ -105,17 +105,18 @@ public:
                                  vstr != "0.");
   }
 
-  void read(std::vector<std::string> tags, double & v) const
+  void read(TagList tags, double & v) const
   {
     v = str2double(read<std::string>(tags));
   }
 
-  void read(std::vector<std::string> tags, std::vector<double> & v) const
+  void read(TagList tags, std::vector<double> & v) const
   {
     const auto vstr = read<std::vector<std::string>>(tags);
     v.clear();
-    for(const auto &val: vstr)
-      v.push_back(str2double(val));
+    v.reserve(vstr.size());
+    std::transform(vstr.begin(), vstr.end(),
+                   std::back_inserter(v), ConfigManager::str2double);
   }
 
   // main reading function from vector of tags
@@ -126,7 +127,7 @@ public:
 #else
   void
 #endif
-  read(std::vector<std::string> tags, T&val) const
+  read(TagList tags, T&val) const
   {
     try {
       val = finalNode(tags).as<T>();
@@ -135,7 +136,7 @@ public:
     }
   }
   template <typename T>
-  T read(std::vector<std::string> tags) const
+  T read(TagList tags) const
   {
     T val;
     read(tags, val);
@@ -144,12 +145,12 @@ public:
 
   // read from simple string
   template <typename T>
-  void read(std::string tag, T&val) const
+  void read(const std::string &tag, T&val) const
   {
     read(toTags(tag), val);
   }
   template <typename T>
-  T read(std::string tag) const
+  T read(const std::string &tag) const
   {
     return read<T>(toTags(tag));
   }
@@ -189,9 +190,9 @@ private:
   YAML::Node finalNode(TagList tags, const YAML::Node &node,
                        size_t idx = 0) const;
 
-  std::vector<std::string> toTags(std::string tag) const;
+  std::vector<std::string> toTags(const std::string &tag) const;
 
-  static double str2double(std::string s);
+  static double str2double(const std::string &s);
 };
 
 }

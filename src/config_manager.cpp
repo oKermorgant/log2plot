@@ -16,7 +16,7 @@ void ConfigManager::updateFrom(int argc, char **argv, bool warn)
   }
 }
 
-std::vector<std::string> ConfigManager::toTags(std::string tag) const
+std::vector<std::string> ConfigManager::toTags(const std::string &tag) const
 {
   std::vector<std::string> tags;
   std::string out;
@@ -69,7 +69,7 @@ YAML::Node ConfigManager::finalNode(TagList tags, const YAML::Node &node, size_t
 
 }
 
-double ConfigManager::str2double(std::string s)
+double ConfigManager::str2double(const std::string &s)
 {
   if(s.size() > 1)
   {
