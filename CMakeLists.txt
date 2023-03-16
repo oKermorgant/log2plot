@@ -48,10 +48,8 @@ endif()
 find_package(VISP COMPONENTS core)
 
 # check YAML for configuration file parser
-find_package(PkgConfig)
-pkg_check_modules(YamlCpp yaml-cpp)
-
-if(YamlCpp_FOUND AND BUILD_PARSER)
+find_package(yaml-cpp)
+if(yaml-cpp_FOUND AND BUILD_PARSER)
 
   # add a definition for ViSP being here
   set(DEFINES_CONTENT "")
