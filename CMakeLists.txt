@@ -74,7 +74,7 @@ if(yaml-cpp_FOUND AND BUILD_PARSER)
   )  
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
-  set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${YamlCpp_INCLUDE_DIRS})
+  set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${yaml-cpp_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
