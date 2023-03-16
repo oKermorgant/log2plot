@@ -55,9 +55,9 @@ public:
     addNameElement(ss.str());
   }
 
-  void addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse = "");
+  void addConditionalNameElement(const std::string &strTrue, bool condition, const std::string &strFalse = "");
 
-  void addNameElement(std::string str);
+  void addNameElement(const std::string &str);
 
   std::string fullName()
   {

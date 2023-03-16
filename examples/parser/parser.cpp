@@ -30,7 +30,7 @@ int main(int argc, char** argv)
   std::cout << "\n\n";
 
   auto bs = config.read<bool>("true");
-  std::cout << "bs = " << bs << std::endl;
+  std::cout << "bs = " << bs << std::endl; 
 
 #ifdef LOG2PLOT_WITH_VISP
   // 4x4 matrix defined by translation + theta-u

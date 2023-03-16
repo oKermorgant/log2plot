@@ -92,7 +92,7 @@ protected:
 
 public:
   // constructor with default values
-  Logger(std::string _file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1)
+  Logger(const std::string &_file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1)
     :  file_path(_file_path), buff(_buffer), subsamp(_subsampling)
   {
     logged_vars.clear();

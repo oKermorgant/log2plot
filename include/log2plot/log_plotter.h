@@ -15,7 +15,7 @@ class LogPlotter : public Logger
   ContainerPlotter *last_plot = nullptr;
 
 public:
-  LogPlotter(std::string _file_path = "", float dt = 0.1, unsigned int _buffer = 10, unsigned int _subsampling = 1)
+  LogPlotter(const std::string &_file_path = "", float dt = 0.1, unsigned int _buffer = 10, unsigned int _subsampling = 1)
     : Logger(_file_path, _buffer, _subsampling)
   {
     Figure::setTargetSampling(dt);

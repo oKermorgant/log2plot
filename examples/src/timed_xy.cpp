@@ -4,11 +4,25 @@ struct VibratingString
 {
   static const int points;
   static const double scale;
+  static constexpr auto dy{.1};
   double n, w, amp;
-  inline auto x(double y, double t) const
+
+  VibratingString(double n, double w ,double amp) : n{n}, w{w}, amp{amp}
   {
-    return amp*(sin(scale*n*y-w*t)+sin(scale*n*y+w*t))/2.;
+    xy.resize(2*points);
+    for(int point = 0; point < VibratingString::points; ++point)
+      xy[2*point+1] = -dy*point;
   }
+
+  inline void update(double t)
+  {
+    for(int point = 0; point < VibratingString::points; ++point)
+    {
+      const auto y{xy[2*point+1]};
+      xy[2*point] = amp*(sin(scale*n*y-w*t)+sin(scale*n*y+w*t))/2;
+    }
+  }
+  std::vector<double> xy;
 };
 
 const int VibratingString::points = 100;
@@ -16,36 +30,29 @@ const double VibratingString::scale = M_PI/(0.1*(points-1));
 
 int main()
 {
-  std::vector<double> xy1(2*VibratingString::points);
-  auto xy2{xy1};
+  VibratingString s1{2, .2, 2};
+  VibratingString s2{3, .3, 1};
+
   double t{};
 
   log2plot::Logger logger(LOG2PLOT_EXAMPLE_PATH);
   logger.setTime(t);
 
   logger.regroupNext(2);
-  logger.saveTimedXY(xy1, "timed_xy1", "[String1]");
+  logger.saveTimedXY(s1.xy, "timed_xy1", "[w=2]");
   logger.setLineType("[C0]");
-  logger.saveTimedXY(xy2, "timed_xy2", "[String2]");
+  logger.saveTimedXY(s2.xy, "timed_xy2", "[w=3]");
   logger.setLineType("[C1]");
-  logger.setPlotArgs("-v 1 --legendLoc 1 --equal");
+  logger.setPlotArgs("-v 1 --legendLoc out --equal");
 
-  const auto dy{.1};
-
-  const VibratingString s1{2, .2, 2};
-  const VibratingString s2{3, .3, 1};
 
   const auto dt{.2};
 
   while(t < 20)
   {
-    for(int point = 0; point < VibratingString::points; ++point)
-    {
-      const auto y{-dy*point};
-      xy1[2*point] = s1.x(y, t);
-      xy2[2*point] = s2.x(y, t);
-      xy1[2*point+1] = xy2[2*point+1] = y;
-    }
+    s1.update(t);
+    s2.update(t);
+
     logger.update();
     t += dt;
   }

@@ -27,7 +27,7 @@ std::vector<std::string> ConfigManager::toTags(const std::string &tag) const
   return tags;
 }
 
-void ConfigManager::addConditionalNameElement(std::string strTrue, bool condition, std::string strFalse)
+void ConfigManager::addConditionalNameElement(const std::string &strTrue, bool condition, const std::string &strFalse)
 {
   if(condition)
     addNameElement(strTrue);
@@ -35,7 +35,7 @@ void ConfigManager::addConditionalNameElement(std::string strTrue, bool conditio
     addNameElement(strFalse);
 }
 
-void ConfigManager::addNameElement(std::string str)
+void ConfigManager::addNameElement(const std::string &str)
 {
   if(str.size())
   {
