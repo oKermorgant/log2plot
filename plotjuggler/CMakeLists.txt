@@ -28,7 +28,7 @@ add_definitions( ${QT_DEFINITIONS} -DQT_PLUGIN )
 find_package(yaml-cpp)
 include_directories(${yaml-cpp-INCLUDE_DIRS})
 
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3)
 
 if(Eigen3_FOUND)
     add_definitions(-DWITH_EIGEN)
