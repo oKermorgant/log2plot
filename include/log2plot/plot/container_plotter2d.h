@@ -69,7 +69,7 @@ public:
       else
         x_coord++;
 
-      // write & display content      
+      // write & display content
       for(uint i=0;i<content->size();++i)
       {
         const double v = (*content)[i];

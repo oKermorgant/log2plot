@@ -5,8 +5,12 @@
 #include <yaml-cpp/parser.h>
 #include <fstream>
 #include <iostream>
-#include <log2plot/config_manager_detail.h>
+
 #include <log2plot/dir_tools.h>
+#include <log2plot/defines.h>
+#ifdef LOG2PLOT_WITH_VISP
+#include <visp/vpHomogeneousMatrix.h>
+#endif
 
 namespace log2plot
 {
@@ -123,7 +127,7 @@ public:
   // prevent access from ViSP class if needed
   template <typename T>
 #ifdef LOG2PLOT_WITH_VISP
-  typename std::enable_if_t<!detail::vpArrayDerived<T>::value, void>
+  typename std::enable_if_t<!std::is_base_of<vpArray2D<double>, T>::value, void>
 #else
   void
 #endif
@@ -169,9 +173,12 @@ public:
 
 #ifdef LOG2PLOT_WITH_VISP
   // can also read vpArray with passed dimensions
-  void read(TagList tags, vpArray2D<double> &M,
-            uint rows = 0, uint cols = 0) const;
-  // special cases for those two
+  void read(TagList tags, vpArray2D<double> &M, uint rows, uint cols) const;
+  inline void read(TagList tags, vpArray2D<double> &M) const
+  {
+    read(tags, M, M.getRows(), M.getCols());
+  }
+  // special cases for those two, may be written in angle-axis
   void read(TagList tags, vpHomogeneousMatrix &M) const;
   void read(TagList tags, vpRotationMatrix &M) const;
 #endif

@@ -23,7 +23,7 @@ In this case a new logger, namely `LogPlotter` can be used instead of `Logger`. 
 
 ## Use from C++ code
 
-Examples can be found in the `examples` folder. The main class is `log2plot::Logger` and should be instanciated with the desired data file path and prefix:  `log2plot::Logger logger(fileprefix)`. If no fileprefix is given then the files will be created in the `/tmp` folder. Shipped examples use the `examples` path at compile time. 
+Examples can be found in the `examples` folder. The main class is `log2plot::Logger` and should be instanciated with the desired data file path and prefix:  `log2plot::Logger logger(fileprefix)`. If no fileprefix is given then the files will be created in the `/tmp` folder. Shipped examples use the `examples` path at compile time.
 
 The logged variables have to be containers of some sort, as long as the following member functions are available:
 * `operator[]` to get the value at a given index
@@ -42,7 +42,7 @@ Four types of data may be logged:
 * XY-based data are defined as {x1, y1, x2, y2, ...}
   * `logger.saveXY(v, legend, x-label, y-label)`
   * `legend` should be a YAML-style list with half the dimension of v`
-* 3D pose data has to be given a 6-components pose vector (as in translation + angle-axis representation). 
+* 3D pose data has to be given a 6-components pose vector (as in translation + angle-axis representation).
   * `logger.save3Dpose(v, name, trajectory_name, invert_pose)`
   * `trajectory_name` should be a single string
   * `invert_pose` (default false) allows to log a pose whom inverse will be actually plotted. This can be useful typically when working with a world-to-camera pose but we still want to display the camera-to-world pose afterwards.
@@ -68,7 +68,7 @@ The following commands will be applied to the last added variable:
 * Units: `logger.setUnits("[unit1, unit2, unit2]");` will save the units for the 3 first components
 * Line styles: `logger.setLineType(["b, g, r--]");`, line styles have to be defined in Matplotlib styles (color + line style)
 * particular time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
-* Steps can also be added while recording with `logger.writeStep();` 
+* Steps can also be added while recording with `logger.writeStep();`
 
 ### 3D pose options
 
@@ -86,8 +86,8 @@ The following commands will be applied to the last added variable:
   * Second element is the moving object (solid green)
   * Third one is for the initial and final poses (solid red)
   * Fourth one is for the desided pose (dashed black)
-  
-### Not a Number 
+
+### Not a Number
 
 If some (double) logged data is non defined or irrelevant at some point, it is possible to keep logging but write Not a Number so that it will not be plotted. The syntax is:
 * `v[0] = log2plot::nan;` to erase only one component.
@@ -105,14 +105,14 @@ Please look at the `from_python.py` example. Note that the logged variables have
  - when logging your data e.g. `my_array`, copy it to `v`:
     - `log2plot.copy(my_array, v)`
     - `logger.update()`
-  
+
 ## Plotting script syntax
 
 The Python script used to plot the files is in the `src` folder and requires `matplotlib`, `YAML`, and `argparse`. It may be useful to re-plot a file with different options. The script can be called from the command line:
 * `python3 path/to/log2plot/src/plot <file.yaml>` (if not installed)
 * `log2plot <file.yaml>` (if installed)
 
-Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option. 
+Many (probably too many) options are available from the command line, call `plot -h` to have a list. Several files can be plotted at the same time, in this case if they have the same y-label their y-axis will be at the same scale. By default they will be plotted in different subplots, but can be plotted in the same plot with the `-g` option.
 
 Videos can be created using the `-v <subsampling>` option. ffmpeg or avconv will be used to create a mp4 file showing the plot evolution. Similarly, passing `--gif` uses pillow or imagemagick to create an animated gif.
 
@@ -129,7 +129,7 @@ In the `examples` folder are shipped 4 use cases:
 
 ## Configuration file parser
 
-If the option `BUILD_PARSER` is set to True (default) then a `log2plot::ConfigManager` class is also available. It allows easy loading of a configuration file written in Yaml through the templated `read` method. 
+If the option `BUILD_PARSER` is set to True (default) then a `log2plot::ConfigManager` class is also available. It allows easy loading of a configuration file written in Yaml through the templated `read` method.
 
 The configuration manager can also generate dynamically suitable names for experimental files through the following methods:
 * `setDirName(std::string s)`

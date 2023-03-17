@@ -51,27 +51,19 @@ find_package(VISP COMPONENTS core)
 find_package(yaml-cpp)
 if(yaml-cpp_FOUND AND BUILD_PARSER)
 
-  # add a definition for ViSP being here
-  set(DEFINES_CONTENT "")
   if(VISP_FOUND)
-    set(DEFINES_CONTENT "#define LOG2PLOT_WITH_VISP")
     set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager_visp.cpp)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
   endif()
+  # add a definition for ViSP being here
+  set(LOG2PLOT_WITH_VISP ${VISP_FOUND})
+  configure_file(cmake/defines.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/log2plot/defines.h)
 
-  file(READ include/log2plot/defines.h DEFINES_CURRENT)
-  string(COMPARE NOTEQUAL "${DEFINES_CURRENT}" "${DEFINES_CONTENT}" DEFINES_NEED_UPDATE)
-  
-  if(DEFINES_NEED_UPDATE)
-    file(WRITE include/log2plot/defines.h ${DEFINES_CONTENT})
-  endif()
-
-  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} 
+  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS}
   include/log2plot/dir_tools.h
   include/log2plot/config_manager.h
-  include/log2plot/config_manager_detail.h
-  )  
+  )
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${yaml-cpp_INCLUDE_DIRS})
@@ -100,7 +92,7 @@ if(BUILD_EXAMPLES)
 
     # default output datafile path
     add_definitions(-DLOG2PLOT_EXAMPLE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/examples/")
-    
+
     # build std containers examples
     add_executable(std_containers examples/src/std_containers.cpp)
     target_include_directories(std_containers PRIVATE ${INCLUDE_DEPENDS})
@@ -115,7 +107,7 @@ if(BUILD_EXAMPLES)
     add_executable(timed_xy examples/src/timed_xy.cpp)
     target_include_directories(timed_xy PRIVATE ${INCLUDE_DEPENDS})
     target_link_libraries(timed_xy log2plot)
-    
+
     # build Eigen example
     find_package(Eigen3 QUIET)
     if(EIGEN3_FOUND)
@@ -159,7 +151,7 @@ endif()
 install(TARGETS log2plot EXPORT log2plotConfig
     ARCHIVE  DESTINATION lib
     LIBRARY  DESTINATION lib
-    RUNTIME  DESTINATION bin)  
+    RUNTIME  DESTINATION bin)
 install(DIRECTORY include/log2plot DESTINATION include)
 install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 

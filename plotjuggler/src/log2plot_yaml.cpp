@@ -62,7 +62,7 @@ bool DataLoadYAML::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_dat
 }
 
 bool DataLoadYAML::readBasic(const RelevantFields &fields)
-{   
+{
   const auto timed{fields.datatype == "time-based"};
   const auto size{fields.legend.size() + timed};
 

@@ -8,7 +8,7 @@ void ConfigManager::read(TagList tags, vpArray2D<double> &M,
 {
   std::vector<std::vector<std::string>> content;
   // try to read as 2-dim
-  uint found_rows(0), found_cols(0);
+  size_t found_rows(0), found_cols(0);
   try
   {
     read(tags, content);
@@ -18,19 +18,23 @@ void ConfigManager::read(TagList tags, vpArray2D<double> &M,
 
   if(found_rows)
   {
-    found_cols = static_cast<uint>(content[0].size());
+    found_cols = content[0].size();
+    if(std::any_of(content.begin(), content.end(), [found_cols](const auto &row){return row.size() != found_cols;}))
+    {
+      throw std::runtime_error(tagPathMessage(tags, "log2plot::ConfigManager::read(vpArray2D): dimension error"));
+    }
     // check dimension
-    for(const auto &row: content)
+    /*for(const auto &row: content)
     {
       if(row.size() != found_cols)
         throw std::runtime_error(tagPathMessage(tags, "log2plot::ConfigManager::read(vpArray2D): dimension error"));
-    }
+    }*/
   }
   else
   {
     content.push_back(read<std::vector<std::string>>(tags));
     found_rows = 1;
-    found_cols = static_cast<uint>(content[0].size());
+    found_cols = content[0].size();
   }
 
   // resize M to passed dimension
@@ -85,7 +89,7 @@ void ConfigManager::read(TagList tags, vpHomogeneousMatrix &M) const
   } catch (...)
   {
     // read as 4x4 matrix
-    read(tags, static_cast<vpArray2D<double>&>(M));
+    read(tags, M, 4, 4);
   }
 }
 
@@ -100,7 +104,7 @@ void ConfigManager::read(TagList tags, vpRotationMatrix &R) const
   } catch (...)
   {
     // read as 3x3 matrix
-    read(tags, static_cast<vpArray2D<double>&>(R));
+    read(tags, R, 3, 3);
   }
 }
 

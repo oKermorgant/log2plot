@@ -15,7 +15,7 @@ pi: PI
     n: 3
     p1: [PI,0,-PI/2]
     p2: [3, -1, 4]
-   
+
 # some visp parsing
 visp:
     cMo: [0,0,1,0.1,0,PI/6]
