@@ -100,9 +100,9 @@ public:
   {
     const auto vstr = read<std::string>(tags);
     v = (vstr != "0" &&
-                 vstr != "false" &&
-                         vstr != "False" &&
-                                 vstr != "0.");
+        vstr != "false" &&
+        vstr != "False" &&
+        vstr != "0.");
   }
 
   void read(TagList tags, double & v) const
@@ -169,11 +169,11 @@ public:
 
 #ifdef LOG2PLOT_WITH_VISP
   // can also read vpArray with passed dimensions
-  void read(std::vector<std::string> tags, vpArray2D<double> &M,
+  void read(TagList tags, vpArray2D<double> &M,
             uint rows = 0, uint cols = 0) const;
   // special cases for those two
-  void read(std::vector<std::string> tags, vpHomogeneousMatrix &M) const;
-  void read(std::vector<std::string> tags, vpRotationMatrix &M) const;
+  void read(TagList tags, vpHomogeneousMatrix &M) const;
+  void read(TagList tags, vpRotationMatrix &M) const;
 #endif
 
 private:

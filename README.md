@@ -140,3 +140,8 @@ The configuration manager can also generate dynamically suitable names for exper
 * `saveConfig()`: saves under `fullName() + _config.yaml`
 
 See the corresponding example in `examples/parser`
+
+## PlotJuggler plugin
+
+YAML files that comply with the `log2plot` representation can be loaded into [PlotJuggler](https://github.com/facontidavide/PlotJuggler) through the plugin available in `plotjuggler` folder.
+See the corresponding readme to compile it.

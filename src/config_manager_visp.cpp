@@ -3,7 +3,7 @@
 namespace log2plot
 {
 
-void ConfigManager::read(std::vector<std::string> tags, vpArray2D<double> &M,
+void ConfigManager::read(TagList tags, vpArray2D<double> &M,
                          const uint rows, const uint cols) const
 {
   std::vector<std::vector<std::string>> content;
@@ -74,7 +74,7 @@ void ConfigManager::read(std::vector<std::string> tags, vpArray2D<double> &M,
   }
 }
 
-void ConfigManager::read(std::vector<std::string> tags, vpHomogeneousMatrix &M) const
+void ConfigManager::read(TagList tags, vpHomogeneousMatrix &M) const
 {
   // try to read as 6-dim vector
   try
@@ -89,7 +89,7 @@ void ConfigManager::read(std::vector<std::string> tags, vpHomogeneousMatrix &M) 
   }
 }
 
-void ConfigManager::read(std::vector<std::string> tags, vpRotationMatrix &R) const
+void ConfigManager::read(TagList tags, vpRotationMatrix &R) const
 {
   // try to read as 3-dim vector
   try
