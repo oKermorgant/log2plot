@@ -3,6 +3,8 @@
 
 int main()
 {
+  // tell log2plot to close currently open plots
+  log2plot::closePreviousPlots();
 
   log2plot::Logger logger(LOG2PLOT_EXAMPLE_PATH);
 

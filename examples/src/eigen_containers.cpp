@@ -2,10 +2,8 @@
 #include <log2plot/logger.h>
 
 int main()
-{
+{    
     Eigen::Vector3d t;
-
-
     log2plot::Logger logger(LOG2PLOT_EXAMPLE_PATH);
 
     // save translation with Latex legend
