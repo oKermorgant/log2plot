@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-project(log2plot2plotjuggler_plugin)
+project(log2plotjuggler)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,7 +27,14 @@ add_definitions( ${QT_DEFINITIONS} -DQT_PLUGIN )
 
 find_package(yaml-cpp)
 include_directories(${yaml-cpp-INCLUDE_DIRS})
-set( PJ_LIBRARIES ${QT_LIBRARIES} yaml-cpp)
+
+find_package(Eigen3 REQUIRED)
+
+if(Eigen3_FOUND)
+    add_definitions(-DWITH_EIGEN)
+endif()
+
+set( PJ_LIBRARIES ${QT_LIBRARIES} yaml-cpp ${EIGEN3_INCLUDE_DIRS})
 
 #--------------------------------------------------------
 #-------------- Build with CATKIN (ROS1) ----------------
@@ -74,19 +81,19 @@ endif()
 
 #------- Create the libraries -------
 
-add_library(log2plot2juggler SHARED src/log2plot_yaml.cpp)
+add_library(log2plotjuggler SHARED src/log2plot_yaml.cpp)
 
-target_link_libraries(log2plot2juggler
+target_link_libraries(log2plotjuggler
     ${PJ_LIBRARIES})
 
 if (COMPILING_WITH_AMENT)
-    ament_target_dependencies(log2plot2juggler plotjuggler)
+    ament_target_dependencies(log2plotjuggler plotjuggler)
 endif()
 #------- Install the libraries -------
 
 install(
     TARGETS
-        log2plot2juggler
+        log2plotjuggler
     DESTINATION
         ${CMAKE_INSTALL_PREFIX})
 

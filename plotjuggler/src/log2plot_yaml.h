@@ -49,7 +49,7 @@ protected:
 
   bool readBasic(const RelevantFields &fields);
   bool readXY(const RelevantFields &fields);
-  bool readPose3D(const RelevantFields &fields);
+  bool readPose3D(const RelevantFields &fields, bool invert_pose = false);
 
 private:
   std::vector<const char*> _extensions = {"yml", "yaml"};
