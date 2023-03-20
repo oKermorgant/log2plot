@@ -462,7 +462,7 @@ def refresh2D(ind = -1):
         ind = dataList[0].rows
     iline = 0
     for i,dataSt in enumerate(dataList):
-        if not dataSt.data:
+        if dataSt.data.shape[0] == 0:
             continue
 
         if dataSt.dataType == DT_TIMED_XY:
@@ -762,7 +762,6 @@ def readFileList(filenames, n=0, base_path = '.'):
                             d['lineType'][i] = defLine[i]
             else:
                 # set default values for 2D plot lineType
-                print(d['data'].shape[1])
                 for i in range(d['data'].shape[1]):
                     if d['lineType'][i] == '':
                         d['lineType'][i] = plot_colors[k%len(plot_colors)] + '-'+ plot_markers[k%len(plot_markers)]
