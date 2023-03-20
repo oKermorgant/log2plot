@@ -63,9 +63,17 @@ public:
 
   void addNameElement(const std::string &str);
 
-  std::string fullName()
+  inline auto fullName() const
   {
     return base_dir + base_name;
+  }
+  inline auto baseName() const
+  {
+    return base_name;
+  }
+  inline auto dirName() const
+  {
+    return base_dir;
   }
 
   void saveConfig()

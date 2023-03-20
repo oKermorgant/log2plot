@@ -85,6 +85,7 @@ argFiles.add_argument('files', metavar='file', type=str, nargs='+', help='Files 
 
 # general args
 argGal = parser.add_argument_group('General options')
+argGal.add_argument('-o', '--out', type=str, help='Output file name',default='')
 argGal.add_argument('-g', '--group', action='store_true', help='Draws the files in the same plot',default=False)
 argGal.add_argument('-L', '--Lines', metavar='lines', type=int, help='Number of subplot lines',default=1)
 argGal.add_argument('--delete', action='store_true', help='Erase the datafile and does not save the figure (ie just displays)', default=False)
@@ -626,7 +627,7 @@ def refresh3D(ind = -1):
     global lines, ax, indMoving
 
     if ind == -1:
-        ind = dataList[0].rows
+        ind = max([d.rows for d in dataList])
 
     iline = 0
     for dataSt in dataList:
@@ -688,7 +689,7 @@ def readFileList(filenames, n=0, base_path = '.'):
                 print(err, filename)
                 sys.exit(0)
 
-        if 'args' in d:    # get args used when creating file
+        if 'args' in d and d['args'] is not None:    # get args used when creating file
             if type(d['args']) == list:
                 d['args'] = ' '.join(d['args'])
             args = checkArgs(parser.parse_args(sys.argv[1:] + d['args'].split()))
@@ -870,15 +871,18 @@ if __name__ == "__main__":
     dataList = readFileList(args.files)
 
     # build baseName
-    baseNames = [os.path.splitext(filename.split('/')[-1])[0] for filename in args.files]
-    baseName = baseNames[0]
-    if len(args.files) > 1:
-        #baseNames = baseNames[1:]
-        nameLen = min([len(b) for b in baseNames])
-        i = 0
-        while i < nameLen and [b[i] for b in baseNames] == [baseName[i]]*len(args.files):
-            i += 1
-        baseName += '_' + '_'.join([b[i:] for b in baseNames[1:]])
+    if not args.out:
+        baseNames = [os.path.splitext(filename.split('/')[-1])[0] for filename in args.files]
+        baseName = baseNames[0]
+        if len(args.files) > 1:
+            #baseNames = baseNames[1:]
+            nameLen = min([len(b) for b in baseNames])
+            i = 0
+            while i < nameLen and [b[i] for b in baseNames] == [baseName[i]]*len(args.files):
+                i += 1
+            baseName += '_' + '_'.join([b[i:] for b in baseNames[1:]])
+    else:
+        baseName = args.out
     fullName = basePath + '/' + baseName
 
     # create metafile if several files, same extension as 1st file
