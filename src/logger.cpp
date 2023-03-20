@@ -90,20 +90,20 @@ void Logger::showMovingObject(const std::vector<std::vector<double> > &M, const 
 }
 
 // 3D plot: fixed 3D-rectangle
-void Logger::showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color)
+void Logger::showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color, const std::string &legend)
 {
-  showFixedObject(buildBoxNodes(xm, ym, zm, xM, yM, zM), "[[0,1],[1,2],[2,3],[3,0],[0,4],[1,5],[2,6],[3,7],[4,5],[5,6],[6,7],[7,4]]", color);
+  showFixedObject(buildBoxNodes(xm, ym, zm, xM, yM, zM), "[[0,1],[1,2],[2,3],[3,0],[0,4],[1,5],[2,6],[3,7],[4,5],[5,6],[6,7],[7,4]]", color, legend);
 }
 
 // 3D plot: fixed 2D-rectangle on Z=0
-void Logger::showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color)
+void Logger::showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color, const std::string &legend)
 {
   vector< vector<double> > M(4,vector<double>(3,0));
   M[0][0] = xM;   M[0][1] = yM;
   M[1][0] = xM;   M[1][1] = ym;
   M[2][0] = xm;   M[2][1] = ym;
   M[3][0] = xm;   M[3][1] = yM;
-  showFixedObject(M, "[[0,1],[1,2],[2,3],[3,0]]", color);
+  showFixedObject(M, "[[0,1],[1,2],[2,3],[3,0]]", color, legend);
 }
 
 

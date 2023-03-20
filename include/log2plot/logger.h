@@ -210,24 +210,27 @@ public:
   // 3D plot: custom object with a (nx3) matrix
   virtual void showMovingObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::vector<double> &desired_pose = {});
   // 3D plot: fixed 3D-box
-  void showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color = "");
+  void showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color = "", const std::string &legend = "");
   // 3D plot: fixed 2D-rectangle on Z=0
-  void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "");
+  void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "", const std::string &legend = "");
   // 3D plot: any fixed object from a list of 3D coordinates (related to object frame)
   template <class Point3D>
-  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "")
+  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
     std::stringstream ss;
     ss << "fixedObject" << ++nb_fixed_objects;
     last->writeInfo(ss.str(), "");
     last->writeInfo("    nodes", toYAMLVector(M));
     last->writeInfo("    graph", graph);
-    if(color!="")
+    if(!color.empty())
       last->writeInfo("    color", color);
+    if(!legend.empty())
+      last->writeInfo("    legend", legend);
+
   }
-  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
+  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
-    showFixedObject<std::vector<double>>(M, graph, color);
+    showFixedObject<std::vector<double>>(M, graph, color, legend);
   }
 
   // **** End metadata functions ****

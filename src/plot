@@ -337,7 +337,7 @@ def init2D():
         if 'fixedObjects' in dataSt.keys:
             for obj in dataSt.fixedObjects:
                 for k in obj.graph:
-                    plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
+                    plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1), label=obj.legend)
 
         # set x label
         if i//C == L-1 and not args.noX:
@@ -441,8 +441,8 @@ def init2D():
         dataSt = dataList[0]
         if 'fixedObjects' in dataSt.keys:
             for obj in dataSt.fixedObjects:
-                for k in obj.graph:
-                    plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1))
+                for i,g in enumerate(obj.graph):
+                    plot2D(obj.nodes[0,g], obj.nodes[1,g], obj.color, linewidth=max(2,args.lineWidth-1), label= obj.legend if i == 0 else None)
         for j in range(dataSt.data.shape[1]):
             if dataSt.dataType == DT_XY:
                 plot2D(dataSt.x[:,j], dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
@@ -462,6 +462,8 @@ def refresh2D(ind = -1):
         ind = dataList[0].rows
     iline = 0
     for i,dataSt in enumerate(dataList):
+        if not dataSt.data:
+            continue
 
         if dataSt.dataType == DT_TIMED_XY:
             if ind < dataList[0].rows:
@@ -551,14 +553,16 @@ def init3D():
 
     for dataSt in dataList:
         # 3D trajectory
-        xyz = array(dataSt.data)[:,:,3]
-        lines += ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
+        if dataSt.data:
+            xyz = array(dataSt.data)[:,:,3]
+            lines += ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
 
         # plot fixed observed object if any - won't move
         if 'fixedObjects' in dataSt.keys:
             for obj in dataSt.fixedObjects:
-                for i in obj.graph:
-                    ax.plot(obj.nodes[0,i], obj.nodes[1,i], obj.nodes[2,i], obj.color, linewidth=max(2,args.lineWidth-1))
+                for i,g in enumerate(obj.graph):
+                    ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
+                            label=obj.legend if i == 0 else None)
         if 'movingObject' in dataSt.keys:
             if 'desiredPose' in dataSt.movingObject.keys:
                 desPoses.append(array(dataSt.movingObject.desiredPose[:3,3]).flatten())
@@ -626,6 +630,8 @@ def refresh3D(ind = -1):
 
     iline = 0
     for dataSt in dataList:
+        if not dataSt.data:
+            continue
         # 3D trajectory
         if ind > 0:
             xyz = array(dataSt.data[:ind])[:,:,3]
@@ -654,7 +660,7 @@ def refresh3D(ind = -1):
                     lines[iline].set_3d_properties(gP[2,i])
                     iline += 1
 
-    if args.legendLoc != 'none':
+    if args.legendLoc != 'none' and any([line.get_label()[0] != '_' for line in ax.lines]):
         lgd = ax.legend(loc=args.legendLoc, ncol = args.legendCol, prop=legendSize, numpoints=1)
     return lines
 
@@ -690,9 +696,13 @@ def readFileList(filenames, n=0, base_path = '.'):
             dataList += readFileList(d['files'],n+1, os.path.dirname(filename))
         else:
             # read data partially or totally
-            if args.index == 0:
-                args.index = len(d['data'])
-            d['data'] = array([[float(v) for v in line] for line in d['data'][:args.index]])
+            has_data = 'data' in d
+            if not has_data:
+                d['data'] = zeros((0,0))
+            else:
+                if args.index == 0:
+                    args.index = len(d['data'])
+                d['data'] = array([[float(v) for v in line] for line in d['data'][:args.index]])
             if args.only != ():
                 d['data'] = d['data'][:,args.only]
             # rescale particular variable
@@ -744,13 +754,15 @@ def readFileList(filenames, n=0, base_path = '.'):
                     d[key] += [''] * (d['data'].shape[1] - len(d[key]))
             # set default values for 3D plot lineType
             if d['dataType'] == DT_POSE:
-                defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r']
-                k += 1
-                for i in range(4):
-                    if d['lineType'][i] == '':
-                        d['lineType'][i] = defLine[i]
+                if has_data:
+                    defLine = [plot_colors[k%len(plot_colors)], plot_colors[k%len(plot_colors)], 'r', 'r']
+                    k += 1
+                    for i in range(4):
+                        if d['lineType'][i] == '':
+                            d['lineType'][i] = defLine[i]
             else:
                 # set default values for 2D plot lineType
+                print(d['data'].shape[1])
                 for i in range(d['data'].shape[1]):
                     if d['lineType'][i] == '':
                         d['lineType'][i] = plot_colors[k%len(plot_colors)] + '-'+ plot_markers[k%len(plot_markers)]
@@ -778,6 +790,7 @@ def readFileList(filenames, n=0, base_path = '.'):
             d['rows'],d['cols'] = d['data'].shape
 
             # 3D plot: check for moving or fixed object, change relative pose to absolute plot frame (do it once when reading the file)
+            fixedObjects = []
             if d['dataType'] == DT_POSE:
                 invertPose = d['invertPose'] if 'invertPose' in d else False
                 d['data'] = [poseToPlotFrame(p,invertPose) for p in d['data']]
@@ -789,26 +802,31 @@ def readFileList(filenames, n=0, base_path = '.'):
                     obj['keys'] = obj.keys()
                     d['movingObject'] = dictToNamespace(obj)
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
-                if len(obj_keys):
-                    d['fixedObjects'] = []
-                    for key in obj_keys:
-                        obj = d[key]
-                        obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0))[:3,:]
-                        if 'color' not in obj:
-                            obj['color'] = 'b'
-                        d['fixedObjects'].append(dictToNamespace(obj))
-                        d.pop(key)
+                for key in obj_keys:
+                    obj = d[key]
+                    obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0))[:3,:]
+                    fixedObjects.append(obj)
+                    d.pop(key)
             else:
                 # check for fixed objects in 2D graph
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
-                d['fixedObjects'] = []
                 for key in obj_keys:
                     obj = d[key]
                     obj['nodes'] = array(obj['nodes']).T
-                    if 'color' not in obj:
-                        obj['color'] = 'b'
-                    d['fixedObjects'].append(dictToNamespace(obj))
+                    fixedObjects.append(obj)
                     d.pop(key)
+
+            # common code to handle fixed objects
+            if len(fixedObjects):
+                d['fixedObjects'] = []
+                for obj in fixedObjects:
+                    if 'graph' not in obj or len(obj['graph']) == 0:
+                        obj['graph'] = [list(range(obj['nodes'].shape[1]))]
+                    if 'color' not in obj:
+                        obj['color'] = 'C0'
+                    if 'legend' not in obj:
+                        obj['legend'] = None
+                    d['fixedObjects'].append(dictToNamespace(obj))
 
             # store existing keys
             d['keys'] = d.keys()

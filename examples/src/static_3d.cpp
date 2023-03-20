@@ -27,15 +27,14 @@ int main()
   std::vector<Point> cloud(40);
 
   std::generate(cloud.begin(), cloud.end(), randomPoint);
-  logger.showFixedObject(cloud, log2plot::legendFullyDisconnected(cloud.size()), "C0d");
+  logger.showFixedObject(cloud, "[]", "C0d", "a discrete object");
 
 
   cloud.resize(10);
   std::generate(cloud.begin(), cloud.end(), randomPoint);
   logger.showFixedObject(cloud, log2plot::legendFullyConnected(cloud.size()), "C1");
 
-  logger.showFixedBox(1, 1, 1, 3, 4, 5, "C2");
+  logger.showFixedBox(1, 1, 1, 3, 4, 5, "C2", "a box");
 
-  logger.update();
   logger.plot();
 }
