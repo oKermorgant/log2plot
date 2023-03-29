@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(log2plot)
 
-set(CMAKE_BUILD_TYPE Release)
-
 option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(ENABLE_DYNAMIC_PLOT "ENABLE_DYNAMIC_PLOT" ON)
 option(BUILD_PARSER "BUILD_PARSER" ON)
