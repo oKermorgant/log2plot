@@ -5,6 +5,7 @@
 #include <yaml-cpp/parser.h>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #include <log2plot/dir_tools.h>
 #include <log2plot/defines.h>
