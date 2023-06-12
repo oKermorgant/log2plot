@@ -153,12 +153,15 @@ install(TARGETS log2plot EXPORT log2plotConfig
 install(DIRECTORY include/log2plot DESTINATION include)
 install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 
-# Python wrapper
+# Python modules
+execute_process(COMMAND python3 -V OUTPUT_VARIABLE PYTHON_VERSION_FULL)
+string(REGEX MATCH [0-9]\.[0-9]+ PYTHON_VERSION ${PYTHON_VERSION_FULL})
+# log2plot wrapper
 if(PYTHON_BINDINGS)
-  execute_process(COMMAND python3 -V OUTPUT_VARIABLE PYTHON_VERSION_FULL)
-  string(REGEX MATCH [0-9]\.[0-9]+ PYTHON_VERSION ${PYTHON_VERSION_FULL})
   install(FILES src/__init__.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 endif()
+# ROS bag converter
+install(FILES src/bag2log.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 
