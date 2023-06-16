@@ -538,7 +538,6 @@ class Plotter3D:
             if 'fixedObjects' in dataSt.keys:
                 for obj in dataSt.fixedObjects:
                     for i,g in enumerate(obj.graph):
-                        print(obj.color, obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g])
                         self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
                                 label=obj.legend if i == 0 else None)
             if 'movingObject' in dataSt.keys:
