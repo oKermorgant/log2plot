@@ -41,7 +41,7 @@ void ConfigManager::addNameElement(const std::string &str)
   {
     if(base_name.size())
       base_name += "_";
-    base_name += str;
+    base_name += str;    
   }
 }
 

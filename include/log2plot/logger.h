@@ -222,11 +222,11 @@ public:
     last->writeInfo(ss.str(), "");
     last->writeInfo("    nodes", toYAMLVector(M));
     last->writeInfo("    graph", graph);
-    if(!color.empty())
+    if(!color.empty())      
       last->writeInfo("    color", color);
     if(!legend.empty())
       last->writeInfo("    legend", legend);
-
+    last->flush();
   }
   virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {

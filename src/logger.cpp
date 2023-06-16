@@ -254,7 +254,7 @@ std::string legendFullyDisconnected(const uint n)
 {
   std::vector<std::vector<uint>> M;
   for(uint i = 0; i < n; ++i)
-    M.push_back({i,i});
+    M.push_back({i});
   return toYAMLVector(M);
 }
 }
