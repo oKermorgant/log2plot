@@ -895,16 +895,27 @@ if __name__ == "__main__":
         dataMain = dataList[0]
         for dataSt in dataList[1:]:
             if dataSt.dataType != dataMain.dataType:
-                print('Warning, trying to group {} and {}'.format(dataMain.dataType, dataSt.dataType))
+                print(f'Warning, trying to group {dataMain.dataType} and {dataSt.dataType}')
             if dataSt.ylabel != dataMain.ylabel:
-                print('Warning, trying to group with different ylabels: {} vs {}'.format(dataMain.ylabel, dataSt.ylabel))
+                print(f'Warning, trying to group with different ylabels: {dataMain.ylabel} vs {dataSt.ylabel}')
                 dataMain.ylabel = ''
             if shape(dataSt.data)[0] != shape(dataMain.data)[0]:
-                print('Trying to group data with different lengths: {} vs {} - aborting'.format(shape(dataMain.data)[0], shape(dataSt.data)[0]))
-                sys.exit(0)
+                print(f'Trying to group data with different lengths: {shape(dataMain.data)[0]} vs {shape(dataSt.data)[0]}')
+                rows = max(shape(dataSt.data)[0], shape(dataMain.data)[0])
+
+                def fillWithNans(arr):
+                    nans = empty((rows-arr.shape[0],arr.shape[1]))
+                    nans[:] = nan
+                    arr = vstack((arr, nans))
+                    return arr
+
+                if rows == shape(dataSt.data)[0]:
+                    dataMain.data = fillWithNans(dataMain.data)
+                else:
+                    dataSt.data = fillWithNans(dataSt.data)
 
             # ok, concatenate data, legends, lineTypes and units
-            dataMain.data = concatenate((dataMain.data, dataSt.data),1)
+            dataMain.data = hstack((dataMain.data, dataSt.data))
             dataMain.legend += dataSt.legend
             dataMain.lineType += dataSt.lineType
         dataList = [dataMain]
