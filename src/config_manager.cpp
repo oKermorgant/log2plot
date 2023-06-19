@@ -1,8 +1,19 @@
 #include <log2plot/config_manager.h>
+#include <filesystem>
 #include <math.h>
 
 namespace log2plot
 {
+
+constexpr auto sep{std::filesystem::path::preferred_separator};
+
+void ConfigManager::setDirName(const std::string &path)
+{
+  std::filesystem::create_directories(path);
+  base_dir = path;
+  if(base_dir.back() != sep)
+    base_dir += sep;
+}
 
 void ConfigManager::updateFrom(int argc, char **argv, bool warn)
 {

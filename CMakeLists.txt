@@ -58,10 +58,7 @@ if(yaml-cpp_FOUND AND BUILD_PARSER)
   set(LOG2PLOT_WITH_VISP ${VISP_FOUND})
   configure_file(cmake/defines.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/log2plot/defines.h)
 
-  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS}
-  include/log2plot/dir_tools.h
-  include/log2plot/config_manager.h
-  )
+  set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} include/log2plot/config_manager.h)
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${yaml-cpp_INCLUDE_DIRS})

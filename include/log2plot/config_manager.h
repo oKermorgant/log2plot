@@ -7,7 +7,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <log2plot/dir_tools.h>
 #include <log2plot/defines.h>
 #ifdef LOG2PLOT_WITH_VISP
 #include <visp/vpHomogeneousMatrix.h>
@@ -42,14 +41,7 @@ public:
   }
 
   // deal with output file names
-  void setDirName(const std::string &path)
-  {
-    if(!dirTools::exists(path))
-      dirTools::makePath(path);
-    base_dir = path;
-    if(base_dir.back() != dirTools::sep)
-      base_dir += dirTools::sep;
-  }
+  void setDirName(const std::string &path);
 
   template <class Numeric>
   void addNameElement(const std::string &pref, Numeric val)

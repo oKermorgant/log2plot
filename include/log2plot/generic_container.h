@@ -26,7 +26,7 @@ public:
     inline bool isTimed() const {return log_type == LogType::TIME || log_type == LogType::TIMED_XY;}
 
     // opens file stream and write plot type
-    void setFile(const std::string &s);
+    void setFile(const std::string &file);
     // begin actual data and flush header to file
     virtual void init() = 0;
     // append the stream with current data from actual container

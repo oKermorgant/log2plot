@@ -1,8 +1,9 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <filesystem>
 #include <log2plot/logger.h>
-#include <log2plot/dir_tools.h>
+
 
 namespace log2plot
 {
@@ -184,7 +185,7 @@ void Logger::plotFiles(const std::string &script_path, const vector<std::string>
 void Logger::plot(bool verbose, bool display)
 {
   // find source vs install paths of script (lets us easily test devel plot script)
-  if(dirTools::fileExists(LOG2PLOT_SCRIPT_SOURCE))
+  if(std::filesystem::exists(LOG2PLOT_SCRIPT_SOURCE))
     plot(LOG2PLOT_SCRIPT_SOURCE, verbose, display);
   else
     plot(LOG2PLOT_SCRIPT_INSTALL, verbose, display);

@@ -2,7 +2,6 @@
 #include <visp/vpHomogeneousMatrix.h>
 #include <visp/vpExponentialMap.h>
 #include <log2plot/logger.h>
-#include <log2plot/dir_tools.h>
 
 int main()
 {

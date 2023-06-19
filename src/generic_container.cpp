@@ -1,12 +1,15 @@
 #include <log2plot/generic_container.h>
+#include <filesystem>
 
 namespace log2plot
 {
 
-void GenericContainer::setFile(const std::string &s)
+void GenericContainer::setFile(const std::string &file)
 {
-  filename = s;
-  yaml_stream.open(s, std::ios_base::trunc);
+  filename = file;
+  std::filesystem::create_directories(std::filesystem::path(file).parent_path());
+
+  yaml_stream.open(file, std::ios_base::trunc);
   // set log type in file
   switch(log_type)
   {
