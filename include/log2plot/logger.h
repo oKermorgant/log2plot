@@ -221,7 +221,8 @@ public:
     ss << "fixedObject" << ++nb_fixed_objects;
     last->writeInfo(ss.str(), "");
     last->writeInfo("    nodes", toYAMLVector(M));
-    last->writeInfo("    graph", graph);
+    if(!graph.empty())
+      last->writeInfo("    graph", graph);
     if(!color.empty())      
       last->writeInfo("    color", color);
     if(!legend.empty())
