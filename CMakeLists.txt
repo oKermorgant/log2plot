@@ -34,7 +34,8 @@ if(ENABLE_DYNAMIC_PLOT)
         src/figure_utils.cpp
         src/figure2d.cpp
         src/figure3d.cpp
-        src/container_plotter.cpp)
+        src/container_plotter.cpp
+        src/loader.cpp)
 
       set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
       set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS})

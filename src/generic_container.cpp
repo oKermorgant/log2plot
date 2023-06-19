@@ -27,6 +27,8 @@ void GenericContainer::setFile(const std::string &file)
       break;
     case(LogType::POSE):
       writeInfo("dataType", "3D pose");
+    default:
+      break;
   }
 }
 

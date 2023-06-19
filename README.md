@@ -93,6 +93,12 @@ If some (double) logged data is non defined or irrelevant at some point, it is p
 * `v[0] = log2plot::nan;` to erase only one component.
 * `log2plot::setNaN(v, 0, 2);` to erase components 0 and 1 from the v vector or array.
 
+## Reload existing log file
+
+The `log2plot/loader.h` header defines a `log2plot::Log` class that takes a file path in the constructor.
+
+The resulting `Log` will get data from the file, allowing to re-process or re-populate it if needed
+
 ## Use from Python code
 
 A basic Python wrapper (only for the `Logger` class) is proposed and installed if `PYTHON_BINDINGS` is set to `True` (default).

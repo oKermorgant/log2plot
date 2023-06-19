@@ -4,18 +4,10 @@
 #include <fstream>
 #include <vector>
 #include <memory>
-
+#include <log2plot/log_types.h>
 
 namespace log2plot
 {
-enum class LogType
-{
-    ITERATION,
-    TIME,
-    XY,
-    POSE,
-    TIMED_XY
-};
 
 class GenericContainer
 {

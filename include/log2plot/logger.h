@@ -13,6 +13,8 @@
 namespace log2plot
 {
 
+enum class Surface{None, Tri, Hull};
+
 /// legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
 
@@ -215,7 +217,7 @@ public:
   void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "", const std::string &legend = "");
   // 3D plot: any fixed object from a list of 3D coordinates (related to object frame)
   template <class Point3D>
-  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
+  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "", Surface surface = Surface::None)
   {
     std::stringstream ss;
     ss << "fixedObject" << ++nb_fixed_objects;
@@ -227,11 +229,15 @@ public:
       last->writeInfo("    color", color);
     if(!legend.empty())
       last->writeInfo("    legend", legend);
+    if(surface == Surface::Hull)
+      last->writeInfo("    surface", "hull");
+    if(surface == Surface::Tri)
+      last->writeInfo("    surface", "tri");
     last->flush();
   }
-  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
+  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "", Surface surface = Surface::None)
   {
-    showFixedObject<std::vector<double>>(M, graph, color, legend);
+    showFixedObject<std::vector<double>>(M, graph, color, legend, surface);
   }
 
   // **** End metadata functions ****
