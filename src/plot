@@ -515,7 +515,7 @@ class Plotter3D:
 
         self.F = figure(figsize=(1.7*args.fig[0],1.5*args.fig[0]))
         self.ax = self.F.add_subplot(111, projection='3d')
-        self.F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+        self.F.tight_layout(pad=.1,h_pad=.9,w_pad=.9)
         self.ax.view_init(args.ae[1],args.ae[0])
 
         # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
@@ -557,12 +557,13 @@ class Plotter3D:
                             for i,g in enumerate(obj.graph):
                                 self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], color, linewidth=max(2,args.lineWidth-1),
                                         label=obj.legend if i == 0 else None)
-                        nodes = obj.nodes.T
+
+                        # remove duplicates to ease triangulation
+                        nodes = array(list(set([tuple(node) for node in obj.nodes.T])))
 
                         if thr < 0:
                             # convex hull
                             from scipy.spatial import ConvexHull
-                            nodes = obj.nodes.T
                             poly = nodes[ConvexHull(nodes).simplices]
                         else:
                             # triangulation
@@ -613,7 +614,7 @@ class Plotter3D:
         self.ax.set_ylim3d([lim3D[2],lim3D[3]])
         self.ax.set_zlim3d([lim3D[4],lim3D[5]])
 
-        self.ax.xaxis.labelpad = self.ax.yaxis.labelpad = 15
+        self.ax.xaxis.labelpad = self.ax.yaxis.labelpad = self.ax.zaxis.labelpad = 15
         self.ax.zaxis.set_rotate_label(False)
 
         #if args.v3d:
@@ -935,7 +936,15 @@ if __name__ == "__main__":
         print('Writing metafile ' + fullName + '.' + args.files[0].split('.')[-1])
         with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
             yaml.dump({'dataType': 'metafile', 'files': [os.path.basename(f) for f in args.files]}, f, default_flow_style=False)
-            add_args = ' '.join([arg for arg in sys.argv[len(args.files)+1:] if arg != '--nodisplay'])
+            add_args = ''
+            for a in range(len(args.files)+1, len(sys.argv)):
+                arg = sys.argv[a]
+                if arg == '--nodisplay':
+                    continue
+                if arg == '-o':
+                    a += 1
+                    continue
+                add_args += ' ' + arg
             if add_args:
                 yaml.dump({'args': add_args}, f, default_flow_style=False)
 
