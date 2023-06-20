@@ -6,6 +6,7 @@ import sys
 import os
 import matplotlib as mpl
 from matplotlib import animation
+from mpl_toolkits import mplot3d
 import argparse
 import yaml
 import time
@@ -528,6 +529,18 @@ class Plotter3D:
         self.lines = []
         self.desPoses = []
 
+        def nmin(a, b):
+            if a is None:
+                return b
+            return min(a,b)
+
+        def nmax(a, b):
+            if a is None:
+                return b
+            return max(a,b)
+
+        lim3D = [None for _ in range(6)]
+
         for dataSt in dataList:
             # 3D trajectory
             if dataSt.data:
@@ -536,10 +549,35 @@ class Plotter3D:
 
             # plot fixed observed object if any - won't move
             if 'fixedObjects' in dataSt.keys:
+
+                def simplify(color):
+                    from matplotlib.colors import to_rgba
+
+                    for p in ('-','--','-.',':','.',',','o','v','^','<','>','1','2','3','4','s','p','*','h','H','+','x','D','d','|','_'):
+                        if not p.isdigit() or (p.isdigit() and color[0] != 'C'):
+                            color = color.replace(p, '')
+                    return to_rgba(color, .5)
+
                 for obj in dataSt.fixedObjects:
-                    for i,g in enumerate(obj.graph):
-                        self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
-                                label=obj.legend if i == 0 else None)
+
+                    for idx in range(3):
+                        lim3D[2*idx] = nmin(lim3D[2*idx], amin(obj.nodes[idx]))
+                        lim3D[2*idx+1] = nmax(lim3D[2*idx+1], amax(obj.nodes[idx]))
+
+                    if obj.surface == 'hull':
+                        from scipy.spatial import ConvexHull
+                        nodes = obj.nodes.T
+                        hull = ConvexHull(nodes)
+                        faces = mplot3d.art3d.Poly3DCollection(nodes[hull.simplices])
+                        faces.set_color(simplify(obj.color))
+                        self.ax.add_collection3d(faces)
+
+                    elif obj.surface == 'tri':
+                        self.ax.plot_trisurf(obj.nodes[0],obj.nodes[1], obj.nodes[2], color = simplify(obj.color))
+                    else:
+                        for i,g in enumerate(obj.graph):
+                            self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
+                                    label=obj.legend if i == 0 else None)
             if 'movingObject' in dataSt.keys:
                 if 'desiredPose' in dataSt.movingObject.keys:
                     self.desPoses.append(array(dataSt.movingObject.desiredPose[:3,3]).flatten())
@@ -547,13 +585,12 @@ class Plotter3D:
         # 3D axes limits and object scaling (I)
 
         # get axes limits
-        lim3D = array([self.ax.get_xlim3d(), self.ax.get_ylim3d(), self.ax.get_zlim3d()]).reshape(6)
         # update according to desired pose if any
         for desPose in self.desPoses:
             x,y,z = desPose
             for idx in range(3):
-                lim3D[2*idx] = min(lim3D[2*idx], desPose[idx])
-                lim3D[2*idx+1] = max(lim3D[2*idx+1], desPose[idx])
+                lim3D[2*idx] = nmin(lim3D[2*idx], desPose[idx])
+                lim3D[2*idx+1] = nmax(lim3D[2*idx+1], desPose[idx])
 
         dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in range(3)]) # max range
 
@@ -815,6 +852,8 @@ def readFileList(filenames, n=0, base_path = '.'):
                         obj['color'] = 'C0'
                     if 'legend' not in obj:
                         obj['legend'] = None
+                    if 'surface' not in obj:
+                        obj['surface'] = None
                     d['fixedObjects'].append(dictToNamespace(obj))
 
             # store existing keys
