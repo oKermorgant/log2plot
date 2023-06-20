@@ -1,5 +1,6 @@
 #include <log2plot/loader.h>
 #include <yaml-cpp/yaml.h>
+#include <iostream>
 
 using namespace log2plot;
 
@@ -26,7 +27,7 @@ Log::Log(const std::string &path)
     Loader::load(root["invertPose"], invert_pose);
 
   // look for fixed objects
-  uint i = 1;
+  uint i{};
   while(++i)
   {
     const auto key{"fixedObject" + std::to_string(i)};

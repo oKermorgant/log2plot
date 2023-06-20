@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <log2plot/log_types.h>
-#include <memory>
 
 namespace log2plot
 {
