@@ -127,16 +127,18 @@ argLegendLabel.add_argument('--legendLoc', metavar='location', type=str, help='L
 argLegendLabel.add_argument('--legendCol', metavar='columns', type=int, help='Legend columns',default=1)
 argLegendLabel.add_argument('--legendMax', metavar='max legends', type=int, help='Max number of lines to display legend',default=6)
 argLegendLabel.add_argument('--legend', metavar='legend', nargs='+', type=str, help='Rename the plots when drawing several curves, works for XY and 3D plots', default=())
-argLegendLabel.add_argument('--noY', action='store_true', help='Does not display Y label',default=False)
-argLegendLabel.add_argument('--noYa', action='store_true', help='Does not display Y values',default=False)
-argLegendLabel.add_argument('--noX', action='store_true', help='Does not display X label',default=False)
+argLegendLabel.add_argument('--hideLabel', type=str, nargs='+', help='Hide labels of given axes (x,y,z)',default=[])
+argLegendLabel.add_argument('--hideAxis', type=str, nargs='+', help='Hide axis ticks of given axes (x,y,z)',default=[])
+#argLegendLabel.add_argument('--noY', action='store_true', help='Does not display Y label',default=False)
+#argLegendLabel.add_argument('--noYa', action='store_true', help='Does not display Y values',default=False)
+#argLegendLabel.add_argument('--noX', action='store_true', help='Does not display X label',default=False)
 argLegendLabel.add_argument('--no0', action='store_true', help='Does not display 0-x axis',default=False)
 argLegendLabel.add_argument('--twin', metavar='index', type=int, help='Separate y-axis after index', default=-1)
 argLegendLabel.add_argument('--twinLabel', metavar='index', type=str, help='y-label of new axis', default='')
 
 # 3D plot args
 arg3Dplot = parser.add_argument_group('3D plot options')
-arg3Dplot.add_argument('--afmacMf', action='store_true', help='Pose comes from Afma6 cMf()',default=False)
+#arg3Dplot.add_argument('--afmacMf', action='store_true', help='Pose comes from Afma6 cMf()',default=False)
 arg3Dplot.add_argument('-i', '--invertPose', action='store_false', help='Invert the pose for 3D plot)',default=False)
 arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes frame transformation matrix for 3D plot (t, thetaU)',default=(0,0,0,0,0,0))
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
@@ -169,8 +171,6 @@ def checkArgs(parsed):
 
     plot2D = plot
 
-    if parsed.noYa:
-        parsed.noY = True;
     if parsed.twin != -1:
         parsed.group = True
     if parsed.white:
@@ -179,9 +179,6 @@ def checkArgs(parsed):
         mpl.rc('axes', edgecolor='black')
     if parsed.video > 0:
         parsed.lineWidth = 4
-    if parsed.afmacMf:
-        parsed.invertPose = True
-        parsed.gMo = (0,0,0,0,pi,0)
     if parsed.group:
         parsed.Lines = 1
     if parsed.logX:
@@ -189,6 +186,9 @@ def checkArgs(parsed):
     elif parsed.logY:
         plot2D = semilogy
         plotMargin = 0
+
+    parsed.hideLabel = [c.lower() for c in parsed.hideLabel]
+    parsed.hideAxis = [c.lower() for c in parsed.hideAxis]
 
     avail_legends = ('best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none')
 
@@ -204,6 +204,12 @@ def checkArgs(parsed):
     return parsed
 
 args = checkArgs(parser.parse_args())
+
+
+def showLabel(axis):
+    return axis not in args.hideLabel
+def showAxis(axis):
+    return axis not in args.hideAxis
 
 
 # rotation from theta-u
@@ -335,11 +341,11 @@ class Plotter2D:
                         plot2D(obj.nodes[0,k], obj.nodes[1,k], obj.color, linewidth=max(2,args.lineWidth-1), label=obj.legend)
 
             # set x label
-            if i//C == L-1 and not args.noX:
+            if i//C == L-1 and showLabel('x'):
                 xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
 
             # set y label
-            if not args.noY:
+            if showLabel('y'):
                 ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
 
             # add lines
@@ -376,13 +382,13 @@ class Plotter2D:
 
         # correct font / display legend on all found axes
         for ax in self.all_ax:
-            for ti in ax.get_xticklabels():
-                ti.set_fontsize(args.fontSize-1+args.fontAxes)
-            if args.noYa:
-                ax.set_yticks([])
-            else:
-                for ti in ax.get_yticklabels():
-                    ti.set_fontsize(args.fontSize+args.fontAxes)
+
+            for xy in 'xy':
+                if showAxis(xy):
+                    for ti in getattr(ax, f'get_{xy}ticklabels')():
+                        ti.set_fontsize(args.fontSize+args.fontAxes - (xy == 'x'))
+                else:
+                    getattr(ax, f'set_{xy}ticks')([])
 
         # add inset if needed - only for a single dataStruct
         if len(self.all_ax) == 1 and args.inset.count(0) != 8:
@@ -507,19 +513,10 @@ class Plotter3D:
 
     def __init__(self):
 
-        self.F = figure(figsize=(1.5*args.fig[0],1.5*args.fig[0]))
-        #ax = F.gca(projection='3d')
+        self.F = figure(figsize=(1.7*args.fig[0],1.5*args.fig[0]))
         self.ax = self.F.add_subplot(111, projection='3d')
-        #sp = subplot(1,1,1)
-        #sp.set_xticks(array([]))
-        #sp.set_yticks(array([]))
         self.F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
-        #ax = Axes3D(F, rect=sp.get_position())
         self.ax.view_init(args.ae[1],args.ae[0])
-        objectPoses = []
-
-        #F.patch.set_visible(False)
-        #ax.patch.set_visible(False)
 
         # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
         p = 2
@@ -529,55 +526,63 @@ class Plotter3D:
         self.lines = []
         self.desPoses = []
 
-        def nmin(a, b):
-            if a is None:
-                return b
-            return min(a,b)
+        lim3D = [nan for _ in range(6)]
 
-        def nmax(a, b):
-            if a is None:
-                return b
-            return max(a,b)
-
-        lim3D = [None for _ in range(6)]
+        def updateLim(xyz):
+            for idx in range(3):
+                lim3D[2*idx] = nanmin(xyz[idx], initial = lim3D[2*idx])
+                lim3D[2*idx+1] = nanmax(xyz[idx], initial = lim3D[2*idx+1])
 
         for dataSt in dataList:
             # 3D trajectory
             if dataSt.data:
-                xyz = array(dataSt.data)[:,:,3]
-                self.lines += self.ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
+                xyz = array(dataSt.data)[:,:,3].T
+                self.lines += self.ax.plot(xyz[0], xyz[1], xyz[2], dataSt.lineType[0], label=dataSt.legend[0],linewidth=args.lineWidth)
+                updateLim(xyz)
 
             # plot fixed observed object if any - won't move
             if 'fixedObjects' in dataSt.keys:
 
-                def simplify(color):
-                    from matplotlib.colors import to_rgba
-
-                    for p in ('-','--','-.',':','.',',','o','v','^','<','>','1','2','3','4','s','p','*','h','H','+','x','D','d','|','_'):
-                        if not p.isdigit() or (p.isdigit() and color[0] != 'C'):
-                            color = color.replace(p, '')
-                    return to_rgba(color, .5)
-
                 for obj in dataSt.fixedObjects:
 
-                    for idx in range(3):
-                        lim3D[2*idx] = nmin(lim3D[2*idx], amin(obj.nodes[idx]))
-                        lim3D[2*idx+1] = nmax(lim3D[2*idx+1], amax(obj.nodes[idx]))
+                    updateLim(obj.nodes)
 
-                    if obj.surface == 'hull':
-                        from scipy.spatial import ConvexHull
-                        nodes = obj.nodes.T
-                        hull = ConvexHull(nodes)
-                        faces = mplot3d.art3d.Poly3DCollection(nodes[hull.simplices])
-                        faces.set_color(simplify(obj.color))
-                        self.ax.add_collection3d(faces)
-
-                    elif obj.surface == 'tri':
-                        self.ax.plot_trisurf(obj.nodes[0],obj.nodes[1], obj.nodes[2], color = simplify(obj.color))
-                    else:
+                    if obj.surface is None:
                         for i,g in enumerate(obj.graph):
                             self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
                                     label=obj.legend if i == 0 else None)
+                    else:
+                        alpha, thr, color = obj.surface
+                        if color:
+                            for i,g in enumerate(obj.graph):
+                                self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], color, linewidth=max(2,args.lineWidth-1),
+                                        label=obj.legend if i == 0 else None)
+                        nodes = obj.nodes.T
+
+                        if thr < 0:
+                            # convex hull
+                            from scipy.spatial import ConvexHull
+                            nodes = obj.nodes.T
+                            poly = nodes[ConvexHull(nodes).simplices]
+                        else:
+                            # triangulation
+                            import pyvista as pv
+                            cloud = pv.PolyData(nodes)
+                            volume = cloud.delaunay_3d(alpha=thr)
+                            shell = volume.extract_geometry()
+                            idx = shell.faces.reshape((-1,4))[:,1:]
+                            poly = shell.points[idx]
+
+                        # simplify color
+                        from matplotlib.colors import to_rgba
+                        for p in ('-','--','-.',':','.',',','o','v','^','<','>','1','2','3','4','s','p','*','h','H','+','x','D','d','|','_'):
+                            if not p.isdigit() or (p.isdigit() and obj.color[0] != 'C'):
+                                obj.color = obj.color.replace(p, '')
+
+                        faces = mplot3d.art3d.Poly3DCollection(poly)
+                        faces.set_color(to_rgba(obj.color, alpha))
+                        self.ax.add_collection3d(faces)
+
             if 'movingObject' in dataSt.keys:
                 if 'desiredPose' in dataSt.movingObject.keys:
                     self.desPoses.append(array(dataSt.movingObject.desiredPose[:3,3]).flatten())
@@ -587,10 +592,11 @@ class Plotter3D:
         # get axes limits
         # update according to desired pose if any
         for desPose in self.desPoses:
-            x,y,z = desPose
-            for idx in range(3):
-                lim3D[2*idx] = nmin(lim3D[2*idx], desPose[idx])
-                lim3D[2*idx+1] = nmax(lim3D[2*idx+1], desPose[idx])
+            updateLim(desPose)
+            #x,y,z = desPose
+            #for idx in range(3):
+                #lim3D[2*idx] = nmin(lim3D[2*idx], desPose[idx])
+                #lim3D[2*idx+1] = nmax(lim3D[2*idx+1], desPose[idx])
 
         dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in range(3)]) # max range
 
@@ -608,10 +614,14 @@ class Plotter3D:
         self.ax.set_zlim3d([lim3D[4],lim3D[5]])
 
         self.ax.xaxis.labelpad = self.ax.yaxis.labelpad = 15
+        self.ax.zaxis.set_rotate_label(False)
 
-        self.ax.set_xlabel('X', size = args.fontSize+args.fontLabel)
-        self.ax.set_ylabel('Y', size = args.fontSize+args.fontLabel)
-        self.ax.set_zlabel('Z', size = args.fontSize+args.fontLabel)
+        #if args.v3d:
+            # TODO play with position of z-axis, see below
+            #pl = self.ax.zaxis._PLANES
+            #self.ax.zaxis._PLANES = (pl[2], pl[3], pl[0], pl[1], pl[4], pl[5])
+            #self.ax.zaxis.axes._draw_grid = False
+            #self.ax.zaxis._axinfo['juggled'] = (0,2,1)
 
         if len(self.ax.get_xticks()) > 7:
             for d in 'xyz':
@@ -633,8 +643,15 @@ class Plotter3D:
                 if args.video:
                     self.lines += self.line3Dobject(dataSt.movingObject.graph, dataSt.movingObject.nodes, dataSt.data[1], dataSt.lineType[2])
 
-        for ti in self.ax.get_xticklabels() + self.ax.get_yticklabels() + self.ax.get_zticklabels():
-            ti.set_fontsize(args.fontSize-2+args.fontAxes)
+        for xyz in 'xyz':
+            if showLabel(xyz):
+                getattr(self.ax, f'set_{xyz}label')(xyz.upper(), size = args.fontSize+args.fontLabel)
+
+            if showAxis(xyz):
+                for ti in getattr(self.ax, f'get_{xyz}ticklabels')():
+                    ti.set_fontsize(args.fontSize-2+args.fontAxes)
+            else:
+                getattr(self.ax, f'set_{xyz}ticks')([])
 
     def refresh(self, ind = -1):
 
@@ -1005,7 +1022,7 @@ if __name__ == "__main__":
         # some kind of video
         t = time.time()
         if args.v3d:
-            # plot 3D
+            # plot rotating 3D
             plotter.refresh()
 
             def refresh_azim(azim):

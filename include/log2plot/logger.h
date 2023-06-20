@@ -13,7 +13,7 @@
 namespace log2plot
 {
 
-enum class Surface{None, Tri, Hull};
+enum class Surface{Tri, Hull};
 
 /// legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
@@ -217,7 +217,7 @@ public:
   void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "", const std::string &legend = "");
   // 3D plot: any fixed object from a list of 3D coordinates (related to object frame)
   template <class Point3D>
-  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "", Surface surface = Surface::None)
+  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
     std::stringstream ss;
     ss << "fixedObject" << ++nb_fixed_objects;
@@ -229,15 +229,21 @@ public:
       last->writeInfo("    color", color);
     if(!legend.empty())
       last->writeInfo("    legend", legend);
-    if(surface == Surface::Hull)
-      last->writeInfo("    surface", "hull");
-    if(surface == Surface::Tri)
-      last->writeInfo("    surface", "tri");
     last->flush();
   }
-  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "", Surface surface = Surface::None)
+  virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
-    showFixedObject<std::vector<double>>(M, graph, color, legend, surface);
+    showFixedObject<std::vector<double>>(M, graph, color, legend);
+  }
+  // add 3D volume information
+  inline void displayObjectAs(Surface surface, double alpha = 0.5, double tri = 0.1, const std::string &points_color = "")
+  {
+    if(surface == Surface::Hull)
+      tri = -1;
+    last->writeInfo("    surface",
+                    '[' + std::to_string(alpha) + ','
+                    + std::to_string(tri) + ",'"
+                    + points_color + "']");
   }
 
   // **** End metadata functions ****
@@ -252,10 +258,10 @@ public:
   }
 
   // add several time-steps for all iteration or time-based plots
-  void writeStepsAll(std::vector<double> _iterations, std::vector<double> _times = {})
+  void writeStepsAll(const std::vector<double> &iterations, std::vector<double> times = {})
   {
-    steps = _iterations;
-    steps_timed = _times;
+    steps = iterations;
+    steps_timed = times;
   }
 
   // Updates all saved variables
