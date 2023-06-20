@@ -937,7 +937,9 @@ if __name__ == "__main__":
         with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
             yaml.dump({'dataType': 'metafile', 'files': [os.path.basename(f) for f in args.files]}, f, default_flow_style=False)
             add_args = ''
-            for a in range(len(args.files)+1, len(sys.argv)):
+            a = len(args.files)
+            while a+1 < len(sys.argv):
+                a += 1
                 arg = sys.argv[a]
                 if arg == '--nodisplay':
                     continue
@@ -946,7 +948,7 @@ if __name__ == "__main__":
                     continue
                 add_args += ' ' + arg
             if add_args:
-                yaml.dump({'args': add_args}, f, default_flow_style=False)
+                yaml.dump({'args': add_args[1:]}, f, default_flow_style=False)
 
     # ---- Rearrange data depending on the options -----------------
     # if 3D data, then group but do not concatenate matrices
