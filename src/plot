@@ -6,7 +6,6 @@ import sys
 import os
 import matplotlib as mpl
 from matplotlib import animation
-from mpl_toolkits import mplot3d
 import argparse
 import yaml
 import time
@@ -158,8 +157,10 @@ args = parser.parse_args()
 if args.nodisplay:
     # tell matplotlib that no X-server is needed
     mpl.use('Agg')
-from pylab import *
-import mpl_toolkits.mplot3d
+
+import pylab as pl
+from numpy import array, matrix, sin, cos, nanmax, nanmin
+from mpl_toolkits import mplot3d
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
 
@@ -169,7 +170,7 @@ def checkArgs(parsed):
     global plot2D
     global plotMargin
 
-    plot2D = plot
+    plot2D = pl.plot
 
     if parsed.twin != -1:
         parsed.group = True
@@ -182,9 +183,9 @@ def checkArgs(parsed):
     if parsed.group:
         parsed.Lines = 1
     if parsed.logX:
-        plot2D = semilogx
+        plot2D = pl.semilogx
     elif parsed.logY:
-        plot2D = semilogy
+        plot2D = pl.semilogy
         plotMargin = 0
 
     parsed.hideLabel = [c.lower() for c in parsed.hideLabel]
@@ -208,22 +209,25 @@ args = checkArgs(parser.parse_args())
 
 def showLabel(axis):
     return axis not in args.hideLabel
+
 def showAxis(axis):
     return axis not in args.hideAxis
 
 
 # rotation from theta-u
 def Rot(tU):
-    th = norm(tU)
+    th = pl.norm(tU)
     u = array([1,0,0]) if th == 0 else tU.reshape(3)/th
     u3 = u.reshape(3,1)
-    R = cos(th)*identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*dot(u3,u3.T)
+    R = cos(th)*pl.identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*pl.dot(u3,u3.T)
     return matrix(R)
 
 
 # homogeneous transform matrix
 def Homogeneous(t, R):
-    return matrix(concatenate((concatenate((R,t),1),matrix([[0.,0.,0.,1.]])),0))
+    return pl.vstack((pl.hstack((R,t)),[[0.,0.,0.,1.]]))
+    #return matrix(pl.concatenate((concatenate((R,t),1),matrix([[0.,0.,0.,1.]])),0))
+
 
 # compute gMo and gRo
 gRo = Rot(args.gMo[3:])
@@ -238,7 +242,7 @@ def poseToPlotFrame(p, invertPose):
     else:
         oRc = Rot(p[3:])
         oTc = matrix(p[:3].reshape(3,1))
-    return gMo * matrix(concatenate((concatenate((oRc,oTc),1),matrix([[0.,0.,0.,1.]])),0))
+    return gMo * Homogeneous(oTc, oRc)
 
 
 legendSize = FontProperties(size=args.fontSize+args.fontLegend)
@@ -246,8 +250,8 @@ legendSize = FontProperties(size=args.fontSize+args.fontLegend)
 
 # function to change dictionary to namespace
 class dictToNamespace(object):
-  def __init__(self, adict):
-    self.__dict__.update(adict)
+    def __init__(self, adict):
+        self.__dict__.update(adict)
 
 
 def xval(dataSt, idx, max_ind = -1):
@@ -278,8 +282,8 @@ class Plotter2D:
 
         if txy_force_group:
             C = 1
-            x = hstack([dataSt.data[:,1::2] for dataSt in dataList])
-            y = hstack([dataSt.data[:,2::2] for dataSt in dataList])
+            x = pl.hstack([dataSt.data[:,1::2] for dataSt in dataList])
+            y = pl.hstack([dataSt.data[:,2::2] for dataSt in dataList])
             xMin = nanmin(x)
             xMax = nanmax(x)
             xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
@@ -289,9 +293,9 @@ class Plotter2D:
 
         if args.equal:
             m = max(args.fig[1],args.fig[0])
-            self.F = figure(figsize=(m,m))
+            self.F = pl.figure(figsize=(m,m))
         else:
-            self.F = figure(figsize=(args.fig[1]*C,args.fig[0]*L))
+            self.F = pl.figure(figsize=(args.fig[1]*C,args.fig[0]*L))
         # get axes number and limits
         self.lines = []
         self.all_ax = []
@@ -333,7 +337,7 @@ class Plotter2D:
 
             # add vertical lines
             for step in list(args.steps) + ('steps' in dataSt.keys and dataSt.steps or []):
-                plot2D([step,step], ylim(), 'k--', linewidth=args.lineWidth-1)
+                plot2D([step,step], pl.ylim(), 'k--', linewidth=args.lineWidth-1)
 
             if 'fixedObjects' in dataSt.keys:
                 for obj in dataSt.fixedObjects:
@@ -342,11 +346,11 @@ class Plotter2D:
 
             # set x label
             if i//C == L-1 and showLabel('x'):
-                xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
+                pl.xlabel(dataSt.xlabel, size = args.fontSize+args.fontLabel)
 
             # set y label
             if showLabel('y'):
-                ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
+                pl.ylabel(dataSt.ylabel, size = args.fontSize+args.fontLabel)
 
             # add lines
             sublines = []
@@ -364,7 +368,7 @@ class Plotter2D:
                         self.all_ax.append(ax)
                         ax.set_xlim(xMin,xMax)
                         if args.logY2:
-                            plot2D = semilogy
+                            plot2D = pl.semilogy
                             ax.set_ylim(yMin2, yMax2)
                         else:
                             ax.set_ylim(yMin2-plotMargin*(yMax2-yMin2), yMax2 + plotMargin*(yMax2-yMin2))
@@ -404,7 +408,7 @@ class Plotter2D:
             xn2 = (x2-xm)/(xM-xm) - xn1
             yn2 = (y2-ym)/(yM-ym) - yn1
 
-            ax_in = axes([0,0,.1,.1])
+            ax_in = pl.axes([0,0,.1,.1])
             ip = InsetPosition(ax, [xn1, yn1, xn2, yn2])
             ax_in.set_axes_locator(ip)
 
@@ -459,7 +463,7 @@ class Plotter2D:
             ind = dataList[0].rows
         iline = 0
         for i,dataSt in enumerate(dataList):
-            if dataSt.data.shape[0] == 0:
+            if len(dataSt.data) == 0:
                 continue
 
             if dataSt.dataType == DT_TIMED_XY:
@@ -513,20 +517,20 @@ class Plotter3D:
 
     def __init__(self):
 
-        self.F = figure(figsize=(1.7*args.fig[0],1.5*args.fig[0]))
+        self.F = pl.figure(figsize=(1.7*args.fig[0],1.5*args.fig[0]))
         self.ax = self.F.add_subplot(111, projection='3d')
         self.F.tight_layout(pad=.1,h_pad=.9,w_pad=.9)
         self.ax.view_init(args.ae[1],args.ae[0])
 
         # indices where to show the moving object, higher p value displays more objects at the beginning (usually faster  motions)
         p = 2
-        self.indMoving = [[int(round((len(dataSt.data)-1)*v**p)) for v in linspace(0,1,args.nbcam)][1:] for dataSt in dataList]
+        self.indMoving = [[int(round((len(dataSt.data)-1)*v**p)) for v in pl.linspace(0,1,args.nbcam)][1:] for dataSt in dataList]
 
         # first run to get the figure dimensions
         self.lines = []
         self.desPoses = []
 
-        lim3D = [nan for _ in range(6)]
+        lim3D = [pl.nan for _ in range(6)]
 
         def updateLim(xyz):
             for idx in range(3):
@@ -594,15 +598,11 @@ class Plotter3D:
         # update according to desired pose if any
         for desPose in self.desPoses:
             updateLim(desPose)
-            #x,y,z = desPose
-            #for idx in range(3):
-                #lim3D[2*idx] = nmin(lim3D[2*idx], desPose[idx])
-                #lim3D[2*idx+1] = nmax(lim3D[2*idx+1], desPose[idx])
 
         dX = .5*max([lim3D[2*i+1]-lim3D[2*i] for i in range(3)]) # max range
 
         # build limits and scaling matrix I
-        self.I = matrix(identity(3))
+        self.I = matrix(pl.identity(3))
         for i in range(3):
             x0 = .5*(lim3D[2*i+1] + lim3D[2*i])
             for j in range(2):
@@ -743,7 +743,7 @@ def readFileList(filenames, n=0, base_path = '.'):
             # read data partially or totally
             has_data = 'data' in d and d['data'] is not None
             if not has_data:
-                d['data'] = zeros((0,0))
+                d['data'] = pl.zeros((0,0))
             else:
                 if args.index == 0:
                     args.index = len(d['data'])
@@ -784,7 +784,7 @@ def readFileList(filenames, n=0, base_path = '.'):
                 d['x'] = d['data'][:,0]
                 d['data'] = d['data'][:,1:]*args.scale
             elif d['dataType'] == DT_ITER:
-                d['x'] = arange(d['data'].shape[0])
+                d['x'] = pl.arange(len(d['data']))
                 d['data'] *= args.scale
             # create legend and lineType keys if not present and fill up to data dimension
             for key in ('units', 'legend', 'lineType'):
@@ -840,7 +840,8 @@ def readFileList(filenames, n=0, base_path = '.'):
                 d['data'] = [poseToPlotFrame(p,invertPose) for p in d['data']]
                 if 'movingObject' in d:
                     obj = d['movingObject']
-                    obj['nodes'] = concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0)
+                    nodes = len(obj['nodes'])
+                    obj['nodes'] = pl.vstack((matrix(obj['nodes']).T,pl.ones((1,nodes))))
                     if 'desiredPose' in obj:
                         obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),invertPose)
                     obj['keys'] = obj.keys()
@@ -848,7 +849,7 @@ def readFileList(filenames, n=0, base_path = '.'):
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
                 for key in obj_keys:
                     obj = d[key]
-                    obj['nodes'] = array(gMo * concatenate((matrix(obj['nodes']).T,ones((1,len(obj['nodes'])))),0))[:3,:]
+                    obj['nodes'] = array(gMo * pl.vstack((matrix(obj['nodes']).T, pl.ones((1,len(obj['nodes']))))))[:3,:]
                     fixedObjects.append(obj)
                     d.pop(key)
             else:
@@ -885,7 +886,8 @@ def readFileList(filenames, n=0, base_path = '.'):
 
 # begin of main code, when calling from command line
 if __name__ == "__main__":
-    close('all')
+
+    pl.close('all')
 
     # check files
     ext_try = ['yml', 'yaml', 'txt']
@@ -966,23 +968,26 @@ if __name__ == "__main__":
             if dataSt.ylabel != dataMain.ylabel:
                 print(f'Warning, trying to group with different ylabels: {dataMain.ylabel} vs {dataSt.ylabel}')
                 dataMain.ylabel = ''
-            if shape(dataSt.data)[0] != shape(dataMain.data)[0]:
-                print(f'Trying to group data with different lengths: {shape(dataMain.data)[0]} vs {shape(dataSt.data)[0]}')
-                rows = max(shape(dataSt.data)[0], shape(dataMain.data)[0])
+            if len(dataSt.data) != len(dataMain.data):
+
+                rowsMain, rowsNew = len(dataMain.data), len(dataSt.data)
+
+                print(f'Trying to group data with different lengths: {rowsMain} vs {rowsNew}')
+                rows = max(rowsMain, rowsNew)
 
                 def fillWithNans(arr):
-                    nans = empty((rows-arr.shape[0],arr.shape[1]))
-                    nans[:] = nan
-                    arr = vstack((arr, nans))
+                    nans = pl.empty((rows-len(arr),arr.shape[1]))
+                    nans[:] = pl.nan
+                    arr = pl.vstack((arr, nans))
                     return arr
 
-                if rows == shape(dataSt.data)[0]:
+                if rows == rowsNew:
                     dataMain.data = fillWithNans(dataMain.data)
                 else:
                     dataSt.data = fillWithNans(dataSt.data)
 
             # ok, concatenate data, legends, lineTypes and units
-            dataMain.data = hstack((dataMain.data, dataSt.data))
+            dataMain.data = pl.hstack((dataMain.data, dataSt.data))
             dataMain.legend += dataSt.legend
             dataMain.lineType += dataSt.lineType
         dataList = [dataMain]
@@ -1001,7 +1006,7 @@ if __name__ == "__main__":
             sys.exit(0)
         if dataList[0].data.shape == dataList[1].data.shape:
             dataList[1].data = dataList[0].data - dataList[1].data
-            for i in range(dataList[0].data.shape[0]):
+            for i in range(len(dataList[0].data)):
                 for j in range(dataList[0].data.shape[1]):
                     if dataList[0].data[i,j] != 0:
                         dataList[0].data[i,j] = dataList[1].data[i,j]/dataList[0].data[i,j]
@@ -1010,8 +1015,8 @@ if __name__ == "__main__":
     # if compute norm, reduce the vector
     if args.norm != '':
         for dataSt in dataList:
-            for i in range(dataSt.data.shape[0]):
-                dataSt.data[i][0] = norm(dataSt.data[i])
+            for i in range(len(dataSt.data)):
+                dataSt.data[i][0] = pl.norm(dataSt.data[i])
             dataSt.data = dataSt.data[:,[0]]
             dataSt.legend = [args.norm]
     # -- Data ready to be plotted ----------
@@ -1028,7 +1033,7 @@ if __name__ == "__main__":
         else:
             plotter.F.savefig(fullName)
         if not args.nodisplay:
-            show()
+            pl.show()
     else:
         # some kind of video
         t = time.time()
@@ -1040,7 +1045,7 @@ if __name__ == "__main__":
                 plotter.ax.azim = azim
                 if args.legendLoc != 'none':
                     plotter.ax.legend(loc = 'upper right', ncol = args.legendCol, prop=legendSize, numpoints=1, fancybox=True, framealpha=0.9)
-                draw()
+                pl.draw()
                 return plotter.lines
             plotter.refresh = refresh_azim
             a0, af = int(args.ae[0]), int(args.ae[0]) + args.v3d*360
@@ -1050,7 +1055,7 @@ if __name__ == "__main__":
                 frame_idx = range(a0, af, 2)
             args.video = max(args.video, 1)
         else:
-            frame_idx = [int(i) for i in linspace(0,dataList[0].rows-1, (dataList[0].rows-1)//args.video)]
+            frame_idx = [int(i) for i in pl.linspace(0,dataList[0].rows-1, (dataList[0].rows-1)//args.video)]
             # add 2 sec on last frame
             frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
 
