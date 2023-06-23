@@ -41,3 +41,25 @@ Log::Log(const std::string &path)
     Loader::load(node["graph"], last.graph);
   }
 }
+
+
+std::vector<std::string> Log::getObjectLegends() const
+{
+  std::vector<std::string> legends;
+  for(const auto &obj: fixed_objects)
+  {
+    if(!obj.legend.empty())
+      legends.push_back(obj.legend);
+  }
+  return legends;
+}
+
+Log::FixedObject Log::getObject(const std::string &legend) const
+{
+  const auto obj{std::find_if(fixed_objects.begin(),fixed_objects.end(),
+                        [legend](const auto &obj){return obj.legend == legend;})};
+
+  if(obj != fixed_objects.end())
+    return *obj;
+  return {};
+}

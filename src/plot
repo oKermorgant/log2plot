@@ -210,6 +210,7 @@ args = checkArgs(parser.parse_args())
 def showLabel(axis):
     return axis not in args.hideLabel
 
+
 def showAxis(axis):
     return axis not in args.hideAxis
 
@@ -217,7 +218,7 @@ def showAxis(axis):
 # rotation from theta-u
 def Rot(tU):
     th = pl.norm(tU)
-    u = array([1,0,0]) if th == 0 else tU.reshape(3)/th
+    u = array([1,0,0]) if th == 0 else array(tU).reshape(3)/th
     u3 = u.reshape(3,1)
     R = cos(th)*pl.identity(3) + sin(th)*array([[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]]) + (1-cos(th))*pl.dot(u3,u3.T)
     return matrix(R)
@@ -226,23 +227,28 @@ def Rot(tU):
 # homogeneous transform matrix
 def Homogeneous(t, R):
     return pl.vstack((pl.hstack((R,t)),[[0.,0.,0.,1.]]))
-    #return matrix(pl.concatenate((concatenate((R,t),1),matrix([[0.,0.,0.,1.]])),0))
 
 
-# compute gMo and gRo
-gRo = Rot(args.gMo[3:])
-gMo = Homogeneous(matrix(args.gMo[:3]).reshape(3,1), gRo)
+class GraphFrame:
+    def __init__(self):
+        self.gMo = Homogeneous(matrix(args.gMo[:3]).reshape(3,1), Rot(args.gMo[3:]))
+
+    def adaptPose(self, p, invertPose):
+        # change pose (t,theta u) to Fg (3d plot frame)
+        if args.invertPose or invertPose:
+            oRc = Rot(p[3:]).T
+            oTc = -oRc*matrix(p[:3]).reshape(3,1)
+        else:
+            oRc = Rot(p[3:])
+            oTc = matrix(p[:3]).reshape(3,1)
+        return self.gMo * Homogeneous(oTc, oRc)
+
+    def adaptPoints(self, p):
+        # change 3D point(s) to plot frame
+        return array(self.gMo[:3,3] + self.gMo[:3,:3] * matrix(p)[:,:3].T)
 
 
-# change pose (t,theta u) to Fg (3d plot frame)
-def poseToPlotFrame(p, invertPose):
-    if args.invertPose or invertPose:
-        oRc = Rot(p[3:]).T
-        oTc = -oRc*matrix(p[:3].reshape(3,1))
-    else:
-        oRc = Rot(p[3:])
-        oTc = matrix(p[:3].reshape(3,1))
-    return gMo * Homogeneous(oTc, oRc)
+gMo = GraphFrame()
 
 
 legendSize = FontProperties(size=args.fontSize+args.fontLegend)
@@ -837,19 +843,19 @@ def readFileList(filenames, n=0, base_path = '.'):
             fixedObjects = []
             if d['dataType'] == DT_POSE:
                 invertPose = d['invertPose'] if 'invertPose' in d else False
-                d['data'] = [poseToPlotFrame(p,invertPose) for p in d['data']]
+                d['data'] = [gMo.adaptPose(p,invertPose) for p in d['data']]
                 if 'movingObject' in d:
                     obj = d['movingObject']
                     nodes = len(obj['nodes'])
                     obj['nodes'] = pl.vstack((matrix(obj['nodes']).T,pl.ones((1,nodes))))
                     if 'desiredPose' in obj:
-                        obj['desiredPose'] = poseToPlotFrame(array(obj['desiredPose'][0]),invertPose)
+                        obj['desiredPose'] = gMo.adaptPose(obj['desiredPose'][0],invertPose)
                     obj['keys'] = obj.keys()
                     d['movingObject'] = dictToNamespace(obj)
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
                 for key in obj_keys:
                     obj = d[key]
-                    obj['nodes'] = array(gMo * pl.vstack((matrix(obj['nodes']).T, pl.ones((1,len(obj['nodes']))))))[:3,:]
+                    obj['nodes'] = gMo.adaptPoints(obj['nodes'])
                     fixedObjects.append(obj)
                     d.pop(key)
             else:

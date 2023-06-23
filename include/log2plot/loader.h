@@ -28,7 +28,6 @@ struct Log
     std::vector<std::vector<double>> points;
     std::vector<std::vector<uint>> graph;
     std::string legend;
-    explicit FixedObject() {}
   };
 
   std::vector<std::string> files;
@@ -39,6 +38,9 @@ struct Log
   std::vector<FixedObject> fixed_objects;
 
   explicit Log(const std::string &path);
+
+  std::vector<std::string> getObjectLegends() const;
+  FixedObject getObject(const std::string &legend) const;
 
 };
 
