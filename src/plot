@@ -551,8 +551,8 @@ class Plotter3D:
 
         def updateLim(xyz):
             for idx in range(3):
-                lim3D[2*idx] = nanmin(xyz[idx], initial = lim3D[2*idx])
-                lim3D[2*idx+1] = nanmax(xyz[idx], initial = lim3D[2*idx+1])
+                lim3D[2*idx] = nanmin([nanmin(xyz[idx]), lim3D[2*idx]])
+                lim3D[2*idx+1] = nanmax([nanmax(xyz[idx]), lim3D[2*idx+1]])
 
         for dataSt in dataList:
 
