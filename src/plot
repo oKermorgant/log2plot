@@ -604,12 +604,15 @@ class Plotter3D:
                                 tetrapos = pl.take(pos,tetra.vertices,axis=0)
                                 normsq = pl.sum(tetrapos**2,axis=2)[:,:,None]
                                 ones = pl.ones((tetrapos.shape[0],tetrapos.shape[1],1))
-                                a = pl.linalg.det(pl.concatenate((tetrapos,ones),axis=2))
-                                Dx = pl.linalg.det(pl.concatenate((normsq,tetrapos[:,:,[1,2]],ones),axis=2))
-                                Dy = -pl.linalg.det(pl.concatenate((normsq,tetrapos[:,:,[0,2]],ones),axis=2))
-                                Dz = pl.linalg.det(pl.concatenate((normsq,tetrapos[:,:,[0,1]],ones),axis=2))
-                                c = pl.linalg.det(pl.concatenate((normsq,tetrapos),axis=2))
-                                r = pl.sqrt(Dx**2+Dy**2+Dz**2-4*a*c)/(2*abs(a))
+                                a = pl.linalg.det(pl.dstack((tetrapos,ones)))
+                                a[pl.where(a == 0)] = 1e-9
+                                Dx = pl.linalg.det(pl.dstack((normsq,tetrapos[:,:,[1,2]],ones)))
+                                Dy = -pl.linalg.det(pl.dstack((normsq,tetrapos[:,:,[0,2]],ones)))
+                                Dz = pl.linalg.det(pl.dstack((normsq,tetrapos[:,:,[0,1]],ones)))
+                                c = pl.linalg.det(pl.dstack((normsq,tetrapos)))
+                                D = Dx**2+Dy**2+Dz**2-4*a*c
+                                D[pl.where(D < 0)] = 1e-9
+                                r = pl.sqrt(D)/(2*abs(a))
 
                                 # Find tetrahedrals
                                 tetras = tetra.vertices[r < alpha,:]
@@ -621,7 +624,7 @@ class Plotter3D:
                                 TrianglesDict = defaultdict(int)
                                 for tri in Triangles:
                                     TrianglesDict[tuple(tri)] += 1
-                                Triangles = pl.array([tri for tri in TrianglesDict if TrianglesDict[tri] ==1])
+                                Triangles = pl.array([tri for tri in TrianglesDict if TrianglesDict[tri] == 1])
                                 #edges
                                 EdgeComb = pl.array([(0, 1), (0, 2), (1, 2)])
                                 Edges = Triangles[:,EdgeComb].reshape(-1,2)
