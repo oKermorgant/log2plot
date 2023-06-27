@@ -5,15 +5,15 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <log2plot/container.h>
 #include <cmath>
 #include <sstream>
 #include <assert.h>
 
+#include <log2plot/container.h>
+#include <log2plot/surfaces.h>
+
 namespace log2plot
 {
-
-enum class Surface{Tri, Hull};
 
 /// legend for a number of points (x_i,y_i)
 std::string legend2DPoint(const unsigned int &n=4);
@@ -236,14 +236,9 @@ public:
     showFixedObject<std::vector<double>>(M, graph, color, legend);
   }
   // add 3D volume information
-  inline void displayObjectAs(Surface surface, double alpha = 0.5, double tri = 0.1, const std::string &points_color = "")
+  inline void displayObjectAs(const Surface &surface)
   {
-    if(surface == Surface::Hull)
-      tri = -1;
-    last->writeInfo("    surface",
-                    '[' + std::to_string(alpha) + ','
-                    + std::to_string(tri) + ",'"
-                    + points_color + "']");
+    last->writeInfo("    surface",surface.infos());
   }
 
   // **** End metadata functions ****
@@ -258,7 +253,7 @@ public:
   }
 
   // add several time-steps for all iteration or time-based plots
-  void writeStepsAll(const std::vector<double> &iterations, std::vector<double> times = {})
+  void writeStepsAll(const std::vector<double> &iterations, const std::vector<double> &times = {})
   {
     steps = iterations;
     steps_timed = times;
