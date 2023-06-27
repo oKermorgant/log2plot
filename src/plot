@@ -679,7 +679,7 @@ class Plotter3D:
                         # simplify color
                         from matplotlib.colors import to_rgba
                         faces = mplot3d.art3d.Poly3DCollection(poly)
-                        faces.set_color(to_rgba(obj.color, color_alpha))
+                        faces.set_color(to_rgba(surf_color, color_alpha))
                         if surf_color == obj.color and obj.legend:
                             self.ax.plot([], [], [], surf_color, label = obj.legend)
                         self.ax.add_collection3d(faces)
