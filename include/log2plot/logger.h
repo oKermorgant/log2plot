@@ -154,7 +154,7 @@ public:
 
   /// Save 3D pose or position
   template<class Vector>
-  inline void save3Dpose(Vector &v, const std::string &name, const std::string &legend, bool invert = false, bool keep_file = true)
+  inline void save3Dpose(Vector &v, const std::string &name, const std::string &legend = "", bool invert = false, bool keep_file = true)
   {
     assert(v.size() == 3 || v.size() == 6);
     // add this to logged variables
@@ -225,8 +225,13 @@ public:
     last->writeInfo("    nodes", toYAMLVector(M));
     if(!graph.empty())
       last->writeInfo("    graph", graph);
-    if(!color.empty())      
-      last->writeInfo("    color", color);
+    if(!color.empty())
+    {
+      if(color[0] != '\'')
+        last->writeInfo("    color", "'" + color + "'");
+      else
+        last->writeInfo("    color", color);
+    }
     if(!legend.empty())
       last->writeInfo("    legend", legend);
     last->flush();
@@ -238,7 +243,7 @@ public:
   // add 3D volume information
   inline void displayObjectAs(const Surface &surface)
   {
-    last->writeInfo("    surface",surface.infos());
+    last->writeInfo("    surface", surface.infos());
   }
 
   // **** End metadata functions ****

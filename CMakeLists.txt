@@ -35,7 +35,8 @@ if(ENABLE_DYNAMIC_PLOT)
         src/figure2d.cpp
         src/figure3d.cpp
         src/container_plotter.cpp
-        src/loader.cpp)
+        src/loader.cpp
+        src/surfaces.cpp)
 
       set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
       set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS})
@@ -102,7 +103,7 @@ if(BUILD_EXAMPLES)
     # timed XY
     add_executable(timed_xy examples/src/timed_xy.cpp)
     target_include_directories(timed_xy PRIVATE ${INCLUDE_DEPENDS})
-    target_link_libraries(timed_xy log2plot)
+    target_link_libraries(timed_xy log2plot)        
 
     # build Eigen example
     find_package(Eigen3 QUIET)

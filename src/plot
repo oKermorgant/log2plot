@@ -143,7 +143,7 @@ arg3Dplot.add_argument('--gMo', metavar='x', type=float, nargs=6, help='Changes 
 arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimuth and elevation in 3D plots',default=(-125.,15.))
 arg3Dplot.add_argument('--zoom', metavar='zoom', type=float, help='Force zoom in 3D plots',default=0)
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
-#arg3Dplot.add_argument('--mesh', action='store_true', help='If any mesh should be plotted ',default=False)
+arg3Dplot.add_argument('--alpha', type=float, help='Override alpha-parameter for alpha shapes', default=None)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -572,25 +572,29 @@ class Plotter3D:
                             self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
                                     label=obj.legend if i == 0 else None)
                     else:
-                        color_alpha, color, alpha = obj.surface[:3]
 
-                        edge_min = -1
-                        if len(obj.surface) == 4:
-                            edge_min = obj.surface[3]
+                        surf_type = obj.surface['type']
+                        color_alpha = obj.surface['alpha']
 
-                        if color:
+                        surf_color = obj.color
+                        for marker in ('.',',','o','v','^','<','>','1','2','3','4','s','p','*','h','H','+','x','D','d','|','_'):
+                            if not marker.isdigit() or (marker.isdigit() and surf_color[0] != 'C'):
+                                surf_color = surf_color.replace(marker, '')
+
+                        # show nodes if markers for points
+                        if surf_color != obj.color:
                             for i,g in enumerate(obj.graph):
-                                self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], color, linewidth=max(2,args.lineWidth-1),
+                                self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
                                         label=obj.legend if i == 0 else None)
 
                         # remove duplicates to ease triangulation
                         nodes = array(list(set([tuple(node) for node in obj.nodes.T])))
 
-                        if alpha < 0:
-                            # convex hull
+                        if surf_type == 'convex_hull':
                             from scipy.spatial import ConvexHull
                             poly = nodes[ConvexHull(nodes).simplices]
                         else:
+                            alpha = obj.surface['params'][0]
                             # triangulation with alpha shape  https://stackoverflow.com/questions/26303878/alpha-shapes-in-3d
                             from scipy.spatial import Delaunay
                             from collections import defaultdict
@@ -643,33 +647,41 @@ class Plotter3D:
                                 Vertices = pl.unique(Edges)
                                 return Vertices,Edges,Triangles
 
-                            try:
-                                V,E,T = alpha_shape_3D(nodes, alpha)
+                            if surf_type == 'alpha_shape':
 
-                                if edge_min > 0:
-                                    tridx = 0
-                                    while tridx < len(T):
-                                        i1,i2,i3 = T[tridx]
-                                        if max(pl.norm(nodes[i1]-nodes[i2]),
-                                            pl.norm(nodes[i3]-nodes[i2]),
-                                            pl.norm(nodes[i1]-nodes[i3])) > edge_min:
-                                            T = pl.delete(T, tridx, 0)
-                                        else:
-                                            tridx += 1
+                                try:
+                                    V,E,T = alpha_shape_3D(nodes, alpha)
 
-                                poly = nodes[T]
-                            except IndexError:
-                                print('[ERROR] Could not mesh point cloud, try with a larger value', file = sys.stderr)
-                                sys.exit(0)
+                                    #if edge_min > 0:
+                                        #tridx = 0
+                                        #while tridx < len(T):
+                                            #i1,i2,i3 = T[tridx]
+                                            #if max(pl.norm(nodes[i1]-nodes[i2]),
+                                                #pl.norm(nodes[i3]-nodes[i2]),
+                                                #pl.norm(nodes[i1]-nodes[i3])) > edge_min:
+                                                #T = pl.delete(T, tridx, 0)
+                                            #else:
+                                                #tridx += 1
+
+                                    poly = nodes[T]
+                                except IndexError:
+                                    print('[ERROR] Could not mesh point cloud, try with a larger value', file = sys.stderr)
+                                    sys.exit(0)
+
+                            else:
+                                # reconstructed surface
+                                import pyvista as pv
+                                cloud = pv.PolyData(nodes)
+                                shell = cloud.reconstruct_surface()
+                                idx = shell.faces.reshape((-1,4))[:,1:]
+                                poly = shell.points[idx]
 
                         # simplify color
                         from matplotlib.colors import to_rgba
-                        for p in ('-','--','-.',':','.',',','o','v','^','<','>','1','2','3','4','s','p','*','h','H','+','x','D','d','|','_'):
-                            if not p.isdigit() or (p.isdigit() and obj.color[0] != 'C'):
-                                obj.color = obj.color.replace(p, '')
-
                         faces = mplot3d.art3d.Poly3DCollection(poly)
                         faces.set_color(to_rgba(obj.color, color_alpha))
+                        if surf_color == obj.color and obj.legend:
+                            self.ax.plot([], [], [], surf_color, label = obj.legend)
                         self.ax.add_collection3d(faces)
 
             if 'movingObject' in dataSt.keys:
