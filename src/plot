@@ -558,6 +558,8 @@ class Plotter3D:
                 lim3D[2*idx] = nanmin([nanmin(xyz[idx]), lim3D[2*idx]])
                 lim3D[2*idx+1] = nanmax([nanmax(xyz[idx]), lim3D[2*idx+1]])
 
+        fixed_legends = {}
+
         for dataSt in dataList:
 
             # plot fixed observed object if any - won't move
@@ -565,12 +567,17 @@ class Plotter3D:
 
                 for obj in dataSt.fixedObjects:
 
+                    if obj.legend:
+                        if obj.color in fixed_legends and fixed_legends[obj.color] != obj.legend:
+                            print('[warning] different labels for same color:',obj.color)
+                        fixed_legends[obj.color] = obj.legend
+
                     updateLim(obj.nodes)
 
                     if obj.surface is None:
                         for i,g in enumerate(obj.graph):
-                            self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
-                                    label=obj.legend if i == 0 else None)
+                            self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1))
+                            #, label=obj.legend if i == 0 else None)
                     else:
 
                         surf_type = obj.surface['type']
@@ -584,17 +591,20 @@ class Plotter3D:
                         # show nodes if markers for points
                         if surf_color != obj.color:
                             for i,g in enumerate(obj.graph):
-                                self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1),
-                                        label=obj.legend if i == 0 else None)
+                                self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1))
+                                #,label=obj.legend if i == 0 else None)
 
                         # remove duplicates to ease triangulation
                         nodes = array(list(set([tuple(node) for node in obj.nodes.T])))
+                        #print('Drawing surface for',len(nodes),'nodes')
 
                         if surf_type == 'convex_hull':
                             from scipy.spatial import ConvexHull
                             poly = nodes[ConvexHull(nodes).simplices]
                         else:
                             alpha = obj.surface['params'][0]
+                            if args.alpha is not None:
+                                alpha = args.alpha
                             # triangulation with alpha shape  https://stackoverflow.com/questions/26303878/alpha-shapes-in-3d
                             from scipy.spatial import Delaunay
                             from collections import defaultdict
@@ -755,6 +765,10 @@ class Plotter3D:
                     ti.set_fontsize(args.fontSize-2+args.fontAxes)
             else:
                 getattr(self.ax, f'set_{xyz}ticks')([])
+
+        # add legends for fixed objects
+        for color, legend in fixed_legends.items():
+            self.ax.plot([], [], [], color, label=legend)
 
     def refresh(self, ind = -1):
 
