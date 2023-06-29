@@ -144,6 +144,7 @@ arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimu
 arg3Dplot.add_argument('--zoom', metavar='zoom', type=float, help='Force zoom in 3D plots',default=0)
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
 arg3Dplot.add_argument('--alpha', type=float, help='Override alpha-parameter for alpha shapes', default=None)
+arg3Dplot.add_argument('--decimate', type=float, help='Override decimate-parameter for alpha shapes', default=-1)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -601,30 +602,42 @@ class Plotter3D:
                         if surf_type == 'convex_hull':
                             from scipy.spatial import ConvexHull
                             poly = nodes[ConvexHull(nodes).simplices]
-                        else:
+
+                        elif surf_type == 'reconstructed':
+                            # reconstructed surface
+                            import pyvista as pv
+                            cloud = pv.PolyData(nodes)
+                            shell = cloud.reconstruct_surface()
+                            idx = shell.faces.reshape((-1,4))[:,1:]
+                            poly = shell.points[idx]
+
+                        else:   # alpha shape
                             alpha = obj.surface['params'][0]
                             if args.alpha is not None:
                                 alpha = args.alpha
+                            decimate = -1 if len(obj.surface['params']) == 1 else obj.surface['params'][1]
+                            if args.decimate != -1:
+                                decimate = args.decimate
+
                             # triangulation with alpha shape  https://stackoverflow.com/questions/26303878/alpha-shapes-in-3d
                             from scipy.spatial import Delaunay
                             from collections import defaultdict
 
-                            def alpha_shape_3D(pos, alpha):
-                                """
-                                Compute the alpha shape (concave hull) of a set of 3D points.
-                                Parameters:
-                                    pos - pl.array of shape (n,3) points.
-                                    alpha - alpha value.
-                                return
-                                    outer surface vertex indices, edge indices, and triangle indices
-                                """
-
-                                tetra = Delaunay(pos)
+                            """
+                            Compute the alpha shape (concave hull) of a set of 3D points.
+                            Parameters:
+                                pos - pl.array of shape (n,3) points.
+                                alpha - alpha value.
+                            return
+                                outer surface vertex indices, edge indices, and triangle indices
+                            """
+                            try:
+                                tetra = Delaunay(nodes)
                                 # Find radius of the circumsphere.
                                 # By definition, radius of the sphere fitting inside the tetrahedral needs
                                 # to be smaller than alpha value
                                 # http://mathworld.wolfram.com/Circumsphere.html
-                                tetrapos = pl.take(pos,tetra.vertices,axis=0)
+                                tetrapos = pl.take(nodes,tetra.vertices,axis=0)
                                 normsq = pl.sum(tetrapos**2,axis=2)[:,:,None]
                                 ones = pl.ones((tetrapos.shape[0],tetrapos.shape[1],1))
                                 a = pl.linalg.det(pl.dstack((tetrapos,ones)))
@@ -648,43 +661,28 @@ class Plotter3D:
                                 for tri in Triangles:
                                     TrianglesDict[tuple(tri)] += 1
                                 Triangles = pl.array([tri for tri in TrianglesDict if TrianglesDict[tri] == 1])
-                                #edges
-                                EdgeComb = pl.array([(0, 1), (0, 2), (1, 2)])
-                                Edges = Triangles[:,EdgeComb].reshape(-1,2)
-                                Edges = pl.sort(Edges,axis=1)
-                                Edges = pl.unique(Edges,axis=0)
+                                ##edges
+                                #EdgeComb = pl.array([(0, 1), (0, 2), (1, 2)])
+                                #Edges = Triangles[:,EdgeComb].reshape(-1,2)
+                                #Edges = pl.sort(Edges,axis=1)
+                                #Edges = pl.unique(Edges,axis=0)
 
-                                Vertices = pl.unique(Edges)
-                                return Vertices,Edges,Triangles
+                                #Vertices = pl.unique(Edges)
+                            except IndexError:
+                                print('[ERROR] Could not mesh point cloud, try with a larger value', file = sys.stderr)
+                                sys.exit(0)
 
-                            if surf_type == 'alpha_shape':
-
-                                try:
-                                    V,E,T = alpha_shape_3D(nodes, alpha)
-
-                                    #if edge_min > 0:
-                                        #tridx = 0
-                                        #while tridx < len(T):
-                                            #i1,i2,i3 = T[tridx]
-                                            #if max(pl.norm(nodes[i1]-nodes[i2]),
-                                                #pl.norm(nodes[i3]-nodes[i2]),
-                                                #pl.norm(nodes[i1]-nodes[i3])) > edge_min:
-                                                #T = pl.delete(T, tridx, 0)
-                                            #else:
-                                                #tridx += 1
-
-                                    poly = nodes[T]
-                                except IndexError:
-                                    print('[ERROR] Could not mesh point cloud, try with a larger value', file = sys.stderr)
-                                    sys.exit(0)
-
-                            else:
-                                # reconstructed surface
+                            if decimate > 0 and decimate < 1:
                                 import pyvista as pv
-                                cloud = pv.PolyData(nodes)
-                                shell = cloud.reconstruct_surface()
+                                Triangles = pl.hstack((3*pl.ones((Triangles.shape[0],1), dtype=int), Triangles))
+                                cloud = pv.PolyData(nodes, Triangles)
+                                shell = cloud.decimate(decimate, True)
                                 idx = shell.faces.reshape((-1,4))[:,1:]
                                 poly = shell.points[idx]
+                            else:
+                                poly = nodes[Triangles]
+
+
 
                         # simplify color
                         from matplotlib.colors import to_rgba

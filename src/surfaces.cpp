@@ -21,24 +21,21 @@ std::string Surface::yaml(const std::string &type, const std::vector<double> &pa
   return out;
 }
 
+std::string Surface::infos() const
+{
+  return yaml("reconstructed", {});
+}
+
 ConvexHull::ConvexHull(double color_alpha) : Surface(color_alpha) {}
 std::string ConvexHull::infos() const
 {
   return yaml("convex_hull");
 }
 
-AlphaShape::AlphaShape(double alpha, double color_alpha)
-  : Surface(color_alpha), alpha{alpha} {}
+AlphaShape::AlphaShape(double alpha, double color_alpha, double decimate)
+  : Surface(color_alpha), alpha{alpha}, decimate{decimate} {}
 
 std::string AlphaShape::infos() const
 {
-  return yaml("alpha_shape", {alpha});
-}
-
-Reconstructed::Reconstructed(double alpha, double color_alpha)
-  : AlphaShape(alpha, color_alpha) {}
-
-std::string Reconstructed::infos() const
-{
-  return yaml("reconstructed", {alpha});
+  return yaml("alpha_shape", {alpha, decimate});
 }
