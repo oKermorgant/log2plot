@@ -32,10 +32,10 @@ std::string ConvexHull::infos() const
   return yaml("convex_hull");
 }
 
-AlphaShape::AlphaShape(double alpha, double color_alpha, double decimate)
-  : Surface(color_alpha), alpha{alpha}, decimate{decimate} {}
+AlphaShape::AlphaShape(double alpha, double color_alpha, double clean, double decimate)
+  : Surface(color_alpha), alpha{alpha}, clean{clean}, decimate{decimate} {}
 
 std::string AlphaShape::infos() const
 {
-  return yaml("alpha_shape", {alpha, decimate});
+  return yaml("alpha_shape", {alpha, decimate, clean});
 }

@@ -145,6 +145,7 @@ arg3Dplot.add_argument('--zoom', metavar='zoom', type=float, help='Force zoom in
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
 arg3Dplot.add_argument('--alpha', type=float, help='Override alpha-parameter for alpha shapes', default=None)
 arg3Dplot.add_argument('--decimate', type=float, help='Override decimate-parameter for alpha shapes', default=-1)
+arg3Dplot.add_argument('--clean', type=float, help='Override clean-parameter for alpha shapes', default=-1)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -595,10 +596,10 @@ class Plotter3D:
                                 self.ax.plot(obj.nodes[0,g], obj.nodes[1,g], obj.nodes[2,g], obj.color, linewidth=max(2,args.lineWidth-1))
                                 #,label=obj.legend if i == 0 else None)
 
-                        # remove duplicates to ease triangulation
-                        nodes = array(list(set([tuple(node) for node in obj.nodes.T])))
+
                         #print('Drawing surface for',len(nodes),'nodes')
 
+                        nodes = obj.nodes.T
                         if surf_type == 'convex_hull':
                             from scipy.spatial import ConvexHull
                             poly = nodes[ConvexHull(nodes).simplices]
@@ -615,9 +616,18 @@ class Plotter3D:
                             alpha = obj.surface['params'][0]
                             if args.alpha is not None:
                                 alpha = args.alpha
-                            decimate = -1 if len(obj.surface['params']) == 1 else obj.surface['params'][1]
+                            decimate = -1 if len(obj.surface['params']) < 2 else obj.surface['params'][1]
                             if args.decimate != -1:
                                 decimate = args.decimate
+                            clean_thr = -1 if len(obj.surface['params']) < 3 else obj.surface['params'][2]
+                            if args.clean != -1:
+                                clean_thr = args.clean
+
+                            # clean points at least to remove duplicates
+                            import pyvista as pv
+                            shell = pv.PolyData(nodes)
+                            shell.clean(tolerance=max(0.0001, clean_thr), inplace=True, absolute=True)
+                            nodes = shell.points
 
                             # triangulation with alpha shape  https://stackoverflow.com/questions/26303878/alpha-shapes-in-3d
                             from scipy.spatial import Delaunay

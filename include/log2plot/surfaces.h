@@ -25,9 +25,12 @@ struct ConvexHull : public Surface
 
 struct AlphaShape : public Surface
 {
-  double alpha;
-  double decimate;
-  explicit AlphaShape(double alpha, double color_alpha = 1., double decimate = -1);
+  double alpha, clean, decimate;
+  /// builds an alpha shape
+  /// alpha: alpha-parameter
+  /// clean [0-1]: threshold to merge vertices, expressed in percentage of bounding box
+  /// decimate [0-1]: proportion of edges to simplify
+  explicit AlphaShape(double alpha, double color_alpha = 1., double clean = 0.01, double decimate = -1);
   virtual std::string infos() const override;
 };
 
