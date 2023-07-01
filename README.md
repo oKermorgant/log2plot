@@ -81,7 +81,7 @@ The following commands will be applied to the last added variable:
   * Built-in function allow to show a moving camera and a moving box
 * Display a fixed object: `logger.showFixedObject(nodes, graph, color)`
   * With the same syntax for nodes and graph, will display this wireframe object in the given Matplotlib color.
-  * if the `logger.displayObjectAs(log2plot::Surface)` method is called then the point cloud will be displayed as a meshed surface
+  * if the `logger.displayObjectAs(log2plot::Surface)` method is called then the point cloud will be displayed as a meshed surface, using `pyvista` module
 * Change built-in colors: `logger.setLineType("[b, g, r, k--]")` allows to define the color and line style of the 3D elements:
   * First element is the trajectory line style (solid blue here)
   * Second element is the moving object (solid green)
