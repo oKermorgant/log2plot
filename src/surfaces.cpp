@@ -2,7 +2,6 @@
 
 using namespace log2plot;
 
-Surface::Surface(double color_alpha) : color_alpha{color_alpha} {}
 std::string Surface::yaml(const std::string &type, const std::vector<double> &params) const
 {
   const std::string offset{"        "};
@@ -19,23 +18,4 @@ std::string Surface::yaml(const std::string &type, const std::vector<double> &pa
   out.back() = ']';
 
   return out;
-}
-
-std::string Surface::infos() const
-{
-  return yaml("reconstructed", {});
-}
-
-ConvexHull::ConvexHull(double color_alpha) : Surface(color_alpha) {}
-std::string ConvexHull::infos() const
-{
-  return yaml("convex_hull");
-}
-
-AlphaShape::AlphaShape(double alpha, double color_alpha, double clean, double decimate)
-  : Surface(color_alpha), alpha{alpha}, clean{clean}, decimate{decimate} {}
-
-std::string AlphaShape::infos() const
-{
-  return yaml("alpha_shape", {alpha, decimate, clean});
 }

@@ -144,8 +144,8 @@ arg3Dplot.add_argument('--ae', metavar='angle', type=float, nargs=2, help='Azimu
 arg3Dplot.add_argument('--zoom', metavar='zoom', type=float, help='Force zoom in 3D plots',default=0)
 arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be plotted',default=10)
 arg3Dplot.add_argument('--alpha', type=float, help='Override alpha-parameter for alpha shapes', default=None)
-arg3Dplot.add_argument('--decimate', type=float, help='Override decimate-parameter for alpha shapes', default=-1)
-arg3Dplot.add_argument('--clean', type=float, help='Override clean-parameter for alpha shapes', default=-1)
+arg3Dplot.add_argument('--decimate', type=float, help='Override decimate-parameter for alpha shapes', default=None)
+arg3Dplot.add_argument('--clean', type=float, help='Override clean-parameter for alpha shapes', default=None)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -582,6 +582,11 @@ class Plotter3D:
                             #, label=obj.legend if i == 0 else None)
                     else:
 
+                        def getParam(idx, arg):
+                            if arg is not None or 'params' not in obj.surface or len(obj.surface['params']) < idx-1:
+                                return arg
+                            return obj.surface['params'][idx]
+
                         surf_type = obj.surface['type']
                         color_alpha = obj.surface['alpha']
 
@@ -602,31 +607,36 @@ class Plotter3D:
                         nodes = obj.nodes.T
                         if surf_type == 'convex_hull':
                             from scipy.spatial import ConvexHull
-                            poly = nodes[ConvexHull(nodes).simplices]
+                            faces = nodes[ConvexHull(nodes).simplices]
+
+                        elif surf_type == 'faces':
+                            decimate = getParam(0, args.decimate)
+                            if decimate is not None and decimate > 0 and decimate < 1:
+                                import pyvista as pv
+                                Triangles = pl.hstack((3*pl.ones((obj.graph.shape[0],1), dtype=int), obj.graph))
+                                cloud = pv.PolyData(nodes, Triangles)
+                                shell = cloud.decimate(decimate, True)
+                                faces = shell.points[shell.faces.reshape((-1,4))[:,1:]]
+                            else:
+                                faces = nodes[obj.graph]
 
                         elif surf_type == 'reconstructed':
                             # reconstructed surface
                             import pyvista as pv
                             cloud = pv.PolyData(nodes)
                             shell = cloud.reconstruct_surface()
-                            idx = shell.faces.reshape((-1,4))[:,1:]
-                            poly = shell.points[idx]
+                            faces = shell.points[shell.faces.reshape((-1,4))[:,1:]]
 
                         else:   # alpha shape
-                            alpha = obj.surface['params'][0]
-                            if args.alpha is not None:
-                                alpha = args.alpha
-                            decimate = -1 if len(obj.surface['params']) < 2 else obj.surface['params'][1]
-                            if args.decimate != -1:
-                                decimate = args.decimate
-                            clean_thr = -1 if len(obj.surface['params']) < 3 else obj.surface['params'][2]
-                            if args.clean != -1:
-                                clean_thr = args.clean
+                            alpha = getParam(0, args.alpha)
+                            decimate = getParam(1, args.decimate)
+                            clean_thr = getParam(2, args.clean)
 
                             # clean points at least to remove duplicates
                             import pyvista as pv
                             shell = pv.PolyData(nodes)
-                            shell.clean(tolerance=max(0.0001, clean_thr), inplace=True, absolute=True)
+                            if clean_thr is not None:
+                                shell.clean(tolerance=max(clean_thr), inplace=True, absolute=True)
                             nodes = shell.points
 
                             # triangulation with alpha shape  https://stackoverflow.com/questions/26303878/alpha-shapes-in-3d
@@ -682,24 +692,20 @@ class Plotter3D:
                                 print('[ERROR] Could not mesh point cloud, try with a larger value', file = sys.stderr)
                                 sys.exit(0)
 
-                            if decimate > 0 and decimate < 1:
+                            if decimate is not None and decimate > 0 and decimate < 1:
                                 import pyvista as pv
                                 Triangles = pl.hstack((3*pl.ones((Triangles.shape[0],1), dtype=int), Triangles))
                                 cloud = pv.PolyData(nodes, Triangles)
                                 shell = cloud.decimate(decimate, True)
-                                idx = shell.faces.reshape((-1,4))[:,1:]
-                                poly = shell.points[idx]
+                                faces = shell.points[shell.faces.reshape((-1,4))[:,1:]]
                             else:
-                                poly = nodes[Triangles]
-
+                                faces = nodes[Triangles]
 
 
                         # simplify color
                         from matplotlib.colors import to_rgba
-                        faces = mplot3d.art3d.Poly3DCollection(poly)
+                        faces = mplot3d.art3d.Poly3DCollection(faces)
                         faces.set_color(to_rgba(surf_color, color_alpha))
-                        #if surf_color == obj.color and obj.legend:
-                            #self.ax.plot([], [], [], surf_color, label = obj.legend)
                         self.ax.add_collection3d(faces)
 
             if 'movingObject' in dataSt.keys:
@@ -973,6 +979,12 @@ def readFileList(filenames, n=0, base_path = '.'):
                 obj_keys = [key for key in d if key.startswith('fixedObject')]
                 for key in obj_keys:
                     obj = d[key]
+                    if type(obj['nodes']) == str:
+                        # mesh file, load as graph
+                        import pyvista as pv
+                        mesh = pv.read(obj['nodes'])
+                        obj['nodes'] = mesh.points
+                        obj['graph'] = mesh.faces.reshape((-1,4))[:,1:]
                     obj['nodes'] = gMo.adaptPoints(obj['nodes'])
                     fixedObjects.append(obj)
                     d.pop(key)

@@ -81,11 +81,13 @@ The following commands will be applied to the last added variable:
   * Built-in function allow to show a moving camera and a moving box
 * Display a fixed object: `logger.showFixedObject(nodes, graph, color)`
   * With the same syntax for nodes and graph, will display this wireframe object in the given Matplotlib color.
+  * if the `logger.displayObjectAs(log2plot::Surface)` method is called then the point cloud will be displayed as a meshed surface
 * Change built-in colors: `logger.setLineType("[b, g, r, k--]")` allows to define the color and line style of the 3D elements:
   * First element is the trajectory line style (solid blue here)
   * Second element is the moving object (solid green)
   * Third one is for the initial and final poses (solid red)
   * Fourth one is for the desided pose (dashed black)
+
 
 ### Not a Number
 
@@ -130,7 +132,7 @@ In the `examples` folder are shipped 4 use cases:
 * `eigen_containers` uses containers from the Eigen library (Eigen::Vector3d)
 * `animation` shows how to perform a plot during runtime
 * `timed_xy` is an example of time-varying XY trajectory, only useful if saved as a video
-* `static_3d` shows a 3D plot with only static 3D objects
+* `static_3d` shows a 3D plot with only static 3D objects, some of which are displayed with a mesh
 * `from_python.py` shows how to use the logger from Python
 
 ## Configuration file parser
