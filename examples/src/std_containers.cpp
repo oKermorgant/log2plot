@@ -37,26 +37,15 @@ int main()
   std::vector<double> pose(6,0);
   // 3D pose is saved as translation + theta-u parametrization
   logger.save3Dpose(pose, "std_pose", "Trajectory");
-
+  logger.setLineType("[r]");
   // add a fixed box from (-1,-2,-3) to (1,2,3) in cyan
-  logger.showFixedBox(-1,-2,-3,1,2,3, "c");
+  logger.showFixedShape(log2plot::Box(-1,-2,-3,1,2,3, "c"));
 
-  // add a moving camera with its desired pose
-  logger.showMovingCamera({0,0,20,0,M_PI/2,0});
-
-  /* for moving objects, lineType define:
-        - trajectory color
-        - intermediary poses
-        - initial and final poses
-        - desired pose
-
-        the command below will plot:
-        - red trajectory
-        - green intermediary cameras
-        - blue initial and final poses
-        - black dashed desired pose
-      */
-  logger.setLineType("[r,g,b,k--]");
+  // add a green moving camera
+  const auto cam{log2plot::Camera("g")};
+  logger.showMovingShape(cam);
+  // also display it in blue at some given pose
+  logger.showFixedShape(cam.transform({10,10,20,0,M_PI/2,0}, "C0", "a fixed camera"));
 
   for(unsigned int c = 0;c<100;++c)
   {

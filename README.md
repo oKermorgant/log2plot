@@ -2,6 +2,16 @@ This module contains a library to be used from C++ that generates YAML files for
 
 A Python script is then used to plot the files with various options.
 
+## Dependencies
+
+* Required: C++ 17
+* Optional: [`pyvista`](https://docs.pyvista.org/version/stable/) to use meshes in the plots
+
+## Changes from v3
+
+Version 3 has heavily changed the way to add fixed or moving objects to 3D plots. In particular, there is no notion of desired pose when plotting a moving object associated with a 3D pose.
+Just plot it as a fixed object at the desired pose.
+
 ## Compilation and installation
 
 As of version 2, the module is ROS-agnostic and is a classical CMake package:
@@ -70,24 +80,28 @@ The following commands will be applied to the last added variable:
 * particular time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
 * Steps can also be added while recording with `logger.writeStep();`
 
-### 3D pose options
+### Adding arbitrary objects
 
-The following commands will be applied to the last added variable:
-* Display an object following the logged pose: `logger.showMovingObject(nodes, graph, desired_pose)`
-  * The object is displayed in wireframe from nodes (3D positions of points) and graph (segments linking 2 nodes)
-  * Nodes should be a `vector<vector<double> >` of dimension 3xn where n in the number of points
-  * Graph should be a string indicating the links between the node indices: `"[[0,1],[1,2],[2,0]]"` for a triangle
-  * Desired pose is a 6-dimensional pose given as a std::vector. The argument can thus be passed as `{0,1,2,3,4,5}`
-  * Built-in function allow to show a moving camera and a moving box
-* Display a fixed object: `logger.showFixedObject(nodes, graph, color)`
-  * With the same syntax for nodes and graph, will display this wireframe object in the given Matplotlib color.
-  * if the `logger.displayObjectAs(log2plot::Surface)` method is called then the point cloud will be displayed as a meshed surface, using `pyvista` module
-* Change built-in colors: `logger.setLineType("[b, g, r, k--]")` allows to define the color and line style of the 3D elements:
-  * First element is the trajectory line style (solid blue here)
-  * Second element is the moving object (solid green)
-  * Third one is for the initial and final poses (solid red)
-  * Fourth one is for the desided pose (dashed black)
+The `log2plot::Shape` defines an arbitrary shape from a set of nodes (`vector<SomePoints>`) and graph (`vector<vector<size_t>>`).
+The default graph is empty, leading to point clouds.
 
+Such a shape can be applied to the last added variable:
+* `logger.showMovingShape(log2plot::Shape)` for 2D graphs
+* `logger.showMovingShape(log2plot::Shape, log2plot::Surface = log2plot::PointCloud)` for 3D graphs
+  * Using surfaces other than `log2plot::PointCloud` requires the Python module `pyvista`
+    * `log2plot::PointCloud` (default): does not reconstruct any surface from the nodes
+    * `log2plot::ConvexHull`: computes the convex hull of the given point cloud
+    * `log2plot::Surface`: reconstructs a smooth surface out of the point cloud
+    * `log2plot::AlphaShape`: reconstructs an alpha-shape from the point cloud
+    * `log2plot::Faces`: plots the surface according to the vertex index in the graph
+  * if the color of the `Shape` includes any marker (such as `bD`) then the points will also be displayed along the surface
+
+A few builtin shapes are defines for 3D plots:
+* `log2plot::Camera`: a camera that will scale to the axis size
+* `log2plot::Box`: a box defined by its lower and upper corners
+* `log2plot::Frame`: a 3D RGB frame that will scale to the axis size
+
+Once defined, a `Shape` can be modified through `Shape.transform(pose, color, legend)`. This is useful when displaying several times the same shape at various places with different colors and legends.
 
 ### Not a Number
 

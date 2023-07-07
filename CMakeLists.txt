@@ -5,6 +5,7 @@ option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(ENABLE_DYNAMIC_PLOT "ENABLE_DYNAMIC_PLOT" ON)
 option(BUILD_PARSER "BUILD_PARSER" ON)
 option(PYTHON_BINDINGS "PYTHON_BINDINGS" ON)
+option(WITH_DEPRECATED "WITH_DEPRECATED" ON)
 
 # main files
 set(LOG2PLOT_HEADERS
@@ -36,7 +37,8 @@ if(ENABLE_DYNAMIC_PLOT)
         src/figure3d.cpp
         src/container_plotter.cpp
         src/loader.cpp
-        src/surfaces.cpp)
+        src/shape.cpp
+        src/yaml.cpp)
 
       set(LIB_DEPENDS ${LIB_DEPENDS}  ${PYTHON_LIBRARIES})
       set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS}  ${PYTHON_INCLUDE_DIRS})
@@ -56,15 +58,17 @@ if(yaml-cpp_FOUND AND BUILD_PARSER)
     set(LIB_DEPENDS ${LIB_DEPENDS} ${VISP_LIBRARIES})
     set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${VISP_INCLUDE_DIRS})
   endif()
-  # add a definition for ViSP being here
-  set(LOG2PLOT_WITH_VISP ${VISP_FOUND})
-  configure_file(cmake/defines.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/log2plot/defines.h)
 
   set(LOG2PLOT_HEADERS ${LOG2PLOT_HEADERS} include/log2plot/config_manager.h)
   set(LOG2PLOT_SRC ${LOG2PLOT_SRC} src/config_manager.cpp)
   set(LIB_DEPENDS ${LIB_DEPENDS} yaml-cpp)
   set(INCLUDE_DEPENDS ${INCLUDE_DEPENDS} ${yaml-cpp_INCLUDE_DIRS})
 endif()
+
+# add a definitions
+set(LOG2PLOT_WITH_VISP ${VISP_FOUND})
+set(LOG2PLOT_WITH_DEPRECATED ${WITH_DEPRECATED})
+configure_file(cmake/defines.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/log2plot/defines.h)
 
 set(CMAKE_CXX_STANDARD 17)
 # Compile with available deps

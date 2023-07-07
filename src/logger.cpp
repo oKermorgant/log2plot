@@ -58,7 +58,7 @@ std::string Logger::buildLegend(const std::string &legend, const unsigned int le
 }
 
 // **** Functions to specify metadata for the last registered variable ****
-
+#ifdef LOG2PLOT_WITH_DEPRECATED
 void Logger::showMovingCamera(const std::vector<double> &desired_pose, const double &x, const double &y, const double &z)
 {
   // init 5x3 matrix
@@ -70,30 +70,16 @@ void Logger::showMovingCamera(const std::vector<double> &desired_pose, const dou
   showMovingObject(M, "[[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1]]", desired_pose);
 }
 
-void Logger::showMovingBox(const double &x, const double &y, const double &z, const std::vector<double> &desired_pose)
-{
-  UNUSED(desired_pose);
-  showMovingObject(buildBoxNodes(-x/2,-y/2,-z/2,x,y,z),
-                   "[[0,1],[1,2],[2,3],[3,0],[0,4],[1,5],[2,6],[3,7],[4,5],[5,6],[6,7],[7,4]]");
-}
-
-
 // 3D plot: custom object with a (nx3) matrix
 void Logger::showMovingObject(const std::vector<std::vector<double> > &M, const std::string &graph, const std::vector<double> &desired_pose)
 {
   assert(desired_pose.size() %3 == 0);
   last->writeInfo("movingObject", "");
-  last->writeInfo("    nodes", toYAMLVector(M));
+  last->writeInfo(Yaml("nodes", M, 1));
   last->writeInfo("    graph", graph);
   // write desired pose if any
   if(desired_pose.size())
-    last->writeInfo("    desiredPose", toYAMLVector(std::vector<std::vector<double> >(1, desired_pose)));
-}
-
-// 3D plot: fixed 3D-rectangle
-void Logger::showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color, const std::string &legend)
-{
-  showFixedObject(buildBoxNodes(xm, ym, zm, xM, yM, zM), "[[0,1],[1,2],[2,3],[3,0],[0,4],[1,5],[2,6],[3,7],[4,5],[5,6],[6,7],[7,4]]", color, legend);
+    last->writeInfo(Yaml("desiredPose", {desired_pose}, 1));
 }
 
 // 3D plot: fixed 2D-rectangle on Z=0
@@ -106,22 +92,7 @@ void Logger::showFixedRectangle(const double &xm, const double &ym, const double
   M[3][0] = xm;   M[3][1] = yM;
   showFixedObject(M, "[[0,1],[1,2],[2,3],[3,0]]", color, legend);
 }
-
-
-// 3D plot: build 3D box nodes
-vector< vector<double> > Logger::buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM)
-{
-  vector< vector<double> > M(8,vector<double>(3,0));
-  M[0][0] = xm;    M[0][1] = ym;   M[0][2] = zm;
-  M[1][0] = xM;     M[1][1] = ym;   M[1][2] = zm;
-  M[2][0] = xM;     M[2][1] = yM;    M[2][2] = zm;
-  M[3][0] = xm;    M[3][1] = yM;    M[3][2] = zm;
-  M[4][0] = xm;    M[4][1] = ym;   M[4][2] = zM;
-  M[5][0] = xM;     M[5][1] = ym;   M[5][2] = zM;
-  M[6][0] = xM;     M[6][1] = yM;    M[6][2] = zM;
-  M[7][0] = xm;    M[7][1] = yM;    M[7][2] = zM;
-  return M;
-}
+#endif
 
 
 // Updates all saved vectors
@@ -225,37 +196,4 @@ void Logger::plot(const std::string &script_path, bool verbose, bool display)
 
 // **** end plotting functions
 
-// **** Related to legends ****
-
-string legend2DPoint(const unsigned int &n)
-{
-  stringstream ss;
-  ss << "[";
-  unsigned int i;
-  for(i=0;i<n-1;++i)
-    ss << "x_" << i+1 << ", y_" << i+1 << ", ";
-  ss << "x_" << i+1 << ", y_" << i+1 << "]";
-  return ss.str();
-}
-
-// legend for a fully connected graph of n points
-std::string legendFullyConnected(const uint n)
-{
-  std::vector<std::vector<uint>> M;
-  for(uint i =  0; i < n-1; ++i)
-  {
-    for(uint j = i+1; j < n; ++j)
-      M.push_back({i,j});
-  }
-  return toYAMLVector(M);
-}
-
-// legend for a fully disconnected graph of n points
-std::string legendFullyDisconnected(const uint n)
-{
-  std::vector<std::vector<uint>> M;
-  for(uint i = 0; i < n; ++i)
-    M.push_back({i});
-  return toYAMLVector(M);
-}
 }

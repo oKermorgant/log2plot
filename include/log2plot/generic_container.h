@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <log2plot/log_types.h>
+#include <log2plot/yaml.h>
 
 namespace log2plot
 {
@@ -33,7 +34,18 @@ public:
     void setSteps(const std::vector<double> &steps);
 
     // write additionnal info
-    virtual void writeInfo(const std::string &_label, const std::string &_info);
+    virtual void writeInfo(const std::string &key, const std::string &value = "");
+
+    inline void writeInfo(const Yaml &yaml)
+    {
+      yaml_stream << yaml;
+    }
+    inline void writeInfo(const std::vector<Yaml> &yaml)
+    {
+      for(auto &info: yaml)
+      yaml_stream << info;
+    }
+
 
 protected:
     std::ofstream yaml_stream;
@@ -42,4 +54,5 @@ protected:
     bool has_steps = false;
 };
 }
+
 #endif // GENERIC_CONTAINER_H

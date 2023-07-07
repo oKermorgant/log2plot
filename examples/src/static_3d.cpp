@@ -18,7 +18,7 @@ inline Point randomPoint()
 
 inline std::vector<Point> generateSphere(double rad, double x0, double y0, double z0)
 {
-  const auto n{100};
+  const auto n{30};
   std::vector<Point> sphere;
   sphere.reserve(n);
 
@@ -41,7 +41,7 @@ inline std::vector<Point> generateSphere(double rad, double x0, double y0, doubl
 inline std::vector<Point> generateTorus(double r, double R,
                                         double x0, double y0, double z0)
 {
-  const auto steps{100.};
+  const auto steps{30};
   std::vector<Point> torus;
   torus.reserve(steps * steps);
   const auto incr{2*M_PI/steps};
@@ -79,28 +79,31 @@ int main()
 
   // some points
   std::generate(cloud.begin(), cloud.end(), randomPoint);
-  logger.showFixedObject(cloud, "[]", "C0d", "a discrete object");
+  logger.showFixedShape(log2plot::Shape(cloud, "C0d", "a point cloud"));
 
   // fully connected
-  cloud.resize(10);
+  cloud.resize(5);
   std::generate(cloud.begin(), cloud.end(), randomPoint);
-  logger.showFixedObject(cloud, log2plot::legendFullyConnected(cloud.size()), "C1", "random lines");
+  logger.showFixedShape(log2plot::Shape(cloud, "C1", "random lines", log2plot::Fully::Connected));
 
   // builtin
-  logger.showFixedBox(1, 1, 1, 3, 4, 5, "C2", "a box");
+  logger.showFixedShape(log2plot::Box(1, 1, 1, 3, 4, 5, "C2", "a box"));
 
   // surface
   cloud = generateTorus(0.2, 1., 4, -4, -4);
-  logger.showFixedObject(cloud, "", "C4", "a torus with reconstructed surface");
-  logger.displayObjectAs(log2plot::Surface(.3));
+  logger.showFixedShape(log2plot::Shape(cloud, {}, "C4", "a torus with reconstructed surface"),
+                        log2plot::Surface(.3));
 
   cloud = generateSphere(1, -4, -4, -4);
-  logger.showFixedObject(cloud, "", "C5", "a sphere with alpha shape");
-  logger.displayObjectAs(log2plot::AlphaShape(1., .3));
+  logger.showFixedShape(log2plot::Shape(cloud, {}, "C5", "a sphere with alpha shape"),
+                        log2plot::AlphaShape(1., .3));
 
   cloud = generateTorus(0.3, 1, -4, 4, -4);
-  logger.showFixedObject(cloud, "", "C6", "a torus with convex hull");
-  logger.displayObjectAs(log2plot::ConvexHull(.3));
+  logger.showFixedShape(log2plot::Shape(cloud, {}, "C6", "a torus with convex hull"),
+                        log2plot::ConvexHull(.3));
+
+  // a basic 3D frame, without legend. The shape will be 30 % of the overall 3D plot size
+  logger.showFixedShape(log2plot::Frame(.3).transform({4, -4, 2, 0.1, 0.2, 0.4}));
 
   logger.plot();
 }

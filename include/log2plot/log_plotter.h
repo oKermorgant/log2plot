@@ -37,18 +37,20 @@ public:
         last_plot->run("pl.pause(0.0001)");
       last_plot->waitExecution();
     }
-  }
+  } 
 
-  void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "")
+  void showFixedObject(const std::vector<std::vector<double>> &M, const Graph &graph, const std::string &color = "")
   {
-    Logger::showFixedObject<std::vector<double>>(M, graph, color);
-    last_plot->showFixedObject(M, graph, color);
+    Logger:showFixedShape(Shape(M, graph, color));
+    last_plot->showFixedObject(M, Yaml("", graph).value, color);
   }
-  void showMovingObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::vector<double> &desired_pose = {})
+  void showMovingObject(const std::vector<std::vector<double>> &M, const Graph &graph, const std::vector<double> &desired_pose = {})
   {
     assert(desired_pose.size() %3 == 0);
-    Logger::showMovingObject(M, graph, desired_pose);
-    last_plot->showMovingObject(M, graph, desired_pose);
+    const auto shape{Shape(M, graph)};
+    Logger::showMovingShape(shape);
+    Logger::showFixedShape(shape.transform(desired_pose));
+    last_plot->showMovingObject(M, Yaml("", graph).value, desired_pose);
   }
 
   // Save iteration-based vector

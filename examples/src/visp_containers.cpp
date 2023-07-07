@@ -18,7 +18,9 @@ int main()
 
   // save velocity with Latex legend
   logger.save(v, "visp_velocity", "[v_x,v_y,v_z,\\omega_x,\\omega_y,\\omega_z]", "Camera velocity");
-  logger.showFixedObject({{30,.4},{40,.8},{60,.2},{80,.6}}, log2plot::legendFullyConnected(4), "r");
+  // add a wierd arbitrary 2D shape
+  logger.showFixedShape(log2plot::Shape({{30.,.4},{40.,.8},{60.,.2},{80.,.6}},
+                                        "r", "", log2plot::Fully::Connected));
 
   // save pose as iteration-based with Latex legend
   logger.save(pose, "visp_pose", "[x,y,z,\\theta_x,\\theta_y,\\theta_z]", "Camera pose");
@@ -26,11 +28,9 @@ int main()
   // save pose as 3D plot
   // the saved variable is the world pose in camera frame, we want to plot the invert
   logger.save3Dpose(pose, "visp_pose3D", "Camera pose", true);
-  logger.setLineType("[C0,C1,C2,C3]");
+  logger.setLineType("[C0]");
   // add a camera along the trajectory
-  logger.showMovingCamera();
-  // add a box
-  logger.showFixedBox(-1,-1,-8,3,4,0, "C6");
+  logger.showMovingShape(log2plot::Camera("C0"));
 
   for(int i=0;i<100;++i)
   {

@@ -8,46 +8,19 @@
 #include <cmath>
 #include <sstream>
 #include <assert.h>
+#include <optional>
 
+#include <log2plot/defines.h>
 #include <log2plot/container.h>
-#include <log2plot/surfaces.h>
+#include <log2plot/shape.h>
 
 namespace log2plot
 {
-
-/// legend for a number of points (x_i,y_i)
-std::string legend2DPoint(const unsigned int &n=4);
-
-/// legend for a fully connected graph of n points
-std::string legendFullyConnected(const uint n);
-
-/// legend for a fully disconnected graph of n points
-std::string legendFullyDisconnected(const uint n);
 
 /// Close all files and call the Python interpreter on the given script path
 inline void closePreviousPlots()
 {
   [[maybe_unused]] const auto out = system("killall log2plot -q");
-}
-
-/// Builds YAML-proof single-lined matrix
-template<class Coord>
-static std::string toYAMLVector(const std::vector<Coord> &M)
-{
-  std::stringstream ss;
-  unsigned int i,j;
-  ss << "[";
-  for(i=0;i<M.size();++i)
-  {
-    ss << "[";
-    for(j=0;j<M[i].size()-1;++j)
-      ss << M[i][j] << ", ";
-    ss << M[i][j] << "]";
-    if(i != M.size()-1)
-      ss << ",";
-  }
-  ss << "]";
-  return ss.str();
 }
 
 const double nan = std::nan("");
@@ -91,6 +64,18 @@ protected:
 
   // calls python to plot this / these files
   void plotFiles(const std::string &script_path, const std::vector<std::string> &files, bool verbose, bool display);
+
+  //template <class Point>
+  void showShape(const std::string &key, const Shape &shape, const Surface & surface = PointCloud())
+  {
+    last->writeInfo(key);
+    last->writeInfo(shape.infos());
+    if(const auto surface_info{surface.infos()}; !surface_info.empty())
+    {
+      last->writeInfo("    surface");
+      last->writeInfo(surface_info);
+    }
+  }
 
 public:
   // constructor with default values
@@ -201,29 +186,40 @@ public:
 
   // standard arguments
   void setPlotArgs(std::string args)
-  {
+  {    
     last->writeInfo("args", args);
   }
+  void showMovingShape(const Shape &shape, const Surface & surface = PointCloud())
+  {
+    showShape("movingObject", shape, surface);
+  }
 
-  // 3D plot: show camera
-  void showMovingCamera(const std::vector<double> &desired_pose = {},const double &x = 1.5, const double &y = 1, const double &z = 4);
-  // 3D plot: show box
-  void showMovingBox(const double &x = 10, const double &y = 5, const double &z = 3, const std::vector<double> &desired_pose = {});
-  // 3D plot: custom object with a (nx3) matrix
+  inline void showFixedShape(const Shape &shape, const Surface & surface = PointCloud())
+  {
+    showShape("fixedObject"+std::to_string(++nb_fixed_objects), shape, surface);
+  }
+
+  template <class Point = std::vector<double>>
+  inline void showFixedShape(const std::vector<Point> &points, const std::string &color = "", const std::string &legend = "", const Fully graph = Fully::Disconnected)
+  {
+    showFixedShape(Shape(points, color, legend, graph));
+  }
+
+#ifdef LOG2PLOT_WITH_DEPRECATED
+  /// [deprecated, use Camera] 3D plot: show camera
+  void showMovingCamera(const std::vector<double> &desired_pose = {}, const double &x = 1.5, const double &y = 1, const double &z = 4);
+  /// [deprecated, use Shape] 3D plot: custom object with a (nx3) matrix
   virtual void showMovingObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::vector<double> &desired_pose = {});
-  // 3D plot: fixed 3D-box
-  void showFixedBox(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM, const std::string &color = "", const std::string &legend = "");
-  // 3D plot: fixed 2D-rectangle on Z=0
+  /// [deprecated, use Shape] 3D plot: fixed 2D-rectangle on Z=0
   void showFixedRectangle(const double &xm, const double &ym, const double &xM, const double &yM, const std::string &color = "", const std::string &legend = "");
-  // 3D plot: any fixed object from a list of 3D coordinates (related to object frame)
-  template <class Point3D>
-  void showFixedObject(const std::vector<Point3D> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
+  /// [deprecated, use Shape] any fixed object from a list of coordinates (related to object frame)
+  template <class Point>
+  void showFixedObject(const std::vector<Point> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
     std::stringstream ss;
     ss << "fixedObject" << ++nb_fixed_objects;
     last->writeInfo(ss.str(), "");
-    last->writeInfo("    nodes", toYAMLVector(M));
-    if(!graph.empty())
+    last->writeInfo(Yaml("nodes", M, 1));
       last->writeInfo("    graph", graph);
     if(!color.empty())
     {
@@ -236,15 +232,12 @@ public:
       last->writeInfo("    legend", legend);
     last->flush();
   }
+  /// [deprecated, use Shape]
   virtual void showFixedObject(const std::vector<std::vector<double>> &M, const std::string &graph, const std::string &color = "", const std::string &legend = "")
   {
     showFixedObject<std::vector<double>>(M, graph, color, legend);
   }
-  // add 3D volume information
-  inline void displayObjectAs(const Surface &surface)
-  {
-    last->writeInfo("    surface", surface.infos());
-  }
+#endif
 
   // **** End metadata functions ****
 
@@ -267,10 +260,6 @@ public:
   // Updates all saved variables
   virtual void update(const bool &flush = false);
 
-  // Low-level static functions
-  // Build 3D box nodes depending on dimensions
-  static std::vector<std::vector<double> > buildBoxNodes(const double &xm, const double &ym, const double &zm, const double &xM, const double &yM, const double &zM);
-
   void plot(const std::string &script_path, bool verbose = false, bool display = true);
   void plot(bool verbose = false, bool display = true);
 
@@ -283,7 +272,6 @@ public:
   {
     plot(verbose, false);
   }
-
 };
 }
 

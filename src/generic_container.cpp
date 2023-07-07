@@ -1,4 +1,5 @@
 #include <log2plot/generic_container.h>
+#include <log2plot/yaml.h>
 #include <filesystem>
 
 namespace log2plot
@@ -32,11 +33,12 @@ void GenericContainer::setFile(const std::string &file)
   }
 }
 
-void GenericContainer::writeInfo(const std::string &_label, const std::string &_info)
+void GenericContainer::writeInfo(const std::string &key, const std::string &value)
 {
-  yaml_stream << _label << ": " << _info << '\n';
+  if(key.empty())
+    return;
+  yaml_stream << key << ": " <<  value << '\n';
 }
-
 
 std::string GenericContainer::close(const std::vector<double> &steps,
                                     const std::vector<double> &steps_timed)

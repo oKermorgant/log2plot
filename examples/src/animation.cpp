@@ -32,10 +32,9 @@ int main()
   std::vector<double> pose(6,0);
   // 3D pose is saved as translation + theta-u parametrization
   logger.save3Dpose(pose, "std_pose", "Trajectory");
-  logger.showMovingCamera({0,0,0,0,0,0});
-  // add a fixed box from (-1,-2,-3) to (1,2,3) in cyan
-  logger.showFixedBox(-1,-2,-3,1,2,3, "c");
-  logger.setLineType("[r,g,b,C1--]");
+  const auto cam{log2plot::Camera("g")};
+  logger.showMovingObject(cam.nodes, cam.graph);
+  logger.setLineType("[r,g]");
 
   double time(0);
 
