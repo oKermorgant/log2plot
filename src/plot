@@ -1132,6 +1132,13 @@ if __name__ == "__main__":
                 dataList[i].legend[0] = args.legend[i]
     elif args.group and dataList[0].dataType != DT_TIMED_XY:
         # if 2D and group, then concatenate 2D data into a single structure
+
+        def fillWithNans(arr):
+            nans = pl.empty((rows-len(arr),arr.shape[1]))
+            nans[:] = pl.nan
+            arr = pl.vstack((arr, nans))
+            return arr
+
         dataMain = dataList[0]
         for dataSt in dataList[1:]:
             if dataSt.dataType != dataMain.dataType:
@@ -1142,25 +1149,28 @@ if __name__ == "__main__":
             if len(dataSt.data) != len(dataMain.data):
 
                 rowsMain, rowsNew = len(dataMain.data), len(dataSt.data)
-
-                print(f'Trying to group data with different lengths: {rowsMain} vs {rowsNew}')
+                if dataList[0].dataType != DT_XY:
+                    print(f'Trying to group data with different lengths: {rowsMain} vs {rowsNew}')
                 rows = max(rowsMain, rowsNew)
-
-                def fillWithNans(arr):
-                    nans = pl.empty((rows-len(arr),arr.shape[1]))
-                    nans[:] = pl.nan
-                    arr = pl.vstack((arr, nans))
-                    return arr
 
                 if rows == rowsNew:
                     dataMain.data = fillWithNans(dataMain.data)
+                    if dataList[0].dataType == DT_XY:
+                        dataMain.x = fillWithNans(dataMain.x)
+                    else:
+                        dataMain.x = dataSt.x
                 else:
                     dataSt.data = fillWithNans(dataSt.data)
+                    if dataList[0].dataType == DT_XY:
+                        dataSt.x = fillWithNans(dataSt.x)
 
             # ok, concatenate data, legends, lineTypes and units
+            if dataList[0].dataType == DT_XY:
+                dataMain.x = pl.hstack((dataMain.x, dataSt.x))
             dataMain.data = pl.hstack((dataMain.data, dataSt.data))
             dataMain.legend += dataSt.legend
             dataMain.lineType += dataSt.lineType
+
         dataList = [dataMain]
     elif args.diff:
         # compute the difference
