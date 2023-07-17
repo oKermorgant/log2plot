@@ -1,5 +1,6 @@
 #include <log2plot/loader.h>
 #include <yaml-cpp/yaml.h>
+#include <algorithm>
 #include <iostream>
 
 using namespace log2plot;

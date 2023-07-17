@@ -328,7 +328,7 @@ class Shape:
             nodes = array(arMg.adaptPoints(self.gMo[:3,3] + self.gMo[:3,:3] * self.nodes))
             return pl.vstack((pl.nanmin(nodes,1), pl.nanmax(nodes,1))).T, None
 
-        return self.gMo[:3,3], self.scale
+        return arMg.adaptPose(self.gMo[:3,3]), self.scale
 
     def transformed(self, M):
         '''
@@ -751,15 +751,12 @@ class Plotter3D:
                 lim3D[2*idx] = nanmin([nanmin(xyz[idx]), lim3D[2*idx]])
                 lim3D[2*idx+1] = nanmax([nanmax(xyz[idx]), lim3D[2*idx+1]])
 
-
         # identify if any mesh, then discard z order computation
         has_mesh = False
         for dataSt in dataList:
             if dataSt.data:
                 updateLim(array(dataSt.data)[:,:,3].T)
 
-            if has_mesh:
-                break
             for obj in dataSt.fixedObjects:
 
                 bounds, scale = obj.bounds()
