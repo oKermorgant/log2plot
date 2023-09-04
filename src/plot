@@ -520,18 +520,28 @@ class Plotter2D:
             L = len(dataList)
         C = int(float(len(dataList))/L)
 
+        xLim_done = yLim_done = False
+        if len(args.xLim) == 2:
+            xMin,xMax = args.xLim
+            xLim_done = True
+        if len(args.yLim) == 2:
+            yMin,yMax = args.yLim
+            yLim_done = True
+
         txy_force_group = dataList[0].dataType == DT_TIMED_XY
 
         if txy_force_group:
             C = 1
             x = pl.hstack([dataSt.data[:,1::2] for dataSt in dataList])
             y = pl.hstack([dataSt.data[:,2::2] for dataSt in dataList])
-            xMin = nanmin(x)
-            xMax = nanmax(x)
-            xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
-            yMin = nanmin(y)
-            yMax = nanmax(y)
-            yMin,yMax = yMin-plotMargin*(yMax-yMin), yMax+plotMargin*(yMax-yMin)
+            if not xLim_done:
+                xMin = nanmin(x)
+                xMax = nanmax(x)
+                xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
+            if not yLim_done:
+                yMin = nanmin(y)
+                yMax = nanmax(y)
+                yMin,yMax = yMin-plotMargin*(yMax-yMin), yMax+plotMargin*(yMax-yMin)
 
         if args.equal:
             m = max(args.fig[1],args.fig[0])
@@ -545,29 +555,26 @@ class Plotter2D:
             # get bounds
 
             if not txy_force_group:
-                xMin = nanmin(dataSt.x)
-                xMax = nanmax(dataSt.x)
-                if dataSt.dataType == DT_XY:
-                    xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
+                if not xLim_done:
+                    xMin = nanmin(dataSt.x)
+                    xMax = nanmax(dataSt.x)
+                    if dataSt.dataType == DT_XY:
+                        xMin,xMax = xMin-plotMargin*(xMax-xMin), xMax+plotMargin*(xMax-xMin)
 
                 if args.twin != -1:
                     # only one plot, store limits for both axes
-                    yMin = nanmin(dataSt.data[:,:args.twin+1])
-                    yMax = nanmax(dataSt.data[:,:args.twin+1])
+                    if not yLim_done:
+                        yMin = nanmin(dataSt.data[:,:args.twin+1])
+                        yMax = nanmax(dataSt.data[:,:args.twin+1])
                     yMin2 = nanmin(dataSt.data[:,args.twin+1:])
                     yMax2 = nanmax(dataSt.data[:,args.twin+1:])
-                else:
+                elif not yLim_done:
                     # several plots, use all data with the same ylabel for y limits (valid if ylabel != '')
                     yMin = nanmin(dataSt.data)
                     yMax = nanmax(dataSt.data)
                     if dataSt.ylabel != '':
                         yMin = min([nanmin(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
                         yMax = max([nanmax(otherSt.data) for otherSt in dataList if otherSt.ylabel == dataSt.ylabel])
-
-            if len(args.xLim) == 2:
-                xMin,xMax = args.xLim
-            if len(args.yLim) == 2:
-                yMin,yMax = args.yLim
 
             # add first axis
             if not txy_force_group or i == 0:
