@@ -19,7 +19,7 @@ As of version 2, the module is ROS-agnostic and is a classical CMake package:
 * `mkdir build`
 * `cd build`
 * `cmake ..`
-* `make` or `sudo make install`
+* `make` or `sudo make install` to use it from another project
 
 The library can then be found through CMake find_package.
 
