@@ -8,12 +8,12 @@ config: 3
 
 true: false
 
-pi: PI
+pi: pi  # works in upper or lower case
 
 # in blocks
 1:
     n: 3
-    p1: [PI,0,-PI/2]
+    p1: [PI,0,-PI / 2]   # will remove spaces in fractions
     p2: [3, -1, 4]
 
 # some visp parsing

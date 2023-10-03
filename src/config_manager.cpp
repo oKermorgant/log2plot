@@ -52,7 +52,7 @@ void ConfigManager::addNameElement(const std::string &str)
   {
     if(base_name.size())
       base_name += "_";
-    base_name += str;    
+    base_name += str;
   }
 }
 
@@ -82,25 +82,33 @@ YAML::Node ConfigManager::finalNode(TagList tags, const YAML::Node &node, size_t
 
 double ConfigManager::str2double(const std::string &s)
 {
-  if(s.size() > 1)
+  if(s.find("pi") != s.npos || s.find("PI") != s.npos)
   {
+    // change to lower + remove spaces
+    const auto s_lower = [&s]()
+    {
+      std::string s_lower;
+      std::transform(s.begin(), s.end(), std::back_inserter(s_lower), ::tolower);
+      s_lower.erase(std::remove(s_lower.begin(), s_lower.end(), ' '),
+                    s_lower.end());
+      return s_lower;}();
+
     // look for fractions of pi
     for(const auto denum: {2, 3, 4, 6, 1})
     {
-      for(const auto sign: {1, -1})
+      for(const auto sign: {"pi", "-pi"})
       {
-        for(const auto pi: {"PI", "pi"})
-        {
-          // build string to be searched
-          std::stringstream ss;
-          if(sign == -1)
-            ss << "-";
-          ss << pi;
-          if(denum != 1)
-            ss << "/" << denum;
-          if(s == ss.str())
-            return sign * M_PI/denum;
-        }
+        const std::string fraction = sign + (denum == 1 ? "" : '/'+std::to_string(denum));
+        // build string to be searched
+       /* std::stringstream ss;
+        if(sign == -1)
+          ss << "-";
+        ss << "pi";
+        if(denum != 1)
+          ss << "/" << denum;
+        if(s_lower == ss.str())*/
+        if(s_lower == fraction)
+          return (sign[0] == '-' ? -1 : 1) * M_PI/denum;
       }
     }
   }
