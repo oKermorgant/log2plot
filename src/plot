@@ -1106,13 +1106,17 @@ if __name__ == "__main__":
             baseName += '_' + '_'.join([b[i:] for b in baseNames[1:]])
     else:
         baseName = args.out
-    fullName = basePath + '/' + baseName
+    fullName = os.path.join(basePath, baseName)
 
     # create metafile if several files, same extension as 1st file
     if len(args.files) > 1:
-        print('Writing metafile ' + fullName + '.' + args.files[0].split('.')[-1])
-        with open(fullName + '.' + args.files[0].split('.')[-1],'w') as f:
-            yaml.dump({'dataType': 'metafile', 'files': [os.path.basename(f) for f in args.files]}, f, default_flow_style=False)
+
+        print('Writing metafile ' + fullName + '.yaml')
+        with open(fullName + '.yaml','w') as f:
+
+            yaml.dump({'dataType': 'metafile',
+                       'files': [os.path.relpath(f, os.path.dirname(fullName)) for f in args.files]},
+            f, default_flow_style=False)
             add_args = ''
             a = len(args.files)
             while a+1 < len(sys.argv):
