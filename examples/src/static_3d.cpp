@@ -102,8 +102,11 @@ int main()
   logger.showFixedShape(log2plot::Shape(cloud, {}, "C6", "a torus with convex hull"),
                         log2plot::ConvexHull(.3));
 
-  // a basic 3D frame, without legend. The shape will be 30 % of the overall 3D plot size
-  logger.showFixedShape(log2plot::Frame(.3).transform({4, -4, 2, 0.1, 0.2, 0.4}));
+  // a basic 3D frame, without legend. The shape will be 20 % of the overall 3D plot size
+  logger.showFixedShape(log2plot::Frame(.2).transform({4, -4, 2, 0.1, 0.2, 0.4}));
+
+  // a wireframe camera
+  logger.showFixedShape(log2plot::Camera("r", "A camera").transform({-1,-3,-3,M_PI/2,0,0}));
 
   logger.plot();
 }

@@ -87,7 +87,7 @@ struct Shape
   template <class Point = std::vector<double>>
   inline explicit Shape(const std::vector<Point> &nodes, const Graph &graph,
                         const std::string &color = "", const std::string &legend = "")
-    : graph{graph}, color{color.empty() ? "''" : color}, legend{legend}
+    : graph{graph}, color{(color.empty() ? "''" : color)}, legend{legend}
   {
     if(nodes.empty())
       return;
@@ -128,21 +128,21 @@ protected:
   double scale_pc = -1;
 };
 
-  struct Camera : public Shape
-  {
-    explicit Camera(const std::string &color = "", const std::string &legend = "", double scale = 0.1);
-  };
+struct Camera : public Shape
+{
+  explicit Camera(const std::string &color = "", const std::string &legend = "", double scale = 0.1);
+};
 
-  struct Box : public Shape
-  {
-    explicit Box(double xm, double ym, double zm,
-                 double xM, double yM, double zM,
-                 const std::string &color = "", const std::string &legend = "");
-  };
-  struct Frame : public Shape
-  {
-    explicit Frame(double scale = 0.1, const std::vector<double> &pose = {});
-  };
+struct Box : public Shape
+{
+  explicit Box(double xm, double ym, double zm,
+               double xM, double yM, double zM,
+               const std::string &color = "", const std::string &legend = "");
+};
+struct Frame : public Shape
+{
+  explicit Frame(double scale = 0.1, const std::vector<double> &pose = {});
+};
 }
 
 

@@ -103,6 +103,7 @@ public:
   inline void setSubSampling(unsigned int s) {subsamp = s;}
   /// path to files to be saved, can include any prefix for files
   inline void setSavePath(const std::string &file_path) {this->file_path = file_path;}
+  inline auto getSavePath() const {return file_path;}
 
   // **** Functions to add new variables to be saved ****
 
