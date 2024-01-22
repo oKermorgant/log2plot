@@ -807,29 +807,36 @@ class Plotter3D:
         # first run to get the figure dimensions
         self.lines = []
 
-        all_legends = {}
+        # check we do not use the same color for various legends
+        class Colors:
+            def __init__(self):
+                self.legends = {}
+
+            def add(self, color, legend):
+                if not legend:
+                    return
+                color = str(color)
+                if color not in self.legends:
+                    self.legends[color] = set()
+                self.legends[color].add(legend)
+
+                if self.legends[color] != {legend}:
+                    print('[warning] different labels for same color:', color, '(', ', '.join(self.legends[color]), ')')
+
+        colors = Colors()
 
         for dataSt in dataList:
 
             # plot fixed observed object if any - won't move
             for obj in dataSt.fixedObjects:
-
-                if obj.legend:
-                    key = str(obj.color)
-                    if key in all_legends and all_legends[key] != obj.legend:
-                        print('[warning] different labels for same color:',key)
-                    all_legends[key] = obj.legend
+                colors.add(obj.color, obj.legend)
                 obj.plot3D(self.ax)
 
             # 3D trajectory at the end
             if dataSt.data:
                 xyz = array(dataSt.data)[:,:,3].T
                 self.lines += self.ax.plot(xyz[0], xyz[1], xyz[2], dataSt.lineType[0],linewidth=args.lineWidth,zorder=100)
-                key = str(dataSt.lineType[0])
-                if key in all_legends and all_legends[key] != dataSt.legend[0]:
-                    print('[warning] different labels for same color:',key)
-                all_legends[key] = dataSt.legend[0]
-
+                colors.add(dataSt.lineType[0], dataSt.legend[0])
 
         self.ax.xaxis.labelpad = self.ax.yaxis.labelpad = self.ax.zaxis.labelpad = 15
         self.ax.zaxis.set_rotate_label(False)
@@ -860,8 +867,8 @@ class Plotter3D:
                 getattr(self.ax, f'set_{xyz}ticks')([])
 
         # add legends for fixed objects
-        for color, legend in all_legends.items():
-            self.ax.plot([], [], [], color, label=legend)
+        for color, legend in colors.legends.items():
+            self.ax.plot([], [], [], color, label=legend.pop())
 
     def refresh(self, ind = -1):
 
