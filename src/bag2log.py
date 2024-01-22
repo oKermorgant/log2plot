@@ -4,6 +4,8 @@ import rosbag2_py as rb
 from rclpy.serialization import deserialize_message
 import os
 
+# obviously in progress
+
 
 class Bag2log:
     def __init__(self, bag):

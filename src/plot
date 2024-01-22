@@ -865,15 +865,17 @@ class Plotter3D:
 
     def refresh(self, ind = -1):
 
-        if ind == -1:
+        animated = ind != -1
+        if not animated:
             ind = max([d.rows for d in dataList])
 
         iline = 0
         for dataSt in dataList:
+
             if not dataSt.data:
                 continue
             # 3D trajectory
-            if ind > 0:
+            if ind != 0:
                 xyz = array(dataSt.data[:ind])[:,:,3]
                 self.lines[iline].set_data(xyz[:,0], xyz[:,1])
                 self.lines[iline].set_3d_properties(xyz[:,2])
@@ -883,7 +885,7 @@ class Plotter3D:
             iline += 1
 
         # deal with moving object
-        if ind == dataList[0].rows:
+        if not animated:
             # fixed picture: plot all
             for k,dataSt in enumerate(dataList):
                 if 'movingObject' in dataSt.keys:
