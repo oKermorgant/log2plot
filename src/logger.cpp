@@ -106,8 +106,7 @@ void Logger::update(const bool &flush)
     first_update = false;
   }
 
-  // check subsampling
-  iter_count++;
+  // check subsampling  
   if(subsamp == 1 || !(iter_count % subsamp) || flush)
   {
     // buffer full, call update + flush
@@ -127,6 +126,7 @@ void Logger::update(const bool &flush)
         c->update(time);
     }
   }
+  iter_count++;
 }
 
 

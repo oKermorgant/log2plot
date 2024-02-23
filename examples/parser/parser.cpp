@@ -71,4 +71,6 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   config.read<int>({"visp","not_here"});
 
+  config.saveConfig();
+
 }

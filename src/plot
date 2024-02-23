@@ -30,7 +30,6 @@ mpl.rcParams['text.latex.preamble'] = r'''
 \usepackage{sansmath}
 \sansmath'''
 
-
 # datatypes
 DT_POSE = '3D pose'
 DT_ITER = 'iteration-based'
@@ -931,6 +930,7 @@ def readFileList(filenames, n=0, base_path = '.'):
         return filename if os.path.isabs(filename) else os.path.join(base_path, filename)
 
     for file_idx,filename in enumerate(filenames):
+
         with open(toPath(filename)) as f:
             try:
                 d = yaml.safe_load(f)
@@ -1097,12 +1097,14 @@ if __name__ == "__main__":
                 os.system('python ' + sys.argv[0] + ' ' + args.files[0] + '/' + filename + ' --nodisplay ' + ' '.join(sys.argv[2:]))
         sys.exit(0)
 
-    basePath = '/'.join(os.path.abspath(args.files[0]).split('/')[:-1])
-
     # read content of files
     dataList = readFileList(args.files)
 
     # build baseName
+    if len(args.files) == 1:
+        basePath = os.path.dirname(os.path.abspath(args.files[0]))
+    else:
+        basePath = os.path.abspath(os.path.commonpath(args.files))
     if not args.out:
         baseNames = [os.path.splitext(filename.split('/')[-1])[0] for filename in args.files]
         baseName = baseNames[0]
