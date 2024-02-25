@@ -1236,6 +1236,22 @@ if __name__ == "__main__":
             pl.show()
     else:
         # some kind of video
+        Writer = None
+        # find suitable writer
+        if not hasattr(animation.writers, 'avail'):
+            setattr(animation.writers, 'avail', animation.writers.list())
+
+        if args.gif:
+            writers = ('pillow', 'imagemagick')
+            ext = 'gif'
+        else:
+            writers = ('avconv','ffmpeg')
+            ext = 'mp4'
+
+        fullName = f'{fullName}.{ext}'
+
+        print(f' Saving video to {fullName}... ', end = '\r')
+
         t = time.time()
         if args.v3d:
             # plot rotating 3D
@@ -1250,39 +1266,34 @@ if __name__ == "__main__":
             plotter.refresh = refresh_azim
             a0, af = int(args.ae[0]), int(args.ae[0]) + args.v3d*360
             if af < a0:
-                frame_idx = range(a0, af, -2)
+                frame_idx = list(range(a0, af, -2))
             else:
-                frame_idx = range(a0, af, 2)
+                frame_idx = list(range(a0, af, 2))
             args.video = max(args.video, 1)
         else:
             frame_idx = [int(i) for i in pl.linspace(0,dataList[0].rows-1, (dataList[0].rows-1)//args.video)]
             # add 2 sec on last frame
             frame_idx += [dataList[0].rows-1 for _ in range(int(2./(args.video*args.dt)))]
 
-        ani = animation.FuncAnimation(plotter.F, plotter.refresh, frames=frame_idx, interval=1, blit=True, repeat=False)
-        print('Saving video...')
+        def refresh_video(ind):
 
-        Writer = None
-        # find suitable writer
-        if not hasattr(animation.writers, 'avail'):
-            setattr(animation.writers, 'avail', animation.writers.list())
+            where = frame_idx.index(ind)
+            print(f' Saving video to {fullName}...', int(100*where / len(frame_idx)), '%', end = '\r')
+            return plotter.refresh(ind)
 
-        if args.gif:
-            writers = ('pillow', 'imagemagick')
-            ext = 'gif'
-        else:
-            writers = ('avconv','ffmpeg')
-            ext = 'mp4'
+        ani = animation.FuncAnimation(plotter.F, refresh_video, frames=frame_idx, interval=1, blit=True, repeat=False)
 
         for writer in writers:
             if writer in animation.writers.avail:
                 Writer = animation.writers[writer]
                 break
         if Writer is None:
+            print(f' Saving video to {fullName}...')
             print(f'Could not find suitable writer for {ext} files')
             sys.exit(0)
 
         writer = Writer(fps=1./(args.video*args.dt), bitrate=1800)
         ani.save(filename= f'{fullName}.{ext}', writer=writer)
+        print('')
         print('time taken: %f' % (time.time() - t))
         #ani.close()
