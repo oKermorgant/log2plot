@@ -5,6 +5,7 @@ A Python script is then used to plot the files with various options.
 ## Dependencies
 
 * Required: C++ 17
+* Required: Python3 Matplotlib (with Axes3D support)
 * Optional: [`pyvista`](https://docs.pyvista.org/version/stable/) to use meshes in the plots
 
 ## Changes from v3
