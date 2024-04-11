@@ -1300,7 +1300,7 @@ if __name__ == "__main__":
             sys.exit(0)
 
         writer = Writer(fps=1./(args.video*args.dt), bitrate=1800)
-        ani.save(filename= f'{fullName}.{ext}', writer=writer)
+        ani.save(filename= f'{fullName}', writer=writer)
         print('')
         print('time taken: %f' % (time.time() - t))
         #ani.close()
