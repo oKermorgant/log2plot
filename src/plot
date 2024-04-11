@@ -143,6 +143,7 @@ arg3Dplot.add_argument('--nbcam', type=int, help='Number of moving objects to be
 arg3Dplot.add_argument('--alpha', type=float, help='Override alpha-parameter for alpha shapes', default=None)
 arg3Dplot.add_argument('--decimate', type=float, help='Override decimate-parameter for alpha shapes', default=None)
 arg3Dplot.add_argument('--clean', type=float, help='Override clean-parameter for alpha shapes', default=None)
+arg3Dplot.add_argument('--scaleMoving', type=float, help='Override scaling factor of moving shapes', default=0.)
 
 # video args
 argVid = parser.add_argument_group('Video options')
@@ -298,10 +299,13 @@ class Shape:
         else:
             self.lw = 0
 
-        if 'scale' in obj:
-            self.scale = obj['scale']
+        if 'scale' in obj or args.scaleMoving != 0:
+            if args.scaleMoving != 0:
+                self.scale = args.scaleMoving
+            else:
+                self.scale = obj['scale']
             # normalize object size to 1, will be scaled according to axis size
-            self.nodes *= obj['scale'] / max(pl.norm(node) for node in self.nodes.T)
+            self.nodes *= self.scale / max(pl.norm(node) for node in self.nodes.T)
         else:
             self.scale = None
 
@@ -1003,8 +1007,11 @@ def readFileList(filenames, n=0, base_path = '.'):
                 elif type(d[key]) != list:
                     d[key] = [d[key]]
                 if len(d[key]) > expected_size:
-                    # field too large
-                    d[key] = [d[key][ind] for ind in args.only]
+                    # field too large, maybe because args?
+                    if args.only:
+                        d[key] = [d[key][ind] for ind in args.only]
+                    else:
+                        d[key] = d[key][:expected_size]
                 else:
                     # field ok or too small
                     if not isinstance(d[key], list):
