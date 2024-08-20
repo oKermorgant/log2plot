@@ -61,7 +61,7 @@ def toTex(s, math = True):
         back_tilde = '' if back_idx == len(s)-1 else '~'
 
         s = '{}{}\\text{{{}}}{}{}'.format(s[:front_idx], front_tilde,
-                                        s[front_idx+1:back_idx].replace('_','\_'),
+                                        s[front_idx+1:back_idx].replace('_','\\_'),
                                         back_tilde, s[back_idx+1:])
     return '$' + s + '$'
 
