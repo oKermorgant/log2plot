@@ -5,8 +5,7 @@ int main(int argc, char** argv)
 {
   std::string parser_path(LOG2PLOT_EXAMPLE_PATH);
   parser_path += "/parser";
-  log2plot::ConfigManager config(parser_path + "/config.yaml");
-  config.updateFrom(argc, argv);
+  log2plot::ConfigManager config(parser_path + "/config.yaml", argc, argv);
 
   // explicit specialization allows 1-line parsing
   std::cout << config.read<std::string>("dataPath") << "\n\n";

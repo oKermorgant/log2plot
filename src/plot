@@ -436,7 +436,7 @@ class Shape:
                     # By definition, radius of the sphere fitting inside the tetrahedral needs
                     # to be smaller than alpha value
                     # http://mathworld.wolfram.com/Circumsphere.html
-                    tetrapos = pl.take(nodes,tetra.vertices,axis=0)
+                    tetrapos = pl.take(nodes,tetra.simplices,axis=0)
                     normsq = pl.sum(tetrapos**2,axis=2)[:,:,None]
                     ones = pl.ones((tetrapos.shape[0],tetrapos.shape[1],1))
                     a = pl.linalg.det(pl.dstack((tetrapos,ones)))
@@ -450,7 +450,7 @@ class Shape:
                     r = pl.sqrt(D)/(2*abs(a))
 
                     # Find tetrahedrals
-                    tetras = tetra.vertices[r < alpha,:]
+                    tetras = tetra.simplices[r < alpha,:]
                     # triangles
                     TriComb = pl.array([(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)])
                     Triangles = tetras[:,TriComb].reshape(-1,3)
