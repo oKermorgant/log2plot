@@ -164,7 +164,7 @@ if(PYTHON_BINDINGS)
   install(FILES src/__init__.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 endif()
 # ROS bag converter
-install(FILES src/bag2log.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
+#install(FILES src/bag2log.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 

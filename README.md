@@ -43,6 +43,7 @@ The logged variables have to be containers of some sort, as long as the followin
 Besides these two points, all kind of data can be saved, but of course they will not be plottable if not numerical.
 
 Four types of data may be logged:
+
 * Iteration-based data will use the index as the X-axis for the plots.
   * `logger.save(v, name, legend, ylabel)`
   * `legend` should be a YAML-style list and may be using Latex: `"[v_x, \\omega_z]"`
@@ -67,6 +68,7 @@ This will log data into the file: `fileprefix + name + .yaml`
 ### General options
 
 Log is actually done when calling `logger.update();`, typically from inside a loop. Two parameters can be changed:
+
 * Subsampling to log only once every n updates: `logger.setSubSampling(n)` (default 1)
 * Buffer size before writing to the file: `logger.setBuffer(b)` (default 10)
 * The plot can be done directly from C++ if needed: `logget.plot(script_path)`, where `script_path` is the path to the Python script. The default value is the path at library compile time.
@@ -76,6 +78,7 @@ Options should be given before calling the first `update()`.
 ### Iteration or time-based options
 
 The following commands will be applied to the last added variable:
+
 * Units: `logger.setUnits("[unit1, unit2, unit2]");` will save the units for the 3 first components
 * Line styles: `logger.setLineType(["b, g, r--]");`, line styles have to be defined in Matplotlib styles (color + line style)
 * particular time steps: `logger.setSteps({});`, will display dashed vertical lines at those instant
@@ -87,6 +90,7 @@ The `log2plot::Shape` defines an arbitrary shape from a set of nodes (`vector<So
 The default graph is empty, leading to point clouds.
 
 Such a shape can be applied to the last added variable:
+
 * `logger.showMovingShape(log2plot::Shape)` for 2D graphs
 * `logger.showMovingShape(log2plot::Shape, log2plot::Surface = log2plot::PointCloud)` for 3D graphs
   * Using surfaces other than `log2plot::PointCloud` requires the Python module `pyvista`
@@ -98,6 +102,7 @@ Such a shape can be applied to the last added variable:
   * if the color of the `Shape` includes any marker (such as `bD`) then the points will also be displayed along the surface
 
 A few builtin shapes are defines for 3D plots:
+
 * `log2plot::Camera`: a camera that will scale to the axis size
 * `log2plot::Box`: a box defined by its lower and upper corners
 * `log2plot::Frame`: a 3D RGB frame that will scale to the axis size
@@ -107,6 +112,7 @@ Once defined, a `Shape` can be modified through `Shape.transform(pose, color, le
 ### Not a Number
 
 If some (double) logged data is non defined or irrelevant at some point, it is possible to keep logging but write Not a Number so that it will not be plotted. The syntax is:
+
 * `v[0] = log2plot::nan;` to erase only one component.
 * `log2plot::setNaN(v, 0, 2);` to erase components 0 and 1 from the v vector or array.
 
