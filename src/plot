@@ -931,7 +931,22 @@ def readFileList(filenames, n=0, base_path = '.'):
     k = 0
 
     def toPath(filename):
-        return filename if os.path.isabs(filename) else os.path.join(base_path, filename)
+        ext_try = ['yml', 'yaml', 'txt']
+        ext_try = sorted(ext_try + [''] + ['.'+e for e in ext_try])
+
+        if not os.path.isabs(filename):
+            filename_abs = os.path.join(base_path, filename)
+        else:
+            filename_abs = filename
+
+        for ext in ext_try:
+            if os.path.exists(filename_abs + ext):
+                if ext:
+                    print(f'Assuming {filename} is for {filename + ext}')
+                return filename_abs + ext
+
+        print(filename + ' could not be found')
+        sys.exit(0)
 
     for file_idx,filename in enumerate(filenames):
 
@@ -1079,22 +1094,6 @@ def readFileList(filenames, n=0, base_path = '.'):
 if __name__ == "__main__":
 
     pl.close('all')
-
-    # check files
-    ext_try = ['yml', 'yaml', 'txt']
-    ext_try += ['.'+e for e in ext_try]
-    for i,f in enumerate(args.files):
-        if not os.path.lexists(f):
-            found = False
-            for ext in ext_try:
-                if os.path.lexists(f + ext):
-                    found = True
-                    print('Assuming {} is for {}'.format(f, f + ext))
-                    args.files[i] = f + ext
-                    break
-            if not found:
-                print(f + ' could not be found')
-                sys.exit(0)
 
     #  if directory was given, then process all inner .txt files with the same arguments (= replot all files)
     if os.path.isdir(args.files[0]):
