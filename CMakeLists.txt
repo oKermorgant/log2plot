@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
 project(log2plot)
 
+# By default set release configuration
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
+
 option(BUILD_EXAMPLES "BUILD_EXAMPLES" ON)
 option(ENABLE_DYNAMIC_PLOT "ENABLE_DYNAMIC_PLOT" ON)
 option(BUILD_PARSER "BUILD_PARSER" ON)

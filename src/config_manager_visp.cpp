@@ -85,7 +85,11 @@ void ConfigManager::read(TagList tags, vpHomogeneousMatrix &M) const
   {
     vpPoseVector p;
     read(tags, p);
+#if VISP_VERSION_INT > VP_VERSION_INT(3, 6, 0)
+    M.build(p);
+#else
     M.buildFrom(p);
+#endif
   } catch (...)
   {
     // read as 4x4 matrix
@@ -100,7 +104,11 @@ void ConfigManager::read(TagList tags, vpRotationMatrix &R) const
   {
     vpThetaUVector tu;
     read(tags, tu);
+#if VISP_VERSION_INT > VP_VERSION_INT(3, 6, 0)
+    R.build(tu);
+#else
     R.buildFrom(tu);
+#endif
   } catch (...)
   {
     // read as 3x3 matrix
