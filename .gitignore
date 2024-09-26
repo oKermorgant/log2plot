@@ -71,7 +71,7 @@ Thumbs.db
 *.pdf
 *.mp4
 *.gif
+
 !examples/parser/config.yaml
 include/log2plot/matplotlibcpp.h
 include/log2plot/defines.h
-
