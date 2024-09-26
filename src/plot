@@ -785,7 +785,10 @@ class Plotter3D:
                 #updateLim(bounds)
 
         self.F = pl.figure(figsize=(1.7*args.fig[0],1.5*args.fig[0]))
-        self.ax = self.F.add_subplot(111, projection='3d', computed_zorder=not has_mesh)
+        try:
+            self.ax = self.F.add_subplot(111, projection='3d', computed_zorder=not has_mesh)
+        except AttributeError:
+            self.ax = self.F.add_subplot(111, projection='3d')
         self.F.tight_layout(pad=.1,h_pad=.9,w_pad=.9)
         self.ax.view_init(args.ae[1],args.ae[0])
         if args.zoom > 0:
