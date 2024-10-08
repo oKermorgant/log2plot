@@ -45,11 +45,7 @@ int main()
     // update pose
     M = vpExponentialMap::direct(v) * M;
     // update pose vector
-  #if VISP_VERSION_INT > VP_VERSION_INT(3, 6, 0)
-    pose.build(M);
-  #else
     pose.buildFrom(M);
-  #endif
 
     // log
     logger.update();
