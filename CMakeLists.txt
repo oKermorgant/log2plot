@@ -164,12 +164,15 @@ install(PROGRAMS src/plot DESTINATION bin RENAME ${PROJECT_NAME})
 # Python modules
 execute_process(COMMAND python3 -V OUTPUT_VARIABLE PYTHON_VERSION_FULL)
 string(REGEX MATCH [0-9]\.[0-9]+ PYTHON_VERSION ${PYTHON_VERSION_FULL})
+
 # log2plot wrapper
 if(PYTHON_BINDINGS)
-  install(FILES src/__init__.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
+
+  set(CONFIGURED_MODULE "${PROJECT_BINARY_DIR}/python/__init__.py")
+  configure_file(src/__init__.py "${CONFIGURED_MODULE}")
+  install(FILES ${CONFIGURED_MODULE}
+          DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 endif()
-# ROS bag converter
-#install(FILES src/bag2log.py DESTINATION lib/python${PYTHON_VERSION}/dist-packages/log2plot)
 
 set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
 

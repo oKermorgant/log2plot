@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import cppyy
-import os
-# install_path/lib/pythonX.Y/dist-packages/log2plot/__init__.py
-install_path = os.path.abspath(__file__)
-for _ in range(5):
-    install_path = os.path.dirname(install_path)
 
-cppyy.add_include_path(install_path + '/include')
+include_directories = "${INCLUDE_DEPENDS}"
+install_path = "${CMAKE_INSTALL_PREFIX}"
+
+for directory in include_directories.split(';'):
+    if directory.startswith('/'):
+        cppyy.add_include_path(directory)
+
 cppyy.include('log2plot/logger.h')
 cppyy.include('log2plot/config_manager.h')
-cppyy.load_library(install_path + '/lib/liblog2plot.so')
+cppyy.load_library(f'{install_path}/lib/liblog2plot.so')
 
 # put methods / classes from log2plot C++ namespace into this one
 for m in dir(cppyy.gbl.log2plot) + ['Logger', 'ConfigManager']:
