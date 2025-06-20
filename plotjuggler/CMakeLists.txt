@@ -83,8 +83,7 @@ endif()
 
 add_library(log2plotjuggler SHARED src/log2plot_yaml.cpp)
 
-target_link_libraries(log2plotjuggler
-    ${PJ_LIBRARIES})
+target_link_libraries(log2plotjuggler ${PJ_LIBRARIES})
 
 if (COMPILING_WITH_AMENT)
     ament_target_dependencies(log2plotjuggler plotjuggler)

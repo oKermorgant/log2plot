@@ -117,6 +117,7 @@ argFontLine.add_argument('-s', '--fontSize', metavar='size', type=int, help='Glo
 argFontLine.add_argument('--fontAxes', metavar='size', type=int, help='Size adjustment for axes fonts', default=0)
 argFontLine.add_argument('--fontLabel', metavar='size', type=int, help='Size adjustment for label fonts',default=2)
 argFontLine.add_argument('--fontLegend', metavar='size', type=int, help='Size adjustment for legend fonts',default=1)
+argFontLine.add_argument('--markEvery', metavar='subsampling', type=int, help='Subsampling for markers along line',default=10)
 argFontLine.add_argument('-l', '--lineWidth', metavar='width', type=int, help='Line width',default=2)
 
 # legend and label args
@@ -605,13 +606,19 @@ class Plotter2D:
             # add lines
             sublines = []
             if dataSt.dataType == DT_TIMED_XY:
-                sublines += plot2D([], [], dataSt.lineType[0], label = dataSt.legend[0], linewidth=('k--' in dataSt.lineType[0] and args.lineWidth-1 or args.lineWidth), markevery=(0, dataSt.rows//10))
+                sublines += plot2D([], [], dataSt.lineType[0], label = dataSt.legend[0],
+                                   linewidth=('k--' in dataSt.lineType[0] and args.lineWidth-1 or args.lineWidth),
+                                   markevery=(0, dataSt.rows//args.markEvery) if args.markEvery else (0, 1))
             else:
                 for j in range(dataSt.data.shape[1]):
-                    if full_line(dataSt, j): # black lines without legend are always plotted entirely (usually axes or bounds)
-                        plot2D(xval(dataSt,j), dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
+                    if full_line(dataSt, j):  # black lines without legend are always plotted entirely (usually axes or bounds)
+                        plot2D(xval(dataSt,j), dataSt.data[:,j], dataSt.lineType[j],
+                               linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth))
                     else:
-                        sublines += plot2D([], [], dataSt.lineType[j], label = dataSt.legend[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
+                        sublines += plot2D([], [], dataSt.lineType[j],
+                                           label = dataSt.legend[j],
+                                           linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth),
+                                           markevery=(j, dataSt.rows//args.markEvery) if args.markEvery else (0, 1))
                     if j == args.twin:
                         # change axe
                         ax = ax.twinx()
