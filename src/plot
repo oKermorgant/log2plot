@@ -1024,7 +1024,7 @@ def readFileList(filenames, n=0, base_path = '.'):
 
             expected_size = d['data'].shape[1]
             if d['dataType'] == DT_POSE:
-                expected_size = int(expected_size/6)
+                expected_size = 3
             for key in ('units', 'legend', 'lineType'):
                 # create key
                 if key not in d:
@@ -1055,7 +1055,7 @@ def readFileList(filenames, n=0, base_path = '.'):
                 for i in range(d['data'].shape[1]):
                     if d['lineType'][i] == '':
                         d['lineType'][i] = plot_colors[k%len(plot_colors)] + '-'+ plot_markers[k%len(plot_markers)]
-                        k+=1
+                        k += 1
             if 'legend' in d:
                 # empty legends if legend is not displayed
                 if args.legendLoc == 'none':

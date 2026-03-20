@@ -20,17 +20,7 @@ class ConfigManager
   using TagList = const std::vector<std::string> &;
 
 public:
-  explicit ConfigManager(std::string filename, int argc = 0, char **argv = nullptr) : config_file(filename)
-  {
-    try {
-      config = YAML::LoadFile(filename);
-    } catch (...) {
-      throw std::runtime_error("log2plot::ConfigManager: cannot load file \n"
-                               "  - file: " + config_file);
-    }
-    if(argc)
-      updateFrom(argc, argv);
-  }
+  explicit ConfigManager(std::string filename, int argc = 0, char **argv = nullptr);
 
   void updateFrom(int argc, char**argv, bool warn = false);
 

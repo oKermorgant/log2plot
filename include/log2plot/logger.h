@@ -8,7 +8,6 @@
 #include <cmath>
 #include <sstream>
 #include <assert.h>
-#include <optional>
 
 #include <log2plot/defines.h>
 #include <log2plot/container.h>
@@ -79,13 +78,7 @@ protected:
 
 public:
   // constructor with default values
-  Logger(const std::string &_file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1)
-    :  file_path(_file_path), buff(_buffer), subsamp(_subsampling)
-  {
-    logged_vars.clear();
-    steps.clear();
-    steps_timed.clear();
-  }
+  Logger(const std::string &_file_path = "", unsigned int _buffer = 10, unsigned int _subsampling = 1);
 
   ~Logger()
   {

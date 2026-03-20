@@ -1,7 +1,6 @@
 #include <sstream>
-#include <fstream>
 #include <algorithm>
-#include <filesystem>
+#include <log2plot/filesystem.h>
 #include <log2plot/logger.h>
 
 
@@ -15,6 +14,15 @@ using std::cout;
 using std::endl;
 
 template <typename... Args> inline void UNUSED(Args&&...) {}
+
+Logger::Logger(const std::string &_file_path, unsigned int _buffer, unsigned int _subsampling)
+    :  file_path{expand_home_dir(_file_path)}, buff{_buffer}, subsamp{_subsampling}
+{
+  logged_vars.clear();
+  steps.clear();
+  steps_timed.clear();
+}
+
 
 // Generic variable
 void Logger::writeInitialInfo(const std::string &name, const std::string &legend, const std::string &xlabel, const std::string &ylabel, const bool &keep_file)

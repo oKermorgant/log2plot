@@ -1,16 +1,26 @@
 #include <log2plot/config_manager.h>
-#include <filesystem>
+#include <log2plot/filesystem.h>
 #include <math.h>
 
 namespace log2plot
 {
 
-constexpr auto sep{std::filesystem::path::preferred_separator};
+ConfigManager::ConfigManager(std::string filename, int argc, char **argv) : config_file{expand_home_dir(filename)}
+{
+  try {
+    config = YAML::LoadFile(config_file);
+  } catch (...) {
+    throw std::runtime_error("log2plot::ConfigManager: cannot load file \n"
+                             "  - file: " + config_file);
+  }
+  if(argc)
+    updateFrom(argc, argv);
+}
 
 void ConfigManager::setDirName(const std::string &path)
 {
-  std::filesystem::create_directories(path);
-  base_dir = path;
+  base_dir = expand_home_dir(path);
+  std::filesystem::create_directories(base_dir);
   if(base_dir.back() != sep)
     base_dir += sep;
 }
