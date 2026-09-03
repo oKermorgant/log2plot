@@ -1,2 +1,7 @@
 #cmakedefine LOG2PLOT_WITH_VISP
 #cmakedefine LOG2PLOT_WITH_DEPRECATED
+
+#ifdef LOG2PLOT_WITH_VISP
+    namespace visp{}
+    using namespace visp;
+#endif
