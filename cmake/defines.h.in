@@ -2,6 +2,9 @@
 #cmakedefine LOG2PLOT_WITH_DEPRECATED
 
 #ifdef LOG2PLOT_WITH_VISP
-    namespace visp{}
+  namespace visp{}
+  namespace log2plot
+  {
     using namespace visp;
+  }
 #endif
