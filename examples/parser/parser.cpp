@@ -1,6 +1,11 @@
 #include <log2plot/config_manager.h>
 #include <iostream>
 
+#ifdef LOG2PLOT_WITH_VISP
+namespace visp {}
+using namespace visp;
+#endif
+
 int main(int argc, char** argv)
 {
   std::string parser_path(LOG2PLOT_EXAMPLE_PATH);

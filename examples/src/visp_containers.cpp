@@ -3,6 +3,9 @@
 #include <visp/vpExponentialMap.h>
 #include <log2plot/logger.h>
 
+namespace visp {}
+using namespace visp;
+
 int main()
 {
   log2plot::closePreviousPlots();
