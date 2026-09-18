@@ -165,11 +165,15 @@ if args.nodisplay:
     # tell matplotlib that no X-server is needed
     mpl.use('Agg')
 
+
 import pylab as pl
 from numpy import array, matrix, sin, cos, nanmax, nanmin
 from mpl_toolkits import mplot3d
 from matplotlib.font_manager import FontProperties
-from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
+
+# InsetPosition does not exist as of Ubuntu 26.04
+# from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition, mark_inset)
+from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, mark_inset)
 
 
 # function to and check consistency and links between arguments
@@ -198,7 +202,7 @@ def checkArgs(parsed):
     parsed.hideLabel = [c.lower() for c in parsed.hideLabel]
     parsed.hideAxis = [c.lower() for c in parsed.hideAxis]
 
-    avail_legends = ('best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center' 'center', 'out', 'none')
+    avail_legends = ('best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center', 'out', 'none')
 
     if parsed.legendLoc == '-1':
         parsed.legendLoc = 'none'
@@ -712,7 +716,7 @@ class Plotter2D:
                     plot2D(dataSt.x, dataSt.data[:,j], dataSt.lineType[j], linewidth=('k--' in dataSt.lineType[j] and args.lineWidth-1 or args.lineWidth), markevery=(j, dataSt.rows//10))
 
         # resize fig
-        #F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
+        # F.tight_layout(pad=.2,h_pad=.8,w_pad=.8)
         self.F.tight_layout()
 
     def refresh(self, ind = -1):
@@ -729,14 +733,14 @@ class Plotter2D:
                 iline += 1
             else:
                 for j in range(dataSt.data.shape[1]):
-                    if not full_line(dataSt, j): # is a line to be refreshed
+                    if not full_line(dataSt, j):  # is a line to be refreshed
                         if dataSt.dataType == DT_XY:
                             self.lines[iline].set_data(dataSt.x[:ind,j], dataSt.data[:ind,j])
                         else:
                             self.lines[iline].set_data(dataSt.x[:ind], dataSt.data[:ind,j])
                         iline += 1
         # display legends if needed
-        #draw()
+        # draw()
         ax_legend = self.all_ax
         if args.twin != -1:
             ax_legend = self.all_ax[args.twin+1]
